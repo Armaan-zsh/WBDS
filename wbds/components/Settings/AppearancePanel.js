@@ -101,8 +101,10 @@ export default function AppearancePanel() {
       `}</style>
 
             <div>
-                <div style={{ paddingBottom: '20px', fontSize: '14px', fontWeight: 'bold', letterSpacing: '1px' }}>
-                    WBDS // SETTINGS
+                <div>
+                    <div style={{ paddingBottom: '20px', fontSize: '18px', fontWeight: 'bold', letterSpacing: '0px' }}>
+                        Settings
+                    </div>
                 </div>
             </div>
 

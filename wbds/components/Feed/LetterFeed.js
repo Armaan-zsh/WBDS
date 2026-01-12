@@ -4,7 +4,7 @@ export default function LetterFeed({ letters, onLetterClick }) {
     if (!letters || letters.length === 0) {
         return (
             <div className="empty-state">
-                <p>The void is silent.</p>
+                <p></p>
                 <style jsx>{`
           .empty-state {
             text-align: center;
