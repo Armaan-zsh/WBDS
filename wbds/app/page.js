@@ -129,7 +129,15 @@ export default function Home() {
             <div className="main-content">
                 {/* Header */}
                 <div style={{ paddingBottom: '40px', opacity: 0.5, letterSpacing: '2px', fontSize: '12px', textTransform: 'uppercase', textAlign: 'center' }}>
-                    WBDS / READ
+                    <span
+                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        style={{ cursor: 'pointer', margin: '0 8px' }}
+                    >WBDS</span>
+                    /
+                    <span
+                        onClick={() => document.querySelector('.feed-section').scrollIntoView({ behavior: 'smooth' })}
+                        style={{ cursor: 'pointer', margin: '0 8px' }}
+                    >READ</span>
                 </div>
 
                 <div className="animate-enter">

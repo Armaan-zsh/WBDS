@@ -76,6 +76,47 @@
   --glass-border: rgba(48, 209, 88, 0.2);
 }
 
+/* THEME: SUNSET (Vaporwave/Retrowave) */
+[data-theme='sunset'] {
+  --bg-depth: #2d1b2e;
+  /* Deep Purple */
+  --bg-surface: #432c44;
+  --text-primary: #ff9e64;
+  /* Orange */
+  --text-secondary: #b392f0;
+  /* Lavender */
+
+  --glass-bg: rgba(67, 44, 68, 0.7);
+  --glass-border: rgba(255, 158, 100, 0.2);
+}
+
+/* THEME: FOREST (Nature) */
+[data-theme='forest'] {
+  --bg-depth: #1a2f23;
+  /* Dark Green */
+  --bg-surface: #243e30;
+  --text-primary: #e8f5e9;
+  /* Off White */
+  --text-secondary: #a5d6a7;
+  /* Light Green */
+
+  --glass-bg: rgba(36, 62, 48, 0.7);
+  --glass-border: rgba(165, 214, 167, 0.1);
+}
+
+/* THEME: COFFEE (Latte) */
+[data-theme='coffee'] {
+  --bg-depth: #2b211e;
+  /* Dark Roast */
+  --bg-surface: #3e2f2a;
+  --text-primary: #d7ccc8;
+  /* Foam */
+  --text-secondary: #a1887f;
+
+  --glass-bg: rgba(62, 47, 42, 0.7);
+  --glass-border: rgba(215, 204, 200, 0.1);
+}
+
 html,
 body {
   margin: 0;
@@ -106,6 +147,16 @@ body {
 
 [data-font='hand'] {
   --font-current: var(--font-family-hand);
+}
+
+[data-font='typewriter'] {
+  --font-current: 'Courier New', Courier, monospace;
+}
+
+/* Force Terminal Font for Terminal Theme if desired, but user can mix match */
+[data-theme='terminal'] {
+  --font-current: 'SF Mono', 'Menlo', 'Courier New', monospace;
+  /* Hacky default? No, let user choose */
 }
 
 

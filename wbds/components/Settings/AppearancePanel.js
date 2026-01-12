@@ -135,9 +135,21 @@ export default function AppearancePanel() {
                         <div className="preview-circle" style={{ background: '#261010' }}></div>
                         Rose
                     </button>
-                    <button className={`option-btn ${theme === 'terminal' ? 'active' : ''}`} onClick={() => applyTheme('terminal')}>
+                    <button className={`option-btn ${theme === 'terminal' ? 'active' : ''}`} onClick={() => { applyTheme('terminal'); applyFont('typewriter'); }}>
                         <div className="preview-circle" style={{ background: '#0a0a0a', border: '1px solid #30d158' }}></div>
                         Terminal
+                    </button>
+                    <button className={`option-btn ${theme === 'sunset' ? 'active' : ''}`} onClick={() => applyTheme('sunset')}>
+                        <div className="preview-circle" style={{ background: 'linear-gradient(45deg, #2d1b2e, #432c44)' }}></div>
+                        Sunset
+                    </button>
+                    <button className={`option-btn ${theme === 'forest' ? 'active' : ''}`} onClick={() => applyTheme('forest')}>
+                        <div className="preview-circle" style={{ background: '#1a2f23' }}></div>
+                        Forest
+                    </button>
+                    <button className={`option-btn ${theme === 'coffee' ? 'active' : ''}`} onClick={() => applyTheme('coffee')}>
+                        <div className="preview-circle" style={{ background: '#2b211e' }}></div>
+                        Coffee
                     </button>
                 </div>
             </div>
@@ -157,6 +169,9 @@ export default function AppearancePanel() {
                     </button>
                     <button className={`option-btn ${font === 'hand' ? 'active' : ''}`} onClick={() => applyFont('hand')}>
                         <span style={{ fontFamily: 'cursive' }}>Aa</span> Hand
+                    </button>
+                    <button className={`option-btn ${font === 'typewriter' ? 'active' : ''}`} onClick={() => applyFont('typewriter')}>
+                        <span style={{ fontFamily: 'Courier New' }}>Aa</span> Type
                     </button>
                 </div>
             </div>
