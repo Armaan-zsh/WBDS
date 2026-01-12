@@ -49,36 +49,39 @@ export default function Home() {
          }
 
          .sidebar {
-            width: ${isDesktop && isSidebarOpen ? '280px' : '0px'};
+            width: ${isDesktop && isSidebarOpen ? '320px' : '0px'};
             overflow: hidden;
-            transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            position: relative;
+            transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative; /* It acts as a spacer */
             z-index: 10;
             opacity: ${isDesktop && isSidebarOpen ? 1 : 0};
+            pointer-events: ${isDesktop && isSidebarOpen ? 'auto' : 'none'};
          }
          
          .toggle-btn {
             position: fixed;
-            left: ${isDesktop && isSidebarOpen ? '260px' : '20px'};
-            bottom: 30px; 
-            z-index: 20;
-            background: var(--bg-surface);
-            border: 1px solid var(--glass-border);
+            left: ${isDesktop && isSidebarOpen ? '300px' : '40px'};
+            top: 50%;
+            transform: translateY(-50%); 
+            z-index: 100;
+            background: transparent;
+            border: none;
             color: var(--text-secondary);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            width: auto;
+            height: auto;
+            padding: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            font-size: 18px;
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            font-size: 32px;
+            opacity: 0.6;
          }
          
          .toggle-btn:hover {
-            transform: scale(1.1);
+            opacity: 1;
+            transform: translateY(-50%) translateX(4px);
             color: var(--text-primary);
          }
 
@@ -90,7 +93,7 @@ export default function Home() {
             margin: 0 auto;
             padding: 40px 20px;
             position: relative;
-            transition: margin 0.4s ease;
+            transition: margin 0.5s ease;
          }
        `}</style>
 
@@ -126,7 +129,7 @@ export default function Home() {
             <div className="main-content">
                 {/* Header */}
                 <div style={{ paddingBottom: '40px', opacity: 0.5, letterSpacing: '2px', fontSize: '12px', textTransform: 'uppercase', textAlign: 'center' }}>
-                    WBDS / The Void
+                    WBDS
                 </div>
 
                 <div className="animate-enter">

@@ -30,17 +30,24 @@ export default function AppearancePanel() {
         <div className="panel-container">
             <style jsx>{`
         .panel-container {
-            width: 250px;
-            padding: 24px;
+            width: 260px;
+            padding: 32px 24px;
             background: var(--bg-surface);
-            border-right: 1px solid var(--glass-border);
-            height: 100vh;
+            border: 1px solid var(--glass-border);
+            /* Centered Floating Card */
+            height: auto;
+            max-height: 80vh; 
             display: flex;
             flex-direction: column;
             gap: 32px;
             position: fixed;
-            left: 0;
-            top: 0;
+            left: 40px; 
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            backdrop-filter: blur(20px);
+            z-index: 50;
         }
 
         .section-title {
