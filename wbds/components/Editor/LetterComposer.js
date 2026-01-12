@@ -73,7 +73,7 @@ export default function LetterComposer({ onSend, onError }) {
           background: transparent;
           border: none;
           color: var(--text-primary);
-          font-family: 'Charter', 'Georgia', 'Times New Roman', serif; /* The "Letter" Look */
+          font-family: var(--font-current); /* Dynamic Font */
           font-size: 22px;
           line-height: 1.6;
           width: 100%;

@@ -1,44 +1,93 @@
-/* globals.css: The Physics of "The Void" */
+/* globals.css: The Physics of "The Void" and Beyond */
 
 :root {
-  /* THEME: DEEP SPACE (Dark Mode Only) */
+  /* DEFAULTS (THE VOID) */
   --bg-depth: #000000;
-  --bg-surface: #0a0a0a; /* Slightly lighter for cards */
-  --text-primary: #f2f2f7; /* iOS System Gray 6 */
-  --text-secondary: #8e8e93; /* iOS System Gray */
-  --accent-danger: #ff453a;  /* iOS System Red */
-  --accent-success: #30d158; /* iOS System Green (Dark) */
-  
-  /* GLASSMORPHISM FORMULA */
+  --bg-surface: #0a0a0a;
+  --text-primary: #f2f2f7;
+  --text-secondary: #8e8e93;
+  --accent-danger: #ff453a;
+  --accent-success: #30d158;
+
+  --font-family-base: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  --font-family-serif: 'Charter', 'Georgia', 'Times New Roman', serif;
+  --font-family-mono: 'SF Mono', 'Menlo', monospace;
+
+  --font-current: var(--font-family-serif);
+  /* Default for letters */
+
   --glass-bg: rgba(20, 20, 20, 0.65);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-blur: blur(20px) saturate(180%);
-  
-  /* SPRING PHYSICS */
+
   --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --ease-ios: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-html, body {
+/* THEME: PAPER (Light) */
+[data-theme='paper'] {
+  --bg-depth: #f2f0e9;
+  /* Off-white paper */
+  --bg-surface: #ffffff;
+  --text-primary: #1a1a1a;
+  /* Ink black */
+  --text-secondary: #666666;
+  --accent-danger: #d12e2e;
+  /* Red Ink */
+
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --glass-blur: blur(20px) saturate(120%);
+}
+
+/* THEME: MIDNIGHT (Blue) */
+[data-theme='midnight'] {
+  --bg-depth: #020817;
+  /* Deep Navy */
+  --bg-surface: #0f172a;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+html,
+body {
   margin: 0;
   padding: 0;
   background-color: var(--bg-depth);
   color: var(--text-primary);
-  /* The Secret Sauce: System Fonts */
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  
-  /* Prevent bounce on desktop, enable on mobile */
+  font-family: var(--font-family-base);
+  transition: background-color 0.5s ease, color 0.5s ease;
+  /* Smooth Switch */
+
   overscroll-behavior-y: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* FONT VARIANTS */
+[data-font='serif'] {
+  --font-current: var(--font-family-serif);
+}
+
+[data-font='sans'] {
+  --font-current: var(--font-family-base);
+}
+
+[data-font='mono'] {
+  --font-current: var(--font-family-mono);
+}
+
 
 /* --- UTILITIES --- */
 
 /* 1. The Container */
 .viewport {
   width: 100vw;
-  height: 100vh; /* dynamic viewport units handled in component */
+  height: 100vh;
+  /* dynamic viewport units handled in component */
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -51,7 +100,8 @@ html, body {
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
-  border-radius: 20px; /* iOS standard L */
+  border-radius: 20px;
+  /* iOS standard L */
 }
 
 /* 3. Button Physics */
@@ -62,13 +112,15 @@ html, body {
   font-weight: 600;
   font-size: 16px;
   padding: 14px 24px;
-  border-radius: 100px; /* Pill shape */
+  border-radius: 100px;
+  /* Pill shape */
   cursor: pointer;
   transition: transform 0.15s var(--ease-ios), opacity 0.2s ease;
 }
 
 .btn-action:active {
-  transform: scale(0.94); /* Haptic visual feedback */
+  transform: scale(0.94);
+  /* Haptic visual feedback */
   opacity: 0.8;
 }
 
@@ -97,14 +149,31 @@ html, body {
 /* --- ANIMATIONS --- */
 
 @keyframes floatUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-4px);
+  }
+
+  75% {
+    transform: translateX(4px);
+  }
 }
 
 .animate-enter {
