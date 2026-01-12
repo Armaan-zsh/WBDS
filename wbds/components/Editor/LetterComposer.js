@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { containsLinkPattern } from '../../utils/contentFilters';
 import { maskPrivateInfo, detectPotentialDox } from '../../utils/privacyShield';
 
-export default function LetterComposer({ onSend }) {
+export default function LetterComposer({ onSend, onError }) {
     const [text, setText] = useState('');
     const [isFocused, setIsFocused] = useState(false);
     const [errorShake, setErrorShake] = useState(false);
@@ -25,7 +25,7 @@ export default function LetterComposer({ onSend }) {
 
         if (containsLinkPattern(text)) {
             triggerShake();
-            alert("No links. The void rejects them.");
+            if (onError) onError("No links. The void rejects them.");
             return;
         }
 

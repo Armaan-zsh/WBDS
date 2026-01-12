@@ -1,6 +1,6 @@
 'use client';
 
-export default function LetterFeed({ letters }) {
+export default function LetterFeed({ letters, onLetterClick }) {
     if (!letters || letters.length === 0) {
         return (
             <div className="empty-state">
@@ -28,6 +28,12 @@ export default function LetterFeed({ letters }) {
            margin-bottom: 40px;
            opacity: 0;
            animation: fadeIn 0.8s ease forwards;
+           cursor: pointer;
+           transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        .letter-card:hover {
+           transform: scale(1.02);
+           opacity: 0.9;
         }
         
         .letter-content {
@@ -40,6 +46,9 @@ export default function LetterFeed({ letters }) {
            color: var(--text-primary);
            white-space: pre-wrap;
            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+           max-height: 300px;
+           overflow: hidden;
+           mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
         }
 
         .letter-meta {
@@ -57,7 +66,7 @@ export default function LetterFeed({ letters }) {
       `}</style>
 
             {letters.map((letter) => (
-                <div key={letter.id} className="letter-card">
+                <div key={letter.id} className="letter-card" onClick={() => onLetterClick(letter)}>
                     <div className="letter-content">
                         {letter.content}
                     </div>
