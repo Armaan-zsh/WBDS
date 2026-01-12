@@ -1,42 +1,116 @@
+/* globals.css: The Physics of "The Void" */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* THEME: DEEP SPACE (Dark Mode Only) */
+  --bg-depth: #000000;
+  --bg-surface: #0a0a0a; /* Slightly lighter for cards */
+  --text-primary: #f2f2f7; /* iOS System Gray 6 */
+  --text-secondary: #8e8e93; /* iOS System Gray */
+  --accent-danger: #ff453a;  /* iOS System Red */
+  --accent-success: #30d158; /* iOS System Green (Dark) */
+  
+  /* GLASSMORPHISM FORMULA */
+  --glass-bg: rgba(20, 20, 20, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: blur(20px) saturate(180%);
+  
+  /* SPRING PHYSICS */
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-ios: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-depth);
+  color: var(--text-primary);
+  /* The Secret Sauce: System Fonts */
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  
+  /* Prevent bounce on desktop, enable on mobile */
+  overscroll-behavior-y: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+/* --- UTILITIES --- */
+
+/* 1. The Container */
+.viewport {
+  width: 100vw;
+  height: 100vh; /* dynamic viewport units handled in component */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* 2. Glass Cards */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px; /* iOS standard L */
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* 3. Button Physics */
+.btn-action {
+  background: var(--text-primary);
+  color: var(--bg-depth);
+  border: none;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 14px 24px;
+  border-radius: 100px; /* Pill shape */
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-ios), opacity 0.2s ease;
+}
+
+.btn-action:active {
+  transform: scale(0.94); /* Haptic visual feedback */
+  opacity: 0.8;
+}
+
+.btn-danger {
+  background: rgba(255, 69, 58, 0.15);
+  color: var(--accent-danger);
+}
+
+/* 4. The Input Field (Invisible) */
+.void-input {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 20px;
+  line-height: 1.5;
+  width: 100%;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+}
+
+.void-input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* --- ANIMATIONS --- */
+
+@keyframes floatUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.animate-enter {
+  animation: floatUp 0.6s var(--ease-ios) forwards;
+}
+
+.animate-shake {
+  animation: shake 0.3s ease-in-out;
 }
