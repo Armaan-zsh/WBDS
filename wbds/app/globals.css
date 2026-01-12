@@ -12,6 +12,7 @@
   --font-family-base: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   --font-family-serif: 'Charter', 'Georgia', 'Times New Roman', serif;
   --font-family-mono: 'SF Mono', 'Menlo', monospace;
+  --font-family-hand: 'Snell Roundhand', 'Brush Script MT', 'Comic Sans MS', cursive;
 
   --font-current: var(--font-family-serif);
   /* Default for letters */
@@ -52,6 +53,29 @@
   --glass-border: rgba(255, 255, 255, 0.1);
 }
 
+/* THEME: ROSE (Soft Pink) */
+[data-theme='rose'] {
+  --bg-depth: #1a0b0b;
+  --bg-surface: #261010;
+  --text-primary: #fecaca;
+  --text-secondary: #fda4af;
+
+  --glass-bg: rgba(38, 16, 16, 0.7);
+  --glass-border: rgba(254, 202, 202, 0.1);
+}
+
+/* THEME: TERMINAL (Hacker) */
+[data-theme='terminal'] {
+  --bg-depth: #000000;
+  --bg-surface: #0a0a0a;
+  --text-primary: #30d158;
+  /* Matrix Green */
+  --text-secondary: #1a632d;
+
+  --glass-bg: rgba(0, 20, 0, 0.7);
+  --glass-border: rgba(48, 209, 88, 0.2);
+}
+
 html,
 body {
   margin: 0;
@@ -78,6 +102,10 @@ body {
 
 [data-font='mono'] {
   --font-current: var(--font-family-mono);
+}
+
+[data-font='hand'] {
+  --font-current: var(--font-family-hand);
 }
 
 

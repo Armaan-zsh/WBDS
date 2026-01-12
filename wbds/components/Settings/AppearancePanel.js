@@ -131,6 +131,14 @@ export default function AppearancePanel() {
                         <div className="preview-circle" style={{ background: '#f2f0e9' }}></div>
                         Paper
                     </button>
+                    <button className={`option-btn ${theme === 'rose' ? 'active' : ''}`} onClick={() => applyTheme('rose')}>
+                        <div className="preview-circle" style={{ background: '#261010' }}></div>
+                        Rose
+                    </button>
+                    <button className={`option-btn ${theme === 'terminal' ? 'active' : ''}`} onClick={() => applyTheme('terminal')}>
+                        <div className="preview-circle" style={{ background: '#0a0a0a', border: '1px solid #30d158' }}></div>
+                        Terminal
+                    </button>
                 </div>
             </div>
 
@@ -146,6 +154,9 @@ export default function AppearancePanel() {
                     </button>
                     <button className={`option-btn ${font === 'mono' ? 'active' : ''}`} onClick={() => applyFont('mono')}>
                         <span style={{ fontFamily: 'monospace' }}>Aa</span> Mono
+                    </button>
+                    <button className={`option-btn ${font === 'hand' ? 'active' : ''}`} onClick={() => applyFont('hand')}>
+                        <span style={{ fontFamily: 'cursive' }}>Aa</span> Hand
                     </button>
                 </div>
             </div>

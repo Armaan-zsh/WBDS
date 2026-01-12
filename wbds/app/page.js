@@ -129,7 +129,7 @@ export default function Home() {
             <div className="main-content">
                 {/* Header */}
                 <div style={{ paddingBottom: '40px', opacity: 0.5, letterSpacing: '2px', fontSize: '12px', textTransform: 'uppercase', textAlign: 'center' }}>
-                    WBDS
+                    WBDS / READ
                 </div>
 
                 <div className="animate-enter">
