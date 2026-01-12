@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { normalizeText, containsLinkPattern } from '../../utils/contentFilters';
+import { containsLinkPattern } from '../../utils/contentFilters';
 import { maskPrivateInfo, detectPotentialDox } from '../../utils/privacyShield';
 
 export default function LetterComposer({ onSend }) {
@@ -23,27 +23,23 @@ export default function LetterComposer({ onSend }) {
     const handleSend = () => {
         if (!text.trim()) return;
 
-        // 1. VIOLATION CHECK (Links)
         if (containsLinkPattern(text)) {
             triggerShake();
-            alert("No links. The void rejects them."); // Temporary, will be UI later
+            alert("No links. The void rejects them.");
             return;
         }
 
-        // 2. PRIVACY CHECK (Doxing)
         const doxRisk = detectPotentialDox(text);
         if (doxRisk.isRisky) {
-            // Ideally show a modal, for now alert
             const confirm = window.confirm("Privacy Warning: You mentioned real names and locations. Are you sure this is anonymous?");
             if (!confirm) return;
         }
 
-        // 3. SANITIZE
         const safeText = maskPrivateInfo(text);
 
         setStatus('SENDING');
         setTimeout(() => {
-            onSend(safeText); // Simulate network
+            onSend(safeText);
             setText('');
             setStatus('IDLE');
         }, 800);
@@ -64,36 +60,60 @@ export default function LetterComposer({ onSend }) {
 
     return (
         <div className={`composer-container ${isFocused ? 'focused' : ''}`}>
-            {/* 
-        We use inline styles for the composer specific layout to keep it co-located 
-        until we deciding on moving it to module.css
-      */}
             <style jsx>{`
         .composer-container {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          padding: 24px;
-          transition: all 0.4s var(--ease-ios);
+          width: 100%;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px 0;
+          transition: opacity 0.4s var(--ease-ios);
         }
-        .composer-container.focused {
-          background: #000; /* Deep black focus */
+        
+        .letter-input {
+          background: transparent;
+          border: none;
+          color: var(--text-primary);
+          font-family: 'Charter', 'Georgia', 'Times New Roman', serif; /* The "Letter" Look */
+          font-size: 22px;
+          line-height: 1.6;
+          width: 100%;
+          resize: none;
+          outline: none;
+          min-height: 150px;
+          padding: 0;
         }
+
+        .letter-input::placeholder {
+          color: rgba(255, 255, 255, 0.15);
+          font-style: italic;
+        }
+
         .controls {
           display: flex;
-          justify-content: space-between;
-          padding-top: 20px;
+          justify-content: flex-end;
+          gap: 12px;
+          padding-top: 24px;
           opacity: ${text.length > 0 ? 1 : 0};
           transform: translateY(${text.length > 0 ? 0 : '10px'});
-          transition: all 0.3s var(--ease-ios);
+          transition: all 0.4s var(--ease-ios);
           pointer-events: ${text.length > 0 ? 'auto' : 'none'};
+          border-top: 1px solid rgba(255,255,255,0.05);
+          margin-top: 20px;
+        }
+
+        .helper-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-right: auto;
+            align-self: center;
+            opacity: 0.6;
         }
       `}</style>
 
             <textarea
                 ref={textareaRef}
-                className={`void-input ${errorShake ? 'animate-shake' : ''}`}
-                placeholder="Write it down. Let it go..."
+                className={`letter-input ${errorShake ? 'animate-shake' : ''}`}
+                placeholder="Dear..."
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onFocus={() => setIsFocused(true)}
@@ -103,11 +123,12 @@ export default function LetterComposer({ onSend }) {
             />
 
             <div className="controls">
+                <span className="helper-text">{text.length} chars</span>
                 <button className="btn-action btn-danger" onClick={handleBurn}>
-                    {status === 'BURNING' ? '🔥 Burning...' : 'Burn it'}
+                    {status === 'BURNING' ? '🔥' : 'Burn'}
                 </button>
                 <button className="btn-action" onClick={handleSend}>
-                    {status === 'SENDING' ? '🕊️ Sending...' : 'Send to Void'}
+                    {status === 'SENDING' ? 'Sent' : 'Send'}
                 </button>
             </div>
         </div>

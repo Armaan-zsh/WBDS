@@ -1,30 +1,45 @@
 'use client';
 
+import { useState } from 'react';
 import LetterComposer from '../components/Editor/LetterComposer';
+import LetterFeed from '../components/Feed/LetterFeed';
 
 export default function Home() {
+    const [letters, setLetters] = useState([]);
 
     const handleLetterSent = (text) => {
-        console.log("Letter sent to void:", text);
-        // In next step: Add to local feed state
+        const newLetter = {
+            id: Date.now(),
+            content: text,
+            timestamp: Date.now()
+        };
+        // Add to top of feed
+        setLetters([newLetter, ...letters]);
     };
 
     return (
         <div style={{
-            height: '100%',
+            minHeight: '100%',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
             maxWidth: '600px',
-            margin: '0 auto'
+            margin: '0 auto',
+            padding: '20px 20px 0 20px'
         }}>
-            <div className="glass-card animate-enter" style={{ margin: '20px' }}>
+            {/* Header */}
+            <div style={{ padding: '20px 0', opacity: 0.5, letterSpacing: '2px', fontSize: '12px', textTransform: 'uppercase' }}>
+                WBDS / The Void
+            </div>
+
+            <div className="animate-enter">
                 <LetterComposer onSend={handleLetterSent} />
             </div>
 
-            <div style={{ textAlign: 'center', opacity: 0.3, fontSize: '12px', marginTop: '20px' }}>
-                <p>WBDS v0.1 • Anonymous • Encrypted</p>
+            <div className="feed-section">
+                <div style={{ margin: '40px 0 20px 0', borderBottom: '1px solid rgba(255,255,255,0.1)' }}></div>
+                <LetterFeed letters={letters} />
             </div>
+
         </div>
     );
 }
