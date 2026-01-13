@@ -337,22 +337,22 @@ export default function AppearancePanel() {
                 <div className="section-title" style={{ marginTop: '20px' }}>Atmosphere</div>
                 <div className="option-grid">
                     <button
-                        className={`option-btn ${isAmbienceOn && currentAmbience === 'space' ? 'active' : ''}`}
-                        onClick={() => handleAmbienceSelect('space')}
+                        className={`option-btn ${isAmbienceOn && currentAmbience === 'deep_space' ? 'active' : ''}`}
+                        onClick={() => handleAmbienceSelect('deep_space')}
                     >
-                        <span style={{ fontSize: '16px' }}>🌌</span> Space (Aphex)
+                        <span style={{ fontSize: '16px' }}>🌌</span> Deep Space
                     </button>
                     <button
-                        className={`option-btn ${isAmbienceOn && currentAmbience === 'vivaldi' ? 'active' : ''}`}
-                        onClick={() => handleAmbienceSelect('vivaldi')}
+                        className={`option-btn ${isAmbienceOn && currentAmbience === 'interstellar' ? 'active' : ''}`}
+                        onClick={() => handleAmbienceSelect('interstellar')}
                     >
-                        <span style={{ fontSize: '16px' }}>🎻</span> Vivaldi (Winter)
+                        <span style={{ fontSize: '16px' }}>🚀</span> Interstellar
                     </button>
                     <button
-                        className={`option-btn ${isAmbienceOn && currentAmbience === 'bach' ? 'active' : ''}`}
-                        onClick={() => handleAmbienceSelect('bach')}
+                        className={`option-btn ${isAmbienceOn && currentAmbience === 'cosmic_ocean' ? 'active' : ''}`}
+                        onClick={() => handleAmbienceSelect('cosmic_ocean')}
                     >
-                        <span style={{ fontSize: '16px' }}>🎹</span> Bach (Prelude)
+                        <span style={{ fontSize: '16px' }}>🌊</span> Cosmic Ocean
                     </button>
                 </div>
             </div>

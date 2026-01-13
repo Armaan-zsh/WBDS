@@ -234,193 +234,78 @@ const playGlitch = (ctx, dest) => {
     osc.stop(t + 0.1);
 };
 
-// --- MULTI-PROFILE ATMOSPHERE ENGINE ---
+// --- REAL AMBIENT AUDIO PLAYER ---
+// Uses HTML5 Audio to stream real ambient sound files from /public/audio/
 
-let ambienceInterval = null;
-let currentAmbienceProfile = 'space';
-let masterBus = null;
-let activeNodes = []; // Track oscillators to stop them
+let ambienceAudio = null;
+let currentAmbienceProfile = 'deep_space';
 
-const cleanupAmbience = () => {
-    if (ambienceInterval) clearTimeout(ambienceInterval);
-    ambienceInterval = null;
-
-    activeNodes.forEach(node => {
-        try { node.stop(); } catch (e) { }
-        try { node.disconnect(); } catch (e) { }
-    });
-    activeNodes = [];
-
-    if (masterBus) {
-        const bus = masterBus;
-        // Fade out
-        try {
-            bus.gain.cancelScheduledValues(audioCtx.currentTime);
-            bus.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
-            setTimeout(() => { bus.disconnect(); }, 1000);
-        } catch (e) { }
-        masterBus = null;
-    }
-};
-
-// 1. SPACE ENGINE (Aphex Style)
-const runSpaceLoop = (ctx, dest) => {
-    // FX Chain
-    const delay = ctx.createDelay();
-    delay.delayTime.value = 0.4;
-    const feedback = ctx.createGain();
-    feedback.gain.value = 0.4;
-    delay.connect(feedback);
-    feedback.connect(delay);
-    delay.connect(dest);
-
-    // Scale: A Minor Pentatonic
-    const scale = [220, 261.63, 293.66, 329.63, 392.00, 440, 523.25];
-
-    const tick = () => {
-        const r = Math.random();
-        const freq = scale[Math.floor(Math.random() * scale.length)];
-
-        if (r > 0.5) playFMBell(ctx, delay, freq);
-        else if (r > 0.2) playGlitch(ctx, dest);
-        else playFMBell(ctx, delay, freq / 2); // Bass
-
-        ambienceInterval = setTimeout(tick, 400 + Math.random() * 2000);
-    };
-    tick();
-};
-
-// 2. VIVALDI ENGINE (String Ensemble)
-const playViolin = (ctx, dest, freq, duration) => {
-    const osc = ctx.createOscillator();
-    osc.type = 'sawtooth';
-    osc.frequency.value = freq;
-
-    // Vibrato
-    const vib = ctx.createOscillator();
-    vib.frequency.value = 5; // 5Hz
-    const vibGain = ctx.createGain();
-    vibGain.gain.value = 3;
-    vib.connect(vibGain);
-    vibGain.connect(osc.frequency);
-
-    // Filter (Bowing texture)
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 2000;
-
-    // Envelope
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.5); // Slow attack
-    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration); // Release
-
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(dest);
-
-    osc.start();
-    vib.start();
-    osc.stop(ctx.currentTime + duration);
-    vib.stop(ctx.currentTime + duration);
-
-    activeNodes.push(osc, vib);
-};
-
-const runVivaldiLoop = (ctx, dest) => {
-    // Winter (F Minor) Arpeggios
-    const chord = [349.23, 415.30, 523.25, 698.46]; // F4, Ab4, C5, F5
-    let index = 0;
-
-    const tick = () => {
-        // Rapid bowing
-        playViolin(ctx, dest, chord[index % chord.length], 0.3);
-        index++;
-
-        // Occasional long note
-        if (Math.random() > 0.8) {
-            playViolin(ctx, dest, chord[0] / 2, 2.0); // Cello bass
-        }
-
-        ambienceInterval = setTimeout(tick, 200); // 16th notes
-    };
-    tick();
-};
-
-// 3. BACH ENGINE (Piano/Harpsichord)
-const playPiano = (ctx, dest, freq) => {
-    const t = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    osc.type = 'triangle'; // Mellower than saw
-    osc.frequency.value = freq;
-
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.4, t + 0.01); // Hammer strike
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 1.0); // Decay
-
-    osc.connect(gain);
-    gain.connect(dest);
-
-    osc.start(t);
-    osc.stop(t + 1.0);
-    activeNodes.push(osc);
-};
-
-const runBachLoop = (ctx, dest) => {
-    // C Major Prelude Logic
-    // C E G C E G C E
-    const pattern = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
-    let note = 0;
-
-    const tick = () => {
-        // Pseudo-random counterpoint
-        const pitch = pattern[Math.floor(Math.random() * pattern.length)];
-        playPiano(ctx, dest, pitch);
-
-        // Walking Bass
-        if (note % 4 === 0) {
-            playPiano(ctx, dest, pattern[0] / 2);
-        }
-        note++;
-
-        const timing = 250; // Andante
-        ambienceInterval = setTimeout(tick, timing);
-    };
-    tick();
+// Available ambient tracks (place MP3 files in /public/audio/)
+const AMBIENT_TRACKS = {
+    deep_space: '/audio/deep_space.mp3',
+    interstellar: '/audio/interstellar.mp3',
+    cosmic_ocean: '/audio/cosmic_ocean.mp3',
 };
 
 export const setAmbienceProfile = (profile) => {
+    const wasPlaying = ambienceAudio && !ambienceAudio.paused;
     currentAmbienceProfile = profile;
-    // If playing, restart with new profile
-    if (ambienceInterval) {
+
+    // If was playing, switch to new track
+    if (wasPlaying) {
         toggleAmbience(false);
         setTimeout(() => toggleAmbience(true), 100);
     }
 };
 
 export const toggleAmbience = (shouldPlay) => {
-    initAudio();
-    if (!audioCtx) return;
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-
     if (shouldPlay) {
-        if (ambienceInterval) return; // Already playing
-
-        activeNodes = []; // Reset tracker
-        masterBus = audioCtx.createGain();
-        masterBus.gain.value = 0.4;
-        masterBus.connect(audioCtx.destination);
-
-        if (currentAmbienceProfile === 'vivaldi') {
-            runVivaldiLoop(audioCtx, masterBus);
-        } else if (currentAmbienceProfile === 'bach') {
-            runBachLoop(audioCtx, masterBus);
-        } else {
-            runSpaceLoop(audioCtx, masterBus); // Default
+        // Create new audio element if needed
+        if (!ambienceAudio) {
+            ambienceAudio = new Audio();
+            ambienceAudio.loop = true;
+            ambienceAudio.volume = 0.5;
         }
 
+        // Set track source
+        const trackUrl = AMBIENT_TRACKS[currentAmbienceProfile] || AMBIENT_TRACKS.deep_space;
+
+        // Only change src if different
+        if (!ambienceAudio.src.endsWith(trackUrl)) {
+            ambienceAudio.src = trackUrl;
+        }
+
+        // Play with fade in
+        ambienceAudio.volume = 0;
+        ambienceAudio.play().catch(e => console.log('Ambient audio blocked:', e));
+
+        // Fade in
+        let vol = 0;
+        const fadeIn = setInterval(() => {
+            vol += 0.05;
+            if (vol >= 0.5) {
+                ambienceAudio.volume = 0.5;
+                clearInterval(fadeIn);
+            } else {
+                ambienceAudio.volume = vol;
+            }
+        }, 50);
+
     } else {
-        cleanupAmbience();
+        // Stop with fade out
+        if (ambienceAudio && !ambienceAudio.paused) {
+            let vol = ambienceAudio.volume;
+            const fadeOut = setInterval(() => {
+                vol -= 0.05;
+                if (vol <= 0) {
+                    ambienceAudio.pause();
+                    ambienceAudio.currentTime = 0;
+                    clearInterval(fadeOut);
+                } else {
+                    ambienceAudio.volume = vol;
+                }
+            }, 50);
+        }
     }
 };
+
