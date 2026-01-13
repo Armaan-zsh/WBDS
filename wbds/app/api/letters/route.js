@@ -78,21 +78,22 @@ export async function POST(req) {
         let lng = null;
 
         try {
-            // Use a fast, free IP geo service (limit: 45 req/min)
-            // In prod, use Vercel headers (x-vercel-ip-latitude) or a paid service
-            if (ip !== '127.0.0.1' && ip !== '::1') {
-                const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
+            // Skips localhost
+            if (ip && ip !== '127.0.0.1' && ip !== '::1') {
+                const geoPromise = fetch(`http://ip-api.com/json/${ip}`);
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Geo Timeout')), 1000));
+
+                const geoRes = await Promise.race([geoPromise, timeoutPromise]);
                 const geoData = await geoRes.json();
+
                 if (geoData.status === 'success') {
                     lat = geoData.lat;
                     lng = geoData.lon;
                 }
-            } else {
-                // Dev mode: Random location for testing "aliveness"
-                // Or just null. Let's do null so it doesn't fake data.
             }
         } catch (e) {
-            console.error('Geo Lookup Failed:', e);
+            // Geo failed, silently continue
+            console.warn('Geo Lookup Failed (Continuing without location):', e.message);
         }
 
         // 4. Insert Letter
@@ -117,9 +118,9 @@ export async function POST(req) {
         return NextResponse.json({ success: true, letter });
 
     } catch (error) {
-        console.error('API Error:', error);
+        console.error('API Error:', error.message, error.details || '');
         return NextResponse.json(
-            { error: 'Failed to send letter' },
+            { error: error.message || 'Failed to send letter' },
             { status: 500 }
         );
     }
