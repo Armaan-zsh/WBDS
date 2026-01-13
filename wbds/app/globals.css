@@ -117,6 +117,67 @@
   --glass-border: rgba(215, 204, 200, 0.1);
 }
 
+/* THEME: NORD (Arctic) */
+[data-theme='nord'] {
+  --bg-depth: #2e3440;
+  --bg-surface: #3b4252;
+  --text-primary: #eceff4;
+  --text-secondary: #88c0d0;
+
+  --glass-bg: rgba(59, 66, 82, 0.7);
+  --glass-border: rgba(136, 192, 208, 0.1);
+}
+
+/* THEME: DRACULA (Vampire) */
+[data-theme='dracula'] {
+  --bg-depth: #282a36;
+  --bg-surface: #44475a;
+  --text-primary: #f8f8f2;
+  --text-secondary: #bd93f9;
+  /* Purple */
+
+  --glass-bg: rgba(68, 71, 90, 0.7);
+  --glass-border: rgba(189, 147, 249, 0.1);
+}
+
+/* THEME: SOLARIZED (Classic) */
+[data-theme='solarized'] {
+  --bg-depth: #002b36;
+  --bg-surface: #073642;
+  --text-primary: #93a1a1;
+  --text-secondary: #2aa198;
+
+  --glass-bg: rgba(7, 54, 66, 0.7);
+  --glass-border: rgba(42, 161, 152, 0.1);
+}
+
+/* THEME: CYBERPUNK (Neon) */
+[data-theme='cyberpunk'] {
+  --bg-depth: #000000;
+  --bg-surface: #111111;
+  --text-primary: #fcee0c;
+  /* Yellow */
+  --text-secondary: #03d8f3;
+  /* Cyan */
+
+  --glass-bg: rgba(20, 20, 20, 0.8);
+  --glass-border: rgba(252, 238, 12, 0.3);
+}
+
+/* THEME: SYNTHWAVE (Retro) */
+[data-theme='synthwave'] {
+  --bg-depth: #2b213a;
+  --bg-surface: #241b2f;
+  --text-primary: #ff71ce;
+  /* Neon Pink */
+  --text-secondary: #01cdfe;
+  /* Blue */
+
+  --glass-bg: rgba(36, 27, 47, 0.8);
+  --glass-border: rgba(255, 113, 206, 0.2);
+}
+
+
 html,
 body {
   margin: 0;
@@ -151,6 +212,23 @@ body {
 
 [data-font='typewriter'] {
   --font-current: 'Courier New', Courier, monospace;
+}
+
+/* New Fonts */
+[data-font='inter'] {
+  --font-current: 'Inter', -apple-system, sans-serif;
+}
+
+[data-font='playfair'] {
+  --font-current: 'Playfair Display', serif;
+}
+
+[data-font='merriweather'] {
+  --font-current: 'Merriweather', serif;
+}
+
+[data-font='fira'] {
+  --font-current: 'Fira Code', monospace;
 }
 
 /* Force Terminal Font for Terminal Theme if desired, but user can mix match */

@@ -30,13 +30,14 @@ export default function AppearancePanel() {
         <div className="panel-container">
             <style jsx>{`
         .panel-container {
-            width: 260px;
+            width: 280px; /* Slight increase for scrollbar space */
             padding: 32px 24px;
             background: var(--bg-surface);
             border: 1px solid var(--glass-border);
             /* Centered Floating Card */
             height: auto;
-            max-height: 80vh; 
+            max-height: 75vh; 
+            overflow-y: auto; /* Enable Scrolling */
             display: flex;
             flex-direction: column;
             gap: 32px;
@@ -48,6 +49,13 @@ export default function AppearancePanel() {
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             backdrop-filter: blur(20px);
             z-index: 50;
+            
+            /* Hide Scrollbar for clean UI */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        .panel-container::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
         }
 
         .section-title {
@@ -57,6 +65,11 @@ export default function AppearancePanel() {
             color: var(--text-secondary);
             margin-bottom: 12px;
             opacity: 0.7;
+            position: sticky;
+            top: 0;
+            background: var(--bg-surface);
+            padding-bottom: 10px;
+            z-index: 10;
         }
 
         .option-grid {
@@ -69,15 +82,15 @@ export default function AppearancePanel() {
             background: transparent;
             border: 1px solid transparent;
             color: var(--text-secondary);
-            padding: 10px 14px;
-            text-align: left;
-            border-radius: 8px;
+            padding: 12px 16px;
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.2s ease;
-            font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            font-size: 14px;
+            text-align: left;
         }
 
         .option-btn:hover {
@@ -86,24 +99,16 @@ export default function AppearancePanel() {
         }
 
         .option-btn.active {
-            background: rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.05);
+            border-color: var(--glass-border);
             color: var(--text-primary);
-            font-weight: 500;
-        }
-
-        /* Paper Theme Specific Override for Visibility */
-        :global([data-theme='paper']) .option-btn:hover {
-            background: rgba(0,0,0,0.03);
-        }
-        :global([data-theme='paper']) .option-btn.active {
-            background: rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .preview-circle {
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.1);
         }
       `}</style>
 
@@ -115,12 +120,12 @@ export default function AppearancePanel() {
                 </div>
             </div>
 
-            {/* THEME SELECTOR */}
+            {/* THEMES */}
             <div>
                 <div className="section-title">Atmosphere</div>
                 <div className="option-grid">
                     <button className={`option-btn ${theme === 'void' ? 'active' : ''}`} onClick={() => applyTheme('void')}>
-                        <div className="preview-circle" style={{ background: '#000' }}></div>
+                        <div className="preview-circle" style={{ background: '#000000', border: '1px solid #333' }}></div>
                         The Void
                     </button>
                     <button className={`option-btn ${theme === 'midnight' ? 'active' : ''}`} onClick={() => applyTheme('midnight')}>
@@ -135,14 +140,6 @@ export default function AppearancePanel() {
                         <div className="preview-circle" style={{ background: '#261010' }}></div>
                         Rose
                     </button>
-                    <button className={`option-btn ${theme === 'terminal' ? 'active' : ''}`} onClick={() => { applyTheme('terminal'); applyFont('typewriter'); }}>
-                        <div className="preview-circle" style={{ background: '#0a0a0a', border: '1px solid #30d158' }}></div>
-                        Terminal
-                    </button>
-                    <button className={`option-btn ${theme === 'sunset' ? 'active' : ''}`} onClick={() => applyTheme('sunset')}>
-                        <div className="preview-circle" style={{ background: 'linear-gradient(45deg, #2d1b2e, #432c44)' }}></div>
-                        Sunset
-                    </button>
                     <button className={`option-btn ${theme === 'forest' ? 'active' : ''}`} onClick={() => applyTheme('forest')}>
                         <div className="preview-circle" style={{ background: '#1a2f23' }}></div>
                         Forest
@@ -151,10 +148,34 @@ export default function AppearancePanel() {
                         <div className="preview-circle" style={{ background: '#2b211e' }}></div>
                         Coffee
                     </button>
+                    <button className={`option-btn ${theme === 'nord' ? 'active' : ''}`} onClick={() => applyTheme('nord')}>
+                        <div className="preview-circle" style={{ background: '#2e3440' }}></div>
+                        Nord
+                    </button>
+                    <button className={`option-btn ${theme === 'dracula' ? 'active' : ''}`} onClick={() => applyTheme('dracula')}>
+                        <div className="preview-circle" style={{ background: '#282a36' }}></div>
+                        Dracula
+                    </button>
+                    <button className={`option-btn ${theme === 'solarized' ? 'active' : ''}`} onClick={() => applyTheme('solarized')}>
+                        <div className="preview-circle" style={{ background: '#002b36' }}></div>
+                        Solarized
+                    </button>
+                    <button className={`option-btn ${theme === 'cyberpunk' ? 'active' : ''}`} onClick={() => applyTheme('cyberpunk')}>
+                        <div className="preview-circle" style={{ background: '#111', border: '1px solid #fcee0c' }}></div>
+                        Cyberpunk
+                    </button>
+                    <button className={`option-btn ${theme === 'synthwave' ? 'active' : ''}`} onClick={() => applyTheme('synthwave')}>
+                        <div className="preview-circle" style={{ background: '#2b213a', border: '1px solid #ff71ce' }}></div>
+                        Synthwave
+                    </button>
+                    <button className={`option-btn ${theme === 'terminal' ? 'active' : ''}`} onClick={() => { applyTheme('terminal'); applyFont('typewriter'); }}>
+                        <div className="preview-circle" style={{ background: '#0a0a0a', border: '1px solid #30d158' }}></div>
+                        Terminal
+                    </button>
                 </div>
             </div>
 
-            {/* FONT SELECTOR */}
+            {/* TYPOGRAPHY */}
             <div>
                 <div className="section-title">Typography</div>
                 <div className="option-grid">
@@ -166,6 +187,18 @@ export default function AppearancePanel() {
                     </button>
                     <button className={`option-btn ${font === 'mono' ? 'active' : ''}`} onClick={() => applyFont('mono')}>
                         <span style={{ fontFamily: 'monospace' }}>Aa</span> Mono
+                    </button>
+                    <button className={`option-btn ${font === 'inter' ? 'active' : ''}`} onClick={() => applyFont('inter')}>
+                        <span style={{ fontFamily: 'sans-serif', fontWeight: 600 }}>Aa</span> Inter
+                    </button>
+                    <button className={`option-btn ${font === 'playfair' ? 'active' : ''}`} onClick={() => applyFont('playfair')}>
+                        <span style={{ fontFamily: 'serif', fontStyle: 'italic' }}>Aa</span> Playfair
+                    </button>
+                    <button className={`option-btn ${font === 'merriweather' ? 'active' : ''}`} onClick={() => applyFont('merriweather')}>
+                        <span style={{ fontFamily: 'serif' }}>Aa</span> Merriweather
+                    </button>
+                    <button className={`option-btn ${font === 'fira' ? 'active' : ''}`} onClick={() => applyFont('fira')}>
+                        <span style={{ fontFamily: 'monospace' }}>Aa</span> Fira Code
                     </button>
                     <button className={`option-btn ${font === 'hand' ? 'active' : ''}`} onClick={() => applyFont('hand')}>
                         <span style={{ fontFamily: 'cursive' }}>Aa</span> Hand
