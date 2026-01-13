@@ -7,10 +7,46 @@ import { maskPrivateInfo, detectPotentialDox } from '../../utils/privacyShield';
 import { playTypeSound, playSendSound } from '../../utils/audioEngine';
 
 export default function LetterComposer({ onSend, onError }) {
-    // ... (existing state)
+    const [text, setText] = useState('');
+    const [isFocused, setIsFocused] = useState(false);
+    const [errorShake, setErrorShake] = useState(false);
+    const [status, setStatus] = useState('IDLE'); // IDLE, SENDING, BURNING
+
+    const textareaRef = useRef(null);
+
+    // Auto-resize textarea
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto'; // Reset
+            textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+        }
+    }, [text]);
 
     const handleSend = () => {
-        // ... (validation checks)
+        if (!text.trim()) return;
+
+        // 1. Check Links
+        if (containsLinkPattern(text)) {
+            triggerShake();
+            if (onError) onError("No links. The void rejects them.");
+            return;
+        }
+
+        // 2. Check Social Solicitation (New AI-lite filter)
+        if (containsSocialSolicitation(text)) {
+            triggerShake();
+            if (onError) onError("No social handles or self-promo allowed.");
+            return;
+        }
+
+        // 3. Check Doxxing Risk
+        const doxRisk = detectPotentialDox(text);
+        if (doxRisk.isRisky) {
+            const confirm = window.confirm("Privacy Warning: You mentioned real names or locations. Are you sure this is anonymous?");
+            if (!confirm) return;
+        }
+
+        const safeText = maskPrivateInfo(text);
 
         playSendSound(); // WHOOSH
 
@@ -22,7 +58,18 @@ export default function LetterComposer({ onSend, onError }) {
         }, 1500);
     };
 
-    // ...
+    const handleBurn = () => {
+        setStatus('BURNING');
+        setTimeout(() => {
+            setText('');
+            setStatus('IDLE');
+        }, 600);
+    };
+
+    const triggerShake = () => {
+        setErrorShake(true);
+        setTimeout(() => setErrorShake(false), 300);
+    };
 
     const handleKeyDown = (e) => {
         playTypeSound(); // CLACK

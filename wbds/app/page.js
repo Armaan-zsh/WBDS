@@ -7,6 +7,7 @@ import LetterFeed from '../components/Feed/LetterFeed';
 import VoidNotification from '../components/Layout/VoidNotification';
 import LetterModal from '../components/Feed/LetterModal';
 import AppearancePanel from '../components/Settings/AppearancePanel';
+import VoidClock from '../components/Layout/VoidClock';
 import dynamic from 'next/dynamic';
 
 const RealtimeGlobe = dynamic(() => import('../components/Live/RealtimeGlobe'), {
@@ -272,6 +273,7 @@ export default function Home() {
 
     return (
         <div className="app-layout">
+            <VoidClock />
             <style jsx>{`
          .app-layout {
             display: flex;
