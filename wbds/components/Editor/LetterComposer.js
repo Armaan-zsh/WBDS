@@ -222,6 +222,34 @@ export default function LetterComposer({ onSend, onError }) {
             align-self: center;
             opacity: 0.6;
         }
+
+        .btn-icon {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-icon:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+        }
+        .btn-icon.active {
+            background: var(--accent-gold, #ffd700);
+            color: black;
+            border-color: var(--accent-gold, #ffd700);
+            width: auto;
+            padding: 0 12px;
+            border-radius: 16px;
+            font-weight: bold;
+            font-size: 13px;
+        }
       `}</style>
 
             <div className="composer-card">
@@ -276,35 +304,7 @@ export default function LetterComposer({ onSend, onError }) {
                         {status === 'SENDING' ? 'Sent' : 'Send'}
                     </button>
 
-                    <style jsx>{`
-                        .btn-icon {
-                            background: transparent;
-                            border: 1px solid var(--glass-border);
-                            color: var(--text-secondary);
-                            width: 32px;
-                            height: 32px;
-                            border-radius: 50%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            cursor: pointer;
-                            transition: all 0.2s ease;
-                        }
-                        .btn-icon:hover {
-                            background: rgba(255,255,255,0.1);
-                            color: var(--text-primary);
-                        }
-                        .btn-icon.active {
-                            background: var(--accent-gold, #ffd700);
-                            color: black;
-                            border-color: var(--accent-gold, #ffd700);
-                            width: auto;
-                            padding: 0 12px;
-                            border-radius: 16px;
-                            font-weight: bold;
-                            font-size: 13px;
-                        }
-                     `}</style>
+
                 </div>
             </div>
         </div>
