@@ -81,3 +81,51 @@ export function isLegitContent(text) {
 
     return true;
 }
+
+/**
+ * "The Social Shield"
+ * Detects requests to move off-platform or share handles.
+ * Targets: Instagram, Snapchat, Telegram, WhatsApp, Discord, Handle references.
+ */
+export function containsSocialSolicitation(text) {
+    const { normalized } = normalizeText(text);
+
+    // 1. Explicit Platform Keywords
+    const platforms = [
+        'instagra', 'insta', ' ig ', 'snapchat', ' snap ', 'telegram', 'whatsapp', 'discord', 'kik ', 'wickr'
+    ];
+
+    for (const p of platforms) {
+        if (normalized.includes(p)) return true;
+    }
+
+    // 2. Action Phrases + Handle Patterns
+    // "add me @..." "dm me on..." 
+    const actionPhrases = [
+        /add\s+me/i,
+        /dm\s+me/i,
+        /inbox\s+me/i,
+        /follow\s+me/i,
+        /message\s+me/i,
+        /hit\s+me\s+up/i
+    ];
+
+    // 3. Handle Detectors (@username, username_123)
+    // We look for "@" or "user:" patterns commonly used to drop handles.
+    const handlePatterns = [
+        /@\w{3,}/,             // @somebody
+        /(user|u)(name)?[:\s-]+\w+/ // username: somebody
+    ];
+
+    // Check if phrases exist
+    for (const pattern of actionPhrases) {
+        if (pattern.test(normalized)) return true;
+    }
+
+    // Check handles
+    for (const pattern of handlePatterns) {
+        if (pattern.test(normalized)) return true;
+    }
+
+    return false;
+}

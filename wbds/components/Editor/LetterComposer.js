@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { containsLinkPattern } from '../../utils/contentFilters';
+import { containsLinkPattern, containsSocialSolicitation } from '../../utils/contentFilters';
 import { maskPrivateInfo, detectPotentialDox } from '../../utils/privacyShield';
 
 export default function LetterComposer({ onSend, onError }) {
@@ -23,15 +23,24 @@ export default function LetterComposer({ onSend, onError }) {
     const handleSend = () => {
         if (!text.trim()) return;
 
+        // 1. Check Links
         if (containsLinkPattern(text)) {
             triggerShake();
             if (onError) onError("No links. The void rejects them.");
             return;
         }
 
+        // 2. Check Social Solicitation (New AI-lite filter)
+        if (containsSocialSolicitation(text)) {
+            triggerShake();
+            if (onError) onError("No social handles or self-promo allowed.");
+            return;
+        }
+
+        // 3. Check Doxxing Risk
         const doxRisk = detectPotentialDox(text);
         if (doxRisk.isRisky) {
-            const confirm = window.confirm("Privacy Warning: You mentioned real names and locations. Are you sure this is anonymous?");
+            const confirm = window.confirm("Privacy Warning: You mentioned real names or locations. Are you sure this is anonymous?");
             if (!confirm) return;
         }
 
