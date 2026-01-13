@@ -1,18 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { setAudioProfile, playTypeSound } from '../../utils/audioEngine';
+import { setAudioProfile, playTypeSound, toggleAmbience } from '../../utils/audioEngine';
 
 export default function AppearancePanel() {
     const [theme, setTheme] = useState('void');
     const [font, setFont] = useState('serif');
     const [audioProfile, setLocalAudioProfile] = useState('mechanical');
+    const [isAmbienceOn, setIsAmbienceOn] = useState(false);
 
     useEffect(() => {
         // Load preference
         const savedTheme = localStorage.getItem('wbds_theme') || 'void';
         const savedFont = localStorage.getItem('wbds_font') || 'serif';
         const savedAudio = localStorage.getItem('wbds_audio_profile') || 'mechanical';
+        const savedAmbience = localStorage.getItem('wbds_ambience') === 'true';
 
         applyTheme(savedTheme);
         applyFont(savedFont);
@@ -20,6 +22,12 @@ export default function AppearancePanel() {
         // Init Audio State
         setLocalAudioProfile(savedAudio);
         setAudioProfile(savedAudio);
+
+        // Init Ambience
+        setIsAmbienceOn(savedAmbience);
+        if (savedAmbience) {
+            setTimeout(() => toggleAmbience(true), 1000);
+        }
     }, []);
 
     const applyTheme = (t) => {
@@ -40,6 +48,13 @@ export default function AppearancePanel() {
         if (profile !== 'silent') {
             playTypeSound(); // Preview sound!
         }
+    };
+
+    const handleAmbienceToggle = () => {
+        const newState = !isAmbienceOn;
+        setIsAmbienceOn(newState);
+        localStorage.setItem('wbds_ambience', newState);
+        toggleAmbience(newState);
     };
 
     return (
