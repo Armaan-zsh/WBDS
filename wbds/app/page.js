@@ -271,7 +271,8 @@ export default function Home() {
             <style jsx>{`
          .app-layout {
             display: flex;
-            min-height: 100vh;
+            height: 100vh; /* Fixed height for viewport */
+            overflow: hidden; /* Prevent body scroll */
             position: relative;
          }
 
@@ -317,11 +318,26 @@ export default function Home() {
             flex: 1;
             display: flex;
             flex-direction: column;
-            max-width: 700px;
-            margin: 0 auto;
+            width: 100%; /* Full width to catch all scrolls */
+            max-width: 100%; /* Remove constraint */
+            align-items: center; /* Center children */
+            margin: 0;
             padding: 60px 20px;
             position: relative;
-            min-height: 100vh;
+            height: 100vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+         }
+
+         .main-content::-webkit-scrollbar {
+            display: none;
+         }
+         
+         /* Center the actual content */
+         .nav-header, .write-mode, .animate-enter {
+            width: 100%;
+            max-width: 700px;
          }
 
          .nav-header {
