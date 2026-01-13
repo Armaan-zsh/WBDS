@@ -231,7 +231,6 @@ export default function Home() {
                 {/* VIEW: READ */}
                 {view === 'read' && (
                     <div className="animate-enter">
-                        <div style={{ textAlign: 'center', marginBottom: '40px', letterSpacing: '4px', opacity: 0.5, fontSize: '12px' }}>THE ARCHIVE</div>
                         <LetterFeed
                             letters={letters}
                             onLetterClick={setSelectedLetter}
