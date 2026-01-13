@@ -95,7 +95,15 @@ export default function LetterComposer({ onSend, onError }) {
           resize: none;
           outline: none;
           min-height: 200px;
+          max-height: 60vh; /* Prevent infinite growth */
+          overflow-y: auto; /* Enable internal scrolling */
           padding: 0;
+          scrollbar-width: none; /* Firefox */
+          -webkit-overflow-scrolling: touch; /* smooth iOS scrolling */
+        }
+        
+        .letter-input::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
         }
 
         .letter-input::placeholder {
