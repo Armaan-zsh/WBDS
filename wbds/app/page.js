@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase'; // Import Supabase
 import LetterComposer from '../components/Editor/LetterComposer';
 import LetterFeed from '../components/Feed/LetterFeed';
 import VoidNotification from '../components/Layout/VoidNotification';
@@ -43,17 +44,68 @@ export default function Home() {
         }
     }, [myLetterIds]);
 
-    const handleLetterSent = (text) => {
-        const id = Date.now();
-        const newLetter = {
-            id: id,
-            content: text,
-            timestamp: id
-        };
-        setLetters([newLetter, ...letters]);
+    // Load letters from Supabase
+    useEffect(() => {
+        const fetchLetters = async () => {
+            const { data, error } = await supabase
+                .from('letters')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(50);
 
-        // Mark as owned
+            if (data) {
+                // Normalize data for UI
+                const formatted = data.map(l => ({
+                    ...l,
+                    timestamp: l.created_at // Map Supabase field to UI field
+                }));
+                setLetters(formatted);
+            }
+        };
+
+        fetchLetters();
+
+        // Realtime Subscription
+        const channel = supabase
+            .channel('public:letters')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'letters' }, (payload) => {
+                const newLetter = {
+                    ...payload.new,
+                    timestamp: payload.new.created_at
+                };
+                setLetters(current => [newLetter, ...current]);
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, []);
+
+    const handleLetterSent = async (text) => {
+        // Basic Spam Prevention (Cooldown)
+        const lastSent = localStorage.getItem('wbds_last_sent');
+        if (lastSent && Date.now() - parseInt(lastSent) < 30000) { // 30s cooldown
+            handleError("You're writing too fast. Take a deep breath.");
+            return;
+        }
+
+        const { data, error } = await supabase
+            .from('letters')
+            .insert([{ content: text, theme: 'default' }])
+            .select()
+            .single();
+
+        if (error) {
+            handleError("The Void rejected your letter. Try again.");
+            return;
+        }
+
+        const id = data.id;
+
+        // Mark as owned (Local Persistence)
         setMyLetterIds(prev => new Set(prev).add(id));
+        localStorage.setItem('wbds_last_sent', Date.now());
 
         // Switch to Read View
         setTimeout(() => {
@@ -61,9 +113,18 @@ export default function Home() {
         }, 10);
     };
 
-    const handleDeleteLetter = (id) => {
+    const handleDeleteLetter = async (id) => {
         if (window.confirm("Burn this letter forever?")) {
+            // Optimistic update
             setLetters(prev => prev.filter(l => l.id !== id));
+
+            // Server delete
+            const { error } = await supabase.from('letters').delete().eq('id', id);
+
+            if (error) {
+                handleError("Could not burn letter. It refuses to die.");
+                // Optional: Revert optimistic update here if needed
+            }
         }
     };
 
