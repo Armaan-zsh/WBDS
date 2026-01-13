@@ -4,9 +4,26 @@ import { useEffect, useRef, useState } from 'react';
 export default function RealtimeGlobe({ letters }) {
     const canvasRef = useRef();
     const globeRef = useRef(null);
-    // Track current config logic
+    const [isLightMode, setIsLightMode] = useState(false);
     const [blendMode, setBlendMode] = useState('screen');
 
+    // 1. Detect Theme Mode (Light vs Dark) to force re-render
+    useEffect(() => {
+        const checkTheme = () => {
+            const theme = document.documentElement.getAttribute('data-theme') || 'void';
+            const light = ['paper', 'coffee-paper'].includes(theme);
+            setIsLightMode(light);
+            setBlendMode(light ? 'multiply' : 'screen');
+        };
+
+        checkTheme();
+
+        const observer = new MutationObserver(checkTheme);
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+        return () => observer.disconnect();
+    }, []);
+
+    // 2. Initialize Globe (Re-runs when isLightMode changes)
     useEffect(() => {
         let width = 0;
         let phi = 0;
@@ -17,28 +34,20 @@ export default function RealtimeGlobe({ letters }) {
 
         if (!canvasRef.current) return;
 
-        const getGlobeConfig = () => {
-            const theme = document.documentElement.getAttribute('data-theme') || 'void';
-            // STRICT CLASSIFICATION: Only "Paper" themes use Subtractive Blending (Ink)
-            const isLight = ['paper', 'coffee-paper'].includes(theme);
-
-            if (isLight) {
-                return {
-                    baseColor: [1, 1, 1], // White for Multiply
-                    glowColor: [1, 1, 1], // White Glow (Transparent in Multiply)
-                    markerColor: [0.2, 0.2, 0.2], // Dark Ink
-                    blendMode: 'multiply'
-                };
-            } else {
-                return {
-                    baseColor: [0, 0, 0], // Black for Additive Transparency
-                    glowColor: [0, 0, 0], // Black Glow (Invisible in Additive)
-                    markerColor: theme === 'forest' ? [0.8, 1, 0.4] :
-                        theme === 'nord' ? [136 / 255, 192 / 255, 208 / 255] : // Nord Cyan
-                            [0.6, 0.9, 1],
-                    blendMode: 'screen' // Universal support (Fixes "Black Circle" fallback)
-                };
-            }
+        // Config based on current mode
+        const theme = document.documentElement.getAttribute('data-theme') || 'void';
+        const config = isLightMode ? {
+            baseColor: [1, 1, 1],
+            glowColor: [1, 1, 1], // Pure White Glow (Transparent in Multiply)
+            markerColor: [0.2, 0.2, 0.2],
+            dark: 0 // <--- CRITICAL: Use Light Mode Shader
+        } : {
+            baseColor: [0, 0, 0],
+            glowColor: [0, 0, 0],
+            markerColor: theme === 'forest' ? [0.8, 1, 0.4] :
+                theme === 'nord' ? [136 / 255, 192 / 255, 208 / 255] :
+                    [0.6, 0.9, 1],
+            dark: 1 // Dark Mode Shader
         };
 
         const markers = letters
@@ -48,8 +57,10 @@ export default function RealtimeGlobe({ letters }) {
                 size: 0.15
             }));
 
-        let config = getGlobeConfig();
-        setBlendMode(config.blendMode);
+        // Destroy previous instance if exists (Clean Switch)
+        if (globeRef.current) {
+            globeRef.current.destroy();
+        }
 
         globeRef.current = createGlobe(canvasRef.current, {
             devicePixelRatio: 2,
@@ -57,10 +68,10 @@ export default function RealtimeGlobe({ letters }) {
             height: width * 2,
             phi: 0,
             theta: 0.25,
-            dark: 1,
-            diffuse: 0,
+            dark: config.dark, // Use specific shader mode
+            diffuse: 1.2,
             mapSamples: 16000,
-            mapBrightness: 0,
+            mapBrightness: 6,
             baseColor: config.baseColor,
             markerColor: config.markerColor,
             glowColor: config.glowColor,
@@ -72,10 +83,8 @@ export default function RealtimeGlobe({ letters }) {
                 state.width = width * 2;
                 state.height = width * 2;
 
-                // Dynamic Updates
-                state.baseColor = config.baseColor;
-                state.markerColor = config.markerColor;
-                state.glowColor = config.glowColor;
+                // We don't dynamically update colors here because we force re-creation on theme change
+                // This ensures the shader 'dark' mode stays synced with colors.
 
                 const time = Date.now() / 1000;
                 state.markers = markers.map((m, i) => ({
@@ -85,13 +94,6 @@ export default function RealtimeGlobe({ letters }) {
             }
         });
 
-        // Observer for Theme Changes
-        const observer = new MutationObserver(() => {
-            config = getGlobeConfig();
-            setBlendMode(config.blendMode);
-        });
-        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-
         setTimeout(() => {
             if (canvasRef.current) canvasRef.current.style.opacity = '1';
         }, 100);
@@ -99,9 +101,8 @@ export default function RealtimeGlobe({ letters }) {
         return () => {
             if (globeRef.current) globeRef.current.destroy();
             window.removeEventListener('resize', onResize);
-            observer.disconnect();
         };
-    }, [letters]);
+    }, [letters, isLightMode]); // <--- Re-run when Mode changes
 
     return (
         <div style={{
