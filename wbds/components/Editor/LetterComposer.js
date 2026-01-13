@@ -47,11 +47,12 @@ export default function LetterComposer({ onSend, onError }) {
         const safeText = maskPrivateInfo(text);
 
         setStatus('SENDING');
+        // Wait for animation to play
         setTimeout(() => {
             onSend(safeText);
             setText('');
             setStatus('IDLE');
-        }, 10);
+        }, 1500);
     };
 
     const handleBurn = () => {
@@ -127,13 +128,26 @@ export default function LetterComposer({ onSend, onError }) {
     };
 
     return (
-        <div className={`composer-container ${isFocused ? 'focused' : ''}`}>
+        <div className={`composer-container ${isFocused ? 'focused' : ''} ${status === 'SENDING' ? 'sending' : ''}`}>
             <style jsx>{`
+        @keyframes flyAway {
+            0% { transform: scale(1) translateY(0) rotateX(0); opacity: 1; filter: blur(0); }
+            20% { transform: scale(0.9) translateY(20px) rotateX(-10deg); opacity: 1; }
+            40% { opacity: 0.8; }
+            100% { transform: scale(0.2) translateY(-300px) rotateX(20deg); opacity: 0; filter: blur(10px); }
+        }
+
         .composer-container {
           width: 100%;
           max-width: 600px;
           margin: 0 auto;
           transition: transform 0.4s var(--ease-ios);
+          perspective: 1000px; /* Enable 3D space */
+        }
+
+        .sending .composer-card {
+            animation: flyAway 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            pointer-events: none;
         }
 
         .composer-card {
