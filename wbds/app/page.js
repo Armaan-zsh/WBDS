@@ -126,10 +126,9 @@ export default function Home() {
 
         fetchLetters();
 
-        // Realtime Subscription (Only for 'read' view)
-        // For 'best', realtime is tricky because order changes. We skip it for 'best'.
+        // Realtime Subscription (For 'read' and 'live')
         let channel;
-        if (view === 'read') {
+        if (view === 'read' || view === 'live') {
             channel = supabase
                 .channel('public:letters')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'letters' }, (payload) => {

@@ -25,52 +25,54 @@ export async function POST(req) {
         const forwardedFor = headersList.get('x-forwarded-for');
         const ip = forwardedFor ? forwardedFor.split(',')[0] : '127.0.0.1';
 
-        // 2. Check Limit
-        const { data: limitData, error: limitError } = await supabaseAdmin
-            .from('rate_limits')
-            .select('*')
-            .eq('ip', ip)
-            .single();
+        // 2. Check Limit (Skip for Localhost)
+        let isDev = ip === '127.0.0.1' || ip === '::1';
 
-        let currentCount = 0;
-        let lastReset = new Date(0); // Epoch
+        // Only enforce limit in production or non-local
+        if (!isDev) {
+            const { data: limitData, error: limitError } = await supabaseAdmin
+                .from('rate_limits')
+                .select('*')
+                .eq('ip', ip)
+                .single();
 
-        if (limitData) {
-            currentCount = limitData.count;
-            lastReset = new Date(limitData.last_reset);
-        }
+            let currentCount = 0;
+            let lastReset = new Date(0); // Epoch
 
-        // Check if 24 hours passed
-        const now = new Date();
-        const oneDay = 24 * 60 * 60 * 1000;
+            if (limitData) {
+                currentCount = limitData.count;
+                lastReset = new Date(limitData.last_reset);
+            }
 
-        if ((now - lastReset) > oneDay) {
-            // New Day, Reset
-            currentCount = 0;
-            // Upsert will handle updating timestamp
-        }
+            // Check if 24 hours passed
+            const now = new Date();
+            const oneDay = 24 * 60 * 60 * 1000;
 
-        if (currentCount >= 3) {
-            return NextResponse.json(
-                { error: 'Daily limit reached (3 letters/day). Come back tomorrow.' },
-                { status: 429 }
-            );
-        }
+            if ((now - lastReset) > oneDay) {
+                // New Day, Reset
+                currentCount = 0;
+                // Upsert will handle updating timestamp
+            }
 
-        // 3. Increment Limit
-        const { error: upsertError } = await supabaseAdmin
-            .from('rate_limits')
-            .upsert({
-                ip,
-                count: currentCount + 1,
-                last_reset: currentCount === 0 ? new Date().toISOString() : lastReset.toISOString()
-            });
+            if (currentCount >= 3) {
+                return NextResponse.json(
+                    { error: 'Daily limit reached (3 letters/day). Come back tomorrow.' },
+                    { status: 429 }
+                );
+            }
 
-        if (upsertError) {
-            console.error('Rate limit error:', upsertError);
-            // proceed anyway? No, safer to fail or we might allow spam. 
-            // But failing blocks valid users if DB has issues. 
-            // We'll proceed but log it.
+            // 3. Increment Limit
+            const { error: upsertError } = await supabaseAdmin
+                .from('rate_limits')
+                .upsert({
+                    ip,
+                    count: currentCount + 1,
+                    last_reset: currentCount === 0 ? new Date().toISOString() : lastReset.toISOString()
+                });
+
+            if (upsertError) {
+                console.error('Rate limit error:', upsertError);
+            }
         }
 
         // 3. Get Location (IP Geolocation)
@@ -90,6 +92,10 @@ export async function POST(req) {
                     lat = geoData.lat;
                     lng = geoData.lon;
                 }
+            } else {
+                // Dev mode: Random location so you can see the globe work!
+                lat = (Math.random() * 160) - 80; // -80 to 80
+                lng = (Math.random() * 360) - 180; // -180 to 180
             }
         } catch (e) {
             // Geo failed, silently continue
