@@ -214,7 +214,34 @@ export default function AppearancePanel() {
                         <span style={{ fontFamily: 'serif' }}>Aa</span> Merriweather
                     </button>
                     <button className={`option-btn ${font === 'fira' ? 'active' : ''}`} onClick={() => applyFont('fira')}>
-                        <span style={{ fontFamily: 'monospace' }}>Aa</span> Fira Code
+                        <span style={{ fontFamily: 'Fira Code' }}>Aa</span> Fira Code
+                    </button>
+                    <button className={`option-btn ${font === 'jetbrains' ? 'active' : ''}`} onClick={() => applyFont('jetbrains')}>
+                        <span style={{ fontFamily: 'JetBrains Mono' }}>Aa</span> JetBrains
+                    </button>
+                    <button className={`option-btn ${font === 'ibm_plex' ? 'active' : ''}`} onClick={() => applyFont('ibm_plex')}>
+                        <span style={{ fontFamily: 'IBM Plex Mono' }}>Aa</span> IBM Plex
+                    </button>
+                    <button className={`option-btn ${font === 'roboto_mono' ? 'active' : ''}`} onClick={() => applyFont('roboto_mono')}>
+                        <span style={{ fontFamily: 'Roboto Mono' }}>Aa</span> Roboto Mono
+                    </button>
+                    <button className={`option-btn ${font === 'source_code' ? 'active' : ''}`} onClick={() => applyFont('source_code')}>
+                        <span style={{ fontFamily: 'Source Code Pro' }}>Aa</span> Source Code
+                    </button>
+                    <button className={`option-btn ${font === 'lexend' ? 'active' : ''}`} onClick={() => applyFont('lexend')}>
+                        <span style={{ fontFamily: 'Lexend Deca' }}>Aa</span> Lexend
+                    </button>
+                    <button className={`option-btn ${font === 'montserrat' ? 'active' : ''}`} onClick={() => applyFont('montserrat')}>
+                        <span style={{ fontFamily: 'Montserrat' }}>Aa</span> Montserrat
+                    </button>
+                    <button className={`option-btn ${font === 'nunito' ? 'active' : ''}`} onClick={() => applyFont('nunito')}>
+                        <span style={{ fontFamily: 'Nunito' }}>Aa</span> Nunito
+                    </button>
+                    <button className={`option-btn ${font === 'comfortaa' ? 'active' : ''}`} onClick={() => applyFont('comfortaa')}>
+                        <span style={{ fontFamily: 'Comfortaa' }}>Aa</span> Comfortaa
+                    </button>
+                    <button className={`option-btn ${font === 'courier_prime' ? 'active' : ''}`} onClick={() => applyFont('courier_prime')}>
+                        <span style={{ fontFamily: 'Courier Prime' }}>Aa</span> Courier Prime
                     </button>
                     <button className={`option-btn ${font === 'hand' ? 'active' : ''}`} onClick={() => applyFont('hand')}>
                         <span style={{ fontFamily: 'cursive' }}>Aa</span> Hand

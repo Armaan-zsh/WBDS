@@ -90,22 +90,33 @@ export default function Home() {
             return;
         }
 
-        const { data, error } = await supabase
-            .from('letters')
-            .insert([{ content: text, theme: 'default' }])
-            .select()
-            .single();
+        try {
+            const res = await fetch('/api/letters', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: text,
+                    theme: 'default'
+                })
+            });
 
-        if (error) {
-            handleError("The Void rejected your letter. Try again.");
+            const data = await res.json();
+
+            if (!res.ok) {
+                // Rate limit or other error
+                handleError(data.error || "The Void rejected your letter.");
+                return;
+            }
+
+            const id = data.letter.id;
+
+            // Mark as owned (Local Persistence)
+            setMyLetterIds(prev => new Set(prev).add(id));
+            localStorage.setItem('wbds_last_sent', Date.now());
+        } catch (err) {
+            handleError("Connection lost. The Void is unreachable.");
             return;
         }
-
-        const id = data.id;
-
-        // Mark as owned (Local Persistence)
-        setMyLetterIds(prev => new Set(prev).add(id));
-        localStorage.setItem('wbds_last_sent', Date.now());
 
         // Switch to Read View
         setTimeout(() => {

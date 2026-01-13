@@ -185,7 +185,7 @@
   --text-secondary: #e2b714;
   /* Gold */
 
-  --glass-bg: rgba(50, 52, 55, 0.8);
+  --glass-bg: rgba(44, 46, 49, 0.95);
   --glass-border: rgba(226, 183, 20, 0.2);
 }
 
@@ -198,7 +198,7 @@
   --text-secondary: #f66e0d;
   /* Orange */
 
-  --glass-bg: rgba(49, 49, 49, 0.8);
+  --glass-bg: rgba(43, 43, 43, 0.95);
   --glass-border: rgba(246, 110, 13, 0.2);
 }
 
@@ -210,7 +210,7 @@
   --text-secondary: #f44c7f;
   /* Pink */
 
-  --glass-bg: rgba(51, 58, 69, 0.8);
+  --glass-bg: rgba(46, 52, 62, 0.95);
   --glass-border: rgba(244, 76, 127, 0.2);
 }
 
@@ -222,7 +222,7 @@
   --text-secondary: #ff3a32;
   /* Red */
 
-  --glass-bg: rgba(26, 11, 12, 0.9);
+  --glass-bg: rgba(20, 8, 9, 0.95);
   --glass-border: rgba(255, 58, 50, 0.3);
 }
 
@@ -278,6 +278,42 @@ body {
 
 [data-font='fira'] {
   --font-current: 'Fira Code', monospace;
+}
+
+[data-font='comfortaa'] {
+  --font-current: 'Comfortaa', cursive;
+}
+
+[data-font='courier_prime'] {
+  --font-current: 'Courier Prime', monospace;
+}
+
+[data-font='ibm_plex'] {
+  --font-current: 'IBM Plex Mono', monospace;
+}
+
+[data-font='jetbrains'] {
+  --font-current: 'JetBrains Mono', monospace;
+}
+
+[data-font='lexend'] {
+  --font-current: 'Lexend Deca', sans-serif;
+}
+
+[data-font='montserrat'] {
+  --font-current: 'Montserrat', sans-serif;
+}
+
+[data-font='nunito'] {
+  --font-current: 'Nunito', sans-serif;
+}
+
+[data-font='roboto_mono'] {
+  --font-current: 'Roboto Mono', monospace;
+}
+
+[data-font='source_code'] {
+  --font-current: 'Source Code Pro', monospace;
 }
 
 /* Force Terminal Font for Terminal Theme if desired, but user can mix match */
