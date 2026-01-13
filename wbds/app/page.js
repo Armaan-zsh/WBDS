@@ -33,6 +33,12 @@ export default function Home() {
             timestamp: Date.now()
         };
         setLetters([newLetter, ...letters]);
+
+        // Auto-scroll to feed
+        setTimeout(() => {
+            const feed = document.querySelector('.feed-section');
+            if (feed) feed.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
     };
 
     const handleError = (message) => {
@@ -48,19 +54,20 @@ export default function Home() {
             position: relative;
          }
 
+         /* Sidebar is now an overlay/ghost element that doesn't push content */
          .sidebar {
-            width: ${isDesktop && isSidebarOpen ? '320px' : '0px'};
-            overflow: hidden;
-            transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-            position: relative; /* It acts as a spacer */
+            position: absolute;
+            left: 0;
+            top: 0;
             z-index: 10;
             opacity: ${isDesktop && isSidebarOpen ? 1 : 0};
             pointer-events: ${isDesktop && isSidebarOpen ? 'auto' : 'none'};
+            transition: opacity 0.3s ease;
          }
          
          .toggle-btn {
             position: fixed;
-            left: ${isDesktop && isSidebarOpen ? '345px' : '40px'};
+            left: ${isDesktop && isSidebarOpen ? '330px' : '40px'};
             top: 50%;
             transform: translateY(-50%); 
             z-index: 100;
@@ -91,9 +98,31 @@ export default function Home() {
             flex-direction: column;
             max-width: 700px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 60px 20px;
             position: relative;
-            transition: margin 0.5s ease;
+         }
+
+         .nav-header {
+            padding-bottom: 60px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            gap: 60px; /* Big gap */
+         }
+
+         .nav-item {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0.3;
+            cursor: pointer;
+            transition: all 0.3s ease;
+         }
+         
+         .nav-item:hover {
+            opacity: 1;
+            transform: scale(1.1);
          }
        `}</style>
 
@@ -114,7 +143,7 @@ export default function Home() {
                 />
             )}
 
-            {/* Sidebar (Desktop Only) */}
+            {/* Sidebar (Overlay) */}
             <div className="sidebar">
                 {isDesktop && <AppearancePanel />}
             </div>
@@ -128,15 +157,15 @@ export default function Home() {
 
             <div className="main-content">
                 {/* Header */}
-                <div style={{ paddingBottom: '40px', opacity: 0.5, letterSpacing: '2px', fontSize: '12px', textTransform: 'uppercase', textAlign: 'center' }}>
+                <div className="nav-header">
                     <span
+                        className="nav-item"
                         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                        style={{ cursor: 'pointer', margin: '0 8px' }}
                     >WBDS</span>
-                    /
+
                     <span
+                        className="nav-item"
                         onClick={() => document.querySelector('.feed-section').scrollIntoView({ behavior: 'smooth' })}
-                        style={{ cursor: 'pointer', margin: '0 8px' }}
                     >READ</span>
                 </div>
 
