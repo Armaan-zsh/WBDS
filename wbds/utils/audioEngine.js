@@ -234,10 +234,170 @@ const playGlitch = (ctx, dest) => {
     osc.stop(t + 0.1);
 };
 
-// --- GENERATIVE AMBIENCE ---
+// --- MULTI-PROFILE ATMOSPHERE ENGINE ---
+
 let ambienceInterval = null;
-let delayNode = null;
-let masterGain = null;
+let currentAmbienceProfile = 'space';
+let masterBus = null;
+let activeNodes = []; // Track oscillators to stop them
+
+const cleanupAmbience = () => {
+    if (ambienceInterval) clearTimeout(ambienceInterval);
+    ambienceInterval = null;
+
+    activeNodes.forEach(node => {
+        try { node.stop(); } catch (e) { }
+        try { node.disconnect(); } catch (e) { }
+    });
+    activeNodes = [];
+
+    if (masterBus) {
+        const bus = masterBus;
+        // Fade out
+        try {
+            bus.gain.cancelScheduledValues(audioCtx.currentTime);
+            bus.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
+            setTimeout(() => { bus.disconnect(); }, 1000);
+        } catch (e) { }
+        masterBus = null;
+    }
+};
+
+// 1. SPACE ENGINE (Aphex Style)
+const runSpaceLoop = (ctx, dest) => {
+    // FX Chain
+    const delay = ctx.createDelay();
+    delay.delayTime.value = 0.4;
+    const feedback = ctx.createGain();
+    feedback.gain.value = 0.4;
+    delay.connect(feedback);
+    feedback.connect(delay);
+    delay.connect(dest);
+
+    // Scale: A Minor Pentatonic
+    const scale = [220, 261.63, 293.66, 329.63, 392.00, 440, 523.25];
+
+    const tick = () => {
+        const r = Math.random();
+        const freq = scale[Math.floor(Math.random() * scale.length)];
+
+        if (r > 0.5) playFMBell(ctx, delay, freq);
+        else if (r > 0.2) playGlitch(ctx, dest);
+        else playFMBell(ctx, delay, freq / 2); // Bass
+
+        ambienceInterval = setTimeout(tick, 400 + Math.random() * 2000);
+    };
+    tick();
+};
+
+// 2. VIVALDI ENGINE (String Ensemble)
+const playViolin = (ctx, dest, freq, duration) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.value = freq;
+
+    // Vibrato
+    const vib = ctx.createOscillator();
+    vib.frequency.value = 5; // 5Hz
+    const vibGain = ctx.createGain();
+    vibGain.gain.value = 3;
+    vib.connect(vibGain);
+    vibGain.connect(osc.frequency);
+
+    // Filter (Bowing texture)
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 2000;
+
+    // Envelope
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.5); // Slow attack
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration); // Release
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(dest);
+
+    osc.start();
+    vib.start();
+    osc.stop(ctx.currentTime + duration);
+    vib.stop(ctx.currentTime + duration);
+
+    activeNodes.push(osc, vib);
+};
+
+const runVivaldiLoop = (ctx, dest) => {
+    // Winter (F Minor) Arpeggios
+    const chord = [349.23, 415.30, 523.25, 698.46]; // F4, Ab4, C5, F5
+    let index = 0;
+
+    const tick = () => {
+        // Rapid bowing
+        playViolin(ctx, dest, chord[index % chord.length], 0.3);
+        index++;
+
+        // Occasional long note
+        if (Math.random() > 0.8) {
+            playViolin(ctx, dest, chord[0] / 2, 2.0); // Cello bass
+        }
+
+        ambienceInterval = setTimeout(tick, 200); // 16th notes
+    };
+    tick();
+};
+
+// 3. BACH ENGINE (Piano/Harpsichord)
+const playPiano = (ctx, dest, freq) => {
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    osc.type = 'triangle'; // Mellower than saw
+    osc.frequency.value = freq;
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.4, t + 0.01); // Hammer strike
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 1.0); // Decay
+
+    osc.connect(gain);
+    gain.connect(dest);
+
+    osc.start(t);
+    osc.stop(t + 1.0);
+    activeNodes.push(osc);
+};
+
+const runBachLoop = (ctx, dest) => {
+    // C Major Prelude Logic
+    // C E G C E G C E
+    const pattern = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+    let note = 0;
+
+    const tick = () => {
+        // Pseudo-random counterpoint
+        const pitch = pattern[Math.floor(Math.random() * pattern.length)];
+        playPiano(ctx, dest, pitch);
+
+        // Walking Bass
+        if (note % 4 === 0) {
+            playPiano(ctx, dest, pattern[0] / 2);
+        }
+        note++;
+
+        const timing = 250; // Andante
+        ambienceInterval = setTimeout(tick, timing);
+    };
+    tick();
+};
+
+export const setAmbienceProfile = (profile) => {
+    currentAmbienceProfile = profile;
+    // If playing, restart with new profile
+    if (ambienceInterval) {
+        toggleAmbience(false);
+        setTimeout(() => toggleAmbience(true), 100);
+    }
+};
 
 export const toggleAmbience = (shouldPlay) => {
     initAudio();
@@ -247,54 +407,20 @@ export const toggleAmbience = (shouldPlay) => {
     if (shouldPlay) {
         if (ambienceInterval) return; // Already playing
 
-        // Setup FX Chain
-        masterGain = audioCtx.createGain();
-        masterGain.gain.value = 0.3;
-        masterGain.connect(audioCtx.destination);
+        activeNodes = []; // Reset tracker
+        masterBus = audioCtx.createGain();
+        masterBus.gain.value = 0.4;
+        masterBus.connect(audioCtx.destination);
 
-        const fx = createDelay(audioCtx);
-        fx.output.connect(masterGain);
-
-        // Scale: A Minor Pentatonic
-        const scale = [220, 261.63, 293.66, 329.63, 392.00, 440, 523.25]; // A3, C4, D4, E4, G4, A4, C5
-
-        // Generative Loop (Aphex Style)
-        const loop = () => {
-            const r = Math.random();
-            const freq = scale[Math.floor(Math.random() * scale.length)];
-
-            // 60% Chance of FM Bell (Melodic)
-            if (r > 0.4) {
-                playFMBell(audioCtx, fx.input, freq);
-            }
-            // 20% Chance of Deep Drone (Bass)
-            else if (r > 0.2) {
-                playFMBell(audioCtx, fx.input, freq / 2); // Octave down
-            }
-            // 20% Chance of Glitch (Texture)
-            else {
-                playGlitch(audioCtx, fx.input);
-            }
-
-            // Random Timing (IDM feel)
-            const nextTime = 500 + Math.random() * 2000;
-            ambienceInterval = setTimeout(loop, nextTime);
-        };
-
-        loop();
+        if (currentAmbienceProfile === 'vivaldi') {
+            runVivaldiLoop(audioCtx, masterBus);
+        } else if (currentAmbienceProfile === 'bach') {
+            runBachLoop(audioCtx, masterBus);
+        } else {
+            runSpaceLoop(audioCtx, masterBus); // Default
+        }
 
     } else {
-        // Stop
-        if (ambienceInterval) clearTimeout(ambienceInterval);
-        ambienceInterval = null;
-
-        // Clean up nodes
-        if (masterGain) {
-            masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
-            setTimeout(() => {
-                masterGain.disconnect();
-                masterGain = null;
-            }, 600);
-        }
+        cleanupAmbience();
     }
 };

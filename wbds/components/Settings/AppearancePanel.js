@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { setAudioProfile, playTypeSound, toggleAmbience } from '../../utils/audioEngine';
+import { setAudioProfile, playTypeSound, toggleAmbience, setAmbienceProfile } from '../../utils/audioEngine';
 
 export default function AppearancePanel() {
     const [theme, setTheme] = useState('void');
     const [font, setFont] = useState('serif');
     const [audioProfile, setLocalAudioProfile] = useState('mechanical');
     const [isAmbienceOn, setIsAmbienceOn] = useState(false);
+    const [currentAmbience, setCurrentAmbience] = useState('space');
 
     useEffect(() => {
         // Load preference
@@ -15,6 +16,7 @@ export default function AppearancePanel() {
         const savedFont = localStorage.getItem('wbds_font') || 'serif';
         const savedAudio = localStorage.getItem('wbds_audio_profile') || 'mechanical';
         const savedAmbience = localStorage.getItem('wbds_ambience') === 'true';
+        const savedAmbienceProfile = localStorage.getItem('wbds_ambience_profile') || 'space';
 
         applyTheme(savedTheme);
         applyFont(savedFont);
@@ -24,7 +26,10 @@ export default function AppearancePanel() {
         setAudioProfile(savedAudio);
 
         // Init Ambience
+        setCurrentAmbience(savedAmbienceProfile);
+        setAmbienceProfile(savedAmbienceProfile);
         setIsAmbienceOn(savedAmbience);
+
         if (savedAmbience) {
             setTimeout(() => toggleAmbience(true), 1000);
         }
@@ -50,11 +55,23 @@ export default function AppearancePanel() {
         }
     };
 
-    const handleAmbienceToggle = () => {
-        const newState = !isAmbienceOn;
-        setIsAmbienceOn(newState);
-        localStorage.setItem('wbds_ambience', newState);
-        toggleAmbience(newState);
+    const handleAmbienceSelect = (profile) => {
+        // If clicking the active profile, toggle off
+        if (isAmbienceOn && currentAmbience === profile) {
+            setIsAmbienceOn(false);
+            localStorage.setItem('wbds_ambience', 'false');
+            toggleAmbience(false);
+            return;
+        }
+
+        // Otherwise switch to it and turn on
+        setCurrentAmbience(profile);
+        setIsAmbienceOn(true);
+        localStorage.setItem('wbds_ambience', 'true');
+        localStorage.setItem('wbds_ambience_profile', profile);
+
+        setAmbienceProfile(profile);
+        toggleAmbience(true);
     };
 
     return (
@@ -319,8 +336,23 @@ export default function AppearancePanel() {
 
                 <div className="section-title" style={{ marginTop: '20px' }}>Atmosphere</div>
                 <div className="option-grid">
-                    <button className={`option-btn ${isAmbienceOn ? 'active' : ''}`} onClick={handleAmbienceToggle}>
-                        <span style={{ fontSize: '16px' }}>🌌</span> Space Ambience
+                    <button
+                        className={`option-btn ${isAmbienceOn && currentAmbience === 'space' ? 'active' : ''}`}
+                        onClick={() => handleAmbienceSelect('space')}
+                    >
+                        <span style={{ fontSize: '16px' }}>🌌</span> Space (Aphex)
+                    </button>
+                    <button
+                        className={`option-btn ${isAmbienceOn && currentAmbience === 'vivaldi' ? 'active' : ''}`}
+                        onClick={() => handleAmbienceSelect('vivaldi')}
+                    >
+                        <span style={{ fontSize: '16px' }}>🎻</span> Vivaldi (Winter)
+                    </button>
+                    <button
+                        className={`option-btn ${isAmbienceOn && currentAmbience === 'bach' ? 'active' : ''}`}
+                        onClick={() => handleAmbienceSelect('bach')}
+                    >
+                        <span style={{ fontSize: '16px' }}>🎹</span> Bach (Prelude)
                     </button>
                 </div>
             </div>
