@@ -33,72 +33,79 @@ export default function GalaxyBackground() {
             particles = [];
 
             if (theme.includes('paper') || theme === 'rose') {
-                // INK PHYSICS (Paper, Coffee, Rose)
+                // DUST / INK MOTES
+                // Falling, swirling slightly
                 const isRose = theme === 'rose';
-                const count = 1500;
+                const count = 400; // Dense dust
 
                 for (let i = 0; i < count; i++) {
                     particles.push({
                         x: Math.random() * width,
                         y: Math.random() * height,
-                        size: Math.random() * 3 + 1,
+                        size: Math.random() * 2,
                         vx: (Math.random() - 0.5) * 0.5,
-                        vy: (Math.random() - 0.5) * 0.5,
-                        opacity: Math.random() * 0.15 + 0.05,
-                        color: isRose ? `rgba(100, 20, 20,` : `rgba(60, 40, 30,`, // Reddish or Brown
-                        type: 'ink'
+                        vy: Math.random() * 0.5 + 0.2, // Gentle Fall
+                        opacity: Math.random() * 0.3 + 0.1,
+                        color: isRose ? `rgba(100, 50, 50,` : `rgba(80, 60, 50,`,
+                        type: 'dust'
                     });
                 }
             } else if (theme === 'forest' || theme === 'nord') {
-                // FIREFLY PHYSICS (Forest, Nord)
+                // FALLING POLLEN / SPORES
                 const isNord = theme === 'nord';
-                const count = 400;
+                const count = 300;
 
                 for (let i = 0; i < count; i++) {
                     particles.push({
                         x: Math.random() * width,
                         y: Math.random() * height,
-                        size: Math.random() * 4,
+                        size: Math.random() * 3,
                         vx: (Math.random() - 0.5) * 1,
-                        vy: (Math.random() - 0.5) * 1,
+                        vy: Math.random() * 1 + 0.5, // Faster fall
                         phase: Math.random() * Math.PI * 2,
-                        color: isNord ? [136, 192, 208] : [200, 255, 100],
-                        type: 'firefly'
+                        color: isNord ? [136, 192, 208] : [255, 255, 150],
+                        type: 'pollen'
                     });
                 }
             } else if (theme === 'cyberpunk' || theme === 'terminal') {
-                // DIGITAL RAIN PHYSICS
-                const count = 800;
+                // HEAVY DIGITAL RAIN
+                const count = 600;
                 const isTerminal = theme === 'terminal';
                 for (let i = 0; i < count; i++) {
                     particles.push({
-                        x: Math.floor(Math.random() * width / 20) * 20,
+                        x: Math.floor(Math.random() * width / 15) * 15,
                         y: Math.random() * height,
                         size: Math.random() * 2 + 1,
-                        speed: Math.random() * 5 + 2,
+                        speed: Math.random() * 10 + 5, // Fast
                         color: isTerminal ? [48, 209, 88] : [252, 238, 12],
-                        type: 'digital'
+                        type: 'digital_rain'
                     });
                 }
             } else {
-                // GALAXY PHYSICS
-                const STAR_COUNT = 3000;
-                const ARM_SPREAD = 0.5;
-                const SPIRAL_ARMS = 2;
+                // STARFALL (Void)
+                // Stars falling like snow in space (Warp Speed Vertical)
+                const STAR_COUNT = 800;
 
                 for (let i = 0; i < STAR_COUNT; i++) {
-                    const r = Math.random();
-                    const theta = (Math.floor(Math.random() * SPIRAL_ARMS) * 2 * Math.PI / SPIRAL_ARMS) + (r * 5) + (Math.random() - 0.5) * ARM_SPREAD;
-
                     particles.push({
-                        r: r,
-                        theta: theta,
-                        x: r * Math.cos(theta) * (width * 0.5),
-                        y: r * Math.sin(theta) * (width * 0.5),
-                        z: (Math.random() - 0.5) * (width * 0.1),
+                        x: Math.random() * width,
+                        y: Math.random() * height,
                         size: Math.random() * 2,
-                        isCore: r < 0.2,
-                        type: 'galaxy'
+                        vy: Math.random() * 3 + 0.5, // Fast fall
+                        opacity: Math.random(),
+                        type: 'starfall'
+                    });
+                }
+
+                // Keep some Galaxy Core for depth
+                for (let i = 0; i < 500; i++) {
+                    const r = Math.random();
+                    const theta = (Math.random() * Math.PI * 2);
+                    particles.push({
+                        r: r, theta: theta,
+                        x: 0, y: 0, z: (Math.random() - 0.5) * 200,
+                        size: Math.random() * 2,
+                        type: 'galaxy' // 3D static
                     });
                 }
             }
@@ -112,11 +119,10 @@ export default function GalaxyBackground() {
         const render = () => {
             const theme = getTheme();
 
-            // Check for theme switch
+            // Re-check theme
             if (theme !== currentTheme) {
                 currentTheme = theme;
                 createParticles(theme);
-                rotation = 0;
             }
 
             // CLEAR
@@ -131,183 +137,96 @@ export default function GalaxyBackground() {
             }
 
             const time = Date.now() / 1000;
-            rotation += 0.0003;
 
-            // --- CURSOR EMISSION ---
+            // --- SPAWN CURSOR TRAILS (Interactive) ---
             if (mouse.x > 0) {
-                if (theme.includes('paper') || theme === 'rose') {
-                    // Ink Trail
-                    for (let i = 0; i < 2; i++) {
-                        particles.push({
-                            x: mouse.x + (Math.random() - 0.5) * 10,
-                            y: mouse.y + (Math.random() - 0.5) * 10,
-                            size: Math.random() * 4,
-                            vx: (Math.random() - 0.5),
-                            vy: (Math.random() - 0.5) + 0.5,
-                            opacity: 0.6,
-                            life: 1.0,
-                            color: theme === 'rose' ? `rgba(100, 20, 20,` : `rgba(60, 40, 30,`,
-                            type: 'ink_trail'
-                        });
-                    }
-                } else if (theme === 'forest' || theme === 'nord') {
-                    // Fairy Dust
-                    if (Math.random() > 0.5) {
-                        particles.push({
-                            x: mouse.x,
-                            y: mouse.y,
-                            size: Math.random() * 2,
-                            vx: (Math.random() - 0.5) * 2,
-                            vy: (Math.random() - 0.5) * 2,
-                            life: 1.0,
-                            color: theme === 'nord' ? [136, 192, 208] : [255, 255, 200],
-                            type: 'dust'
-                        });
-                    }
-                } else if (theme === 'cyberpunk' || theme === 'terminal') {
-                    // Glitch Trail
-                    if (Math.random() > 0.5) {
-                        particles.push({
-                            x: mouse.x + (Math.random() - 0.5) * 50,
-                            y: mouse.y,
-                            size: Math.random() * 3,
-                            speed: 0,
-                            life: 0.5,
-                            color: theme === 'terminal' ? [48, 209, 88] : [252, 238, 12],
-                            type: 'glitch_trail'
-                        });
-                    }
-                } else {
-                    // Stardust
-                    if (Math.random() > 0.5) {
-                        particles.push({
-                            x: mouse.x,
-                            y: mouse.y,
-                            size: Math.random() * 2,
-                            life: 1.0,
-                            vx: (Math.random() - 0.5) * 0.5,
-                            vy: (Math.random() - 0.5) * 0.5,
-                            isCore: true,
-                            type: 'stardust'
-                        });
-                    }
+                if (Math.random() > 0.8) {
+                    particles.push({
+                        x: mouse.x,
+                        y: mouse.y,
+                        size: Math.random() * 3,
+                        vx: (Math.random() - 0.5),
+                        vy: (Math.random() - 0.5),
+                        life: 1.0,
+                        color: theme.includes('paper') ? '0,0,0' : '255, 255, 255',
+                        type: 'trail'
+                    });
                 }
             }
 
-            // FILTER
-            particles = particles.filter(p => {
-                if (p.life !== undefined) {
-                    p.life -= 0.02;
-                    return p.life > 0;
-                }
-                return true;
-            });
-
-            particles.forEach(p => {
-                if (p.type === 'ink' || p.type === 'ink_trail') {
+            // MAIN LOOP
+            particles.forEach((p, index) => {
+                // 1. Move
+                if (p.type === 'dust') {
+                    p.y += p.vy;
+                    p.x += Math.sin(time + p.y * 0.01) * 0.5; // Sway
+                } else if (p.type === 'pollen') {
+                    p.y += p.vy;
+                    p.x += Math.cos(time * 2 + p.y * 0.01); // Swirl
+                } else if (p.type === 'digital_rain') {
+                    p.y += p.speed;
+                } else if (p.type === 'starfall') {
+                    p.y += p.vy;
+                } else if (p.type === 'trail') {
                     p.x += p.vx;
                     p.y += p.vy;
-                    // Wrap Perm particles
-                    if (!p.life) {
-                        if (p.x < 0) p.x = width;
-                        if (p.x > width) p.x = 0;
-                        if (p.y < 0) p.y = height;
-                        if (p.y > height) p.y = 0;
+                    p.life -= 0.05;
+                } else if (p.type === 'galaxy') {
+                    // Static rotation
+                    const rot = time * 0.1;
+                    const cosR = Math.cos(rot);
+                    const sinR = Math.sin(rot);
+                    // Just simple orbit
+                    p.x = Math.cos(p.theta + rot) * (p.r * width / 2) + width / 2;
+                    p.y = Math.sin(p.theta + rot) * (p.r * width / 2) + height / 2;
+                }
+
+                // 2. Wrap / Kill
+                if (p.type === 'trail') {
+                    if (p.life <= 0) {
+                        particles.splice(index, 1);
+                        return;
                     }
-
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    const alpha = p.life !== undefined ? p.opacity * p.life : p.opacity;
-                    ctx.fillStyle = p.color + alpha + ')';
-                    ctx.fill();
-
-                } else if (p.type === 'firefly' || p.type === 'dust') {
-                    // Firefly Attraction
-                    if (p.type === 'firefly') {
-                        const dx = mouse.x - p.x;
-                        const dy = mouse.y - p.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        if (dist < 300) {
-                            p.vx += dx * 0.0001;
-                            p.vy += dy * 0.0001;
-                        }
-                        p.vx *= 0.99;
-                        p.vy *= 0.99;
-                    }
-
-                    p.x += p.vx + Math.sin(time + (p.phase || 0)) * 0.5;
-                    p.y += p.vy + Math.cos(time + (p.phase || 0)) * 0.5;
-
-                    if (!p.life) {
-                        if (p.x < 0) p.x = width;
-                        if (p.x > width) p.x = 0;
-                        if (p.y < 0) p.y = height;
-                        if (p.y > height) p.y = 0;
-                    }
-
-                    const pulse = 0.5 + Math.sin(time * 3 + (p.phase || 0)) * 0.5;
-                    const r = p.color[0];
-                    const g = p.color[1];
-                    const b = p.color[2];
-                    const alpha = p.life !== undefined ? p.life : 0.5 * pulse;
-
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size * (p.life ? 1 : pulse), 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                    ctx.fill();
-
-                } else if (p.type === 'digital' || p.type === 'glitch_trail') {
-                    if (p.type === 'glitch_trail') {
-                        ctx.fillStyle = `rgba(${p.color[0]}, ${p.color[1]}, ${p.color[2]}, ${p.life})`;
-                        ctx.fillRect(p.x, p.y, p.size, p.size);
-                    } else {
-                        p.y += p.speed;
-                        if (p.y > height) p.y = 0;
-                        ctx.fillStyle = `rgba(${p.color[0]}, ${p.color[1]}, ${p.color[2]}, 0.5)`;
-                        ctx.fillRect(p.x, p.y, 2, p.size * 5);
-                    }
-
-                } else {
-                    // GALAXY / STARDUST
-                    let sx, sy, scale;
-
-                    if (p.type === 'stardust') {
-                        p.x += p.vx;
-                        p.y += p.vy;
-                        sx = p.x;
-                        sy = p.y;
-                        scale = 1;
-                        ctx.fillStyle = `rgba(200, 220, 255, ${p.life})`;
-                    } else {
-                        const cosR = Math.cos(rotation);
-                        const sinR = Math.sin(rotation);
-                        let px = p.x * cosR - p.y * sinR;
-                        let py = p.x * sinR + p.y * cosR;
-                        let pz = p.z;
-
-                        const tilt = 60 * (Math.PI / 180);
-                        let yRot = py * Math.cos(tilt) - pz * Math.sin(tilt);
-                        let zRot = py * Math.sin(tilt) + pz * Math.cos(tilt);
-
-                        scale = 800 / (800 + zRot);
-                        sx = width / 2 + px * scale;
-                        sy = height / 2 + yRot * scale;
-
-                        if (scale <= 0) return;
-
-                        if (p.isCore) {
-                            ctx.fillStyle = `rgba(255, 220, 200, ${0.8 * scale})`;
-                        } else {
-                            ctx.fillStyle = `rgba(100, 150, 255, ${0.4 * scale})`;
-                        }
-                    }
-
-                    if (scale > 0 || p.type === 'stardust') {
-                        ctx.beginPath();
-                        ctx.arc(sx, sy, p.size * (scale || 1), 0, Math.PI * 2);
-                        ctx.fill();
+                } else if (p.type !== 'galaxy') {
+                    // Infinite Fall Wrap
+                    if (p.y > height) {
+                        p.y = -10;
+                        p.x = Math.random() * width;
                     }
                 }
+
+                // 3. Draw
+                ctx.beginPath();
+
+                if (p.type === 'dust') {
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color + p.opacity + ')';
+                } else if (p.type === 'pollen') {
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    // Pulsing glow
+                    const pulse = 0.5 + Math.sin(time * 5 + p.phase) * 0.5;
+                    const c = p.color;
+                    ctx.fillStyle = `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${pulse})`;
+                } else if (p.type === 'digital_rain') {
+                    ctx.fillStyle = `rgba(${p.color[0]}, ${p.color[1]}, ${p.color[2]}, 0.5)`;
+                    ctx.fillRect(p.x, p.y, 2, p.size * 5);
+                    return; // Done
+                } else if (p.type === 'starfall') {
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(200, 220, 255, ${p.opacity})`;
+                } else if (p.type === 'trail') {
+                    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                    if (theme.includes('paper')) {
+                        ctx.fillStyle = `rgba(0,0,0, ${p.life * 0.5})`;
+                    } else {
+                        ctx.fillStyle = `rgba(255, 255, 255, ${p.life})`;
+                    }
+                } else if (p.type === 'galaxy') {
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(150, 150, 255, 0.5)`;
+                }
+
+                ctx.fill();
             });
 
             animationFrameId = requestAnimationFrame(render);
