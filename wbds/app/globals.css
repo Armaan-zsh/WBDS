@@ -317,11 +317,7 @@ body {
   --font-current: 'Source Code Pro', monospace;
 }
 
-/* Force Terminal Font for Terminal Theme if desired, but user can mix match */
-[data-theme='terminal'] {
-  --font-current: 'SF Mono', 'Menlo', 'Courier New', monospace;
-  /* Hacky default? No, let user choose */
-}
+
 
 
 /* --- UTILITIES --- */
