@@ -73,14 +73,40 @@ export async function POST(req) {
             // We'll proceed but log it.
         }
 
+        // 3. Get Location (IP Geolocation)
+        let lat = null;
+        let lng = null;
+
+        try {
+            // Use a fast, free IP geo service (limit: 45 req/min)
+            // In prod, use Vercel headers (x-vercel-ip-latitude) or a paid service
+            if (ip !== '127.0.0.1' && ip !== '::1') {
+                const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
+                const geoData = await geoRes.json();
+                if (geoData.status === 'success') {
+                    lat = geoData.lat;
+                    lng = geoData.lon;
+                }
+            } else {
+                // Dev mode: Random location for testing "aliveness"
+                // Or just null. Let's do null so it doesn't fake data.
+            }
+        } catch (e) {
+            console.error('Geo Lookup Failed:', e);
+        }
+
         // 4. Insert Letter
         const { data: letter, error: insertError } = await supabaseAdmin
             .from('letters')
-            .insert({
-                content,
-                theme: theme || 'void',
-                // font: font || 'serif' // If we add font column later
-            })
+            .insert([
+                {
+                    content: body.content,
+                    ip_address: ip,
+                    theme: body.theme || 'void', // Changed from 'default' to 'void' to match original logic
+                    location_lat: lat,
+                    location_lng: lng
+                }
+            ])
             .select() // Return the inserted data
             .single();
 

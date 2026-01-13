@@ -7,7 +7,12 @@ import LetterFeed from '../components/Feed/LetterFeed';
 import VoidNotification from '../components/Layout/VoidNotification';
 import LetterModal from '../components/Feed/LetterModal';
 import AppearancePanel from '../components/Settings/AppearancePanel';
+import dynamic from 'next/dynamic';
 
+const RealtimeGlobe = dynamic(() => import('../components/Live/RealtimeGlobe'), {
+    ssr: false,
+    loading: () => <div style={{ color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>Initializing Hologram...</div>
+});
 export default function Home() {
     const [letters, setLetters] = useState([]);
     const [notification, setNotification] = useState(null);
@@ -435,6 +440,11 @@ export default function Home() {
                         className={`nav-item ${view === 'best' ? 'active' : ''}`}
                         onClick={() => setView('best')}
                     >BEST</span>
+
+                    <span
+                        className={`nav-item ${view === 'live' ? 'active' : ''}`}
+                        onClick={() => setView('live')}
+                    >LIVE</span>
                 </div>
 
                 {/* VIEW: WRITE */}
@@ -455,6 +465,13 @@ export default function Home() {
                             onLike={handleLike}
                             likedLetters={likedLetters}
                         />
+                    </div>
+                )}
+
+                {/* VIEW: LIVE */}
+                {view === 'live' && (
+                    <div className="animate-enter" style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                        <RealtimeGlobe letters={letters} />
                     </div>
                 )}
             </div>
