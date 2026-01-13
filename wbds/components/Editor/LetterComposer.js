@@ -65,8 +65,23 @@ export default function LetterComposer({ onSend, onError }) {
           width: 100%;
           max-width: 600px;
           margin: 0 auto;
-          padding: 20px 0;
-          transition: opacity 0.4s var(--ease-ios);
+          transition: transform 0.4s var(--ease-ios);
+        }
+
+        .composer-card {
+           background: var(--bg-surface);
+           border: 1px solid var(--glass-border);
+           border-radius: 20px; /* iOS rounded styles */
+           padding: 30px;
+           box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+           transition: all 0.4s var(--ease-ios);
+           position: relative;
+        }
+
+        .focused .composer-card {
+           box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+           transform: translateY(-2px);
+           border-color: var(--text-secondary);
         }
         
         .letter-input {
@@ -74,17 +89,18 @@ export default function LetterComposer({ onSend, onError }) {
           border: none;
           color: var(--text-primary);
           font-family: var(--font-current); /* Dynamic Font */
-          font-size: 22px;
+          font-size: 21px;
           line-height: 1.6;
           width: 100%;
           resize: none;
           outline: none;
-          min-height: 150px;
+          min-height: 200px;
           padding: 0;
         }
 
         .letter-input::placeholder {
-          color: rgba(255, 255, 255, 0.15);
+          color: var(--text-secondary);
+          opacity: 0.4;
           font-style: italic;
         }
 
@@ -92,13 +108,13 @@ export default function LetterComposer({ onSend, onError }) {
           display: flex;
           justify-content: flex-end;
           gap: 12px;
-          padding-top: 24px;
+          padding-top: 20px;
           opacity: ${text.length > 0 ? 1 : 0};
           transform: translateY(${text.length > 0 ? 0 : '10px'});
           transition: all 0.4s var(--ease-ios);
           pointer-events: ${text.length > 0 ? 'auto' : 'none'};
-          border-top: 1px solid rgba(255,255,255,0.05);
-          margin-top: 20px;
+          margin-top: 10px;
+          border-top: 1px solid var(--glass-border);
         }
 
         .helper-text {
@@ -110,26 +126,28 @@ export default function LetterComposer({ onSend, onError }) {
         }
       `}</style>
 
-            <textarea
-                ref={textareaRef}
-                className={`letter-input ${errorShake ? 'animate-shake' : ''}`}
-                placeholder="Dear..."
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                rows={1}
-                spellCheck={false}
-            />
+            <div className="composer-card">
+                <textarea
+                    ref={textareaRef}
+                    className={`letter-input ${errorShake ? 'animate-shake' : ''}`}
+                    placeholder="Dear..."
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    rows={1}
+                    spellCheck={false}
+                />
 
-            <div className="controls">
-                <span className="helper-text">{text.length} chars</span>
-                <button className="btn-action btn-danger" onClick={handleBurn}>
-                    {status === 'BURNING' ? '🔥' : 'Burn'}
-                </button>
-                <button className="btn-action" onClick={handleSend}>
-                    {status === 'SENDING' ? 'Sent' : 'Send'}
-                </button>
+                <div className="controls">
+                    <span className="helper-text">{text.length} chars</span>
+                    <button className="btn-action btn-danger" onClick={handleBurn}>
+                        {status === 'BURNING' ? '🔥' : 'Burn'}
+                    </button>
+                    <button className="btn-action" onClick={handleSend}>
+                        {status === 'SENDING' ? 'Sent' : 'Send'}
+                    </button>
+                </div>
             </div>
         </div>
     );
