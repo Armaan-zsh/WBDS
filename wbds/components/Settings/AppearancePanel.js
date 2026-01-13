@@ -168,6 +168,22 @@ export default function AppearancePanel() {
                         <div className="preview-circle" style={{ background: '#2b213a', border: '1px solid #ff71ce' }}></div>
                         Synthwave
                     </button>
+                    <button className={`option-btn ${theme === 'serika' ? 'active' : ''}`} onClick={() => applyTheme('serika')}>
+                        <div className="preview-circle" style={{ background: '#323437', border: '1px solid #e2b714' }}></div>
+                        Serika
+                    </button>
+                    <button className={`option-btn ${theme === 'carbon' ? 'active' : ''}`} onClick={() => applyTheme('carbon')}>
+                        <div className="preview-circle" style={{ background: '#313131', border: '1px solid #f66e0d' }}></div>
+                        Carbon
+                    </button>
+                    <button className={`option-btn ${theme === '8008' ? 'active' : ''}`} onClick={() => applyTheme('8008')}>
+                        <div className="preview-circle" style={{ background: '#333a45', border: '1px solid #f44c7f' }}></div>
+                        8008
+                    </button>
+                    <button className={`option-btn ${theme === 'red-dragon' ? 'active' : ''}`} onClick={() => applyTheme('red-dragon')}>
+                        <div className="preview-circle" style={{ background: '#1a0b0c', border: '1px solid #ff3a32' }}></div>
+                        Red Dragon
+                    </button>
                     <button className={`option-btn ${theme === 'terminal' ? 'active' : ''}`} onClick={() => { applyTheme('terminal'); applyFont('typewriter'); }}>
                         <div className="preview-circle" style={{ background: '#0a0a0a', border: '1px solid #30d158' }}></div>
                         Terminal

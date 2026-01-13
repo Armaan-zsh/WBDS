@@ -58,6 +58,32 @@ export default function LetterComposer({ onSend, onError }) {
         setTimeout(() => setErrorShake(false), 300);
     };
 
+    const handleKeyDown = (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'i')) {
+            e.preventDefault();
+            const wrapper = e.key === 'b' ? '**' : '*';
+
+            const start = textareaRef.current.selectionStart;
+            const end = textareaRef.current.selectionEnd;
+
+            if (start === end) return; // No selection
+
+            const selected = text.substring(start, end);
+            const newValue =
+                text.substring(0, start) +
+                wrapper + selected + wrapper +
+                text.substring(end);
+
+            setText(newValue);
+
+            // Restore selection (including wrappers)
+            // setTimeout needed to run after React render
+            setTimeout(() => {
+                textareaRef.current.setSelectionRange(start, end + (wrapper.length * 2));
+            }, 0);
+        }
+    };
+
     const handlePaste = (e) => {
         e.preventDefault();
         const pastedData = e.clipboardData.getData('text');
@@ -177,6 +203,7 @@ export default function LetterComposer({ onSend, onError }) {
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                     onPaste={handlePaste}
+                    onKeyDown={handleKeyDown}
                     rows={1}
                     spellCheck={false}
                     autoCorrect="off"
