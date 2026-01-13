@@ -67,7 +67,7 @@ export default function Home() {
          
          .toggle-btn {
             position: fixed;
-            left: ${isDesktop && isSidebarOpen ? '345px' : '40px'};
+            left: ${isDesktop && isSidebarOpen ? '370px' : '40px'};
             top: 50%;
             transform: translateY(-50%); 
             z-index: 100;

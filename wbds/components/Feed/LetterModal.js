@@ -45,7 +45,7 @@ export default function LetterModal({ letter, onClose }) {
         }
 
         .modal-content {
-            background: #fff; /* Paper color */
+            background: var(--bg-surface); /* Adaptive Paper */
             width: 90%;
             max-width: 500px;
             padding: 40px;
@@ -54,9 +54,10 @@ export default function LetterModal({ letter, onClose }) {
             transform: scale(0.95);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: default;
-            color: #111; /* Deep black ink */
-            font-family: 'Charter', 'Georgia', serif;
+            color: var(--text-primary);
+            font-family: var(--font-current);
             position: relative;
+            border: 1px solid var(--glass-border);
         }
 
         .modal-overlay.open .modal-content {
