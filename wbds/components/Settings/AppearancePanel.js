@@ -1,17 +1,25 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { setAudioProfile, playTypeSound } from '../../utils/audioEngine';
 
 export default function AppearancePanel() {
     const [theme, setTheme] = useState('void');
     const [font, setFont] = useState('serif');
+    const [audioProfile, setLocalAudioProfile] = useState('mechanical');
 
     useEffect(() => {
         // Load preference
         const savedTheme = localStorage.getItem('wbds_theme') || 'void';
         const savedFont = localStorage.getItem('wbds_font') || 'serif';
+        const savedAudio = localStorage.getItem('wbds_audio_profile') || 'mechanical';
+
         applyTheme(savedTheme);
         applyFont(savedFont);
+
+        // Init Audio State
+        setLocalAudioProfile(savedAudio);
+        setAudioProfile(savedAudio);
     }, []);
 
     const applyTheme = (t) => {
@@ -26,18 +34,25 @@ export default function AppearancePanel() {
         localStorage.setItem('wbds_font', f);
     };
 
+    const applyAudio = (profile) => {
+        setLocalAudioProfile(profile);
+        setAudioProfile(profile);
+        if (profile !== 'silent') {
+            playTypeSound(); // Preview sound!
+        }
+    };
+
     return (
         <div className="panel-container">
             <style jsx>{`
         .panel-container {
-            width: 280px; /* Slight increase for scrollbar space */
+            width: 280px;
             padding: 32px 24px;
             background: var(--bg-surface);
             border: 1px solid var(--glass-border);
-            /* Centered Floating Card */
             height: auto;
             max-height: 75vh; 
-            overflow-y: auto; /* Enable Scrolling */
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 32px;
@@ -49,13 +64,11 @@ export default function AppearancePanel() {
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             backdrop-filter: blur(20px);
             z-index: 50;
-            
-            /* Hide Scrollbar for clean UI */
-            scrollbar-width: none;  /* Firefox */
+            scrollbar-width: none;
         }
         
         .panel-container::-webkit-scrollbar {
-            display: none; /* Chrome/Safari */
+            display: none;
         }
 
         .section-title {
@@ -251,7 +264,7 @@ export default function AppearancePanel() {
                         <span style={{ fontFamily: 'cursive' }}>Aa</span> Hand
                     </button>
                     <button className={`option-btn ${font === 'typewriter' ? 'active' : ''}`} onClick={() => applyFont('typewriter')}>
-                        <span style={{ fontFamily: 'Courier New' }}>Aa</span> Type
+                        <span style={{ fontFamily: 'Courier New' }}>Aa</span> Typewriter
                     </button>
                     <button className={`option-btn ${font === 'dancing' ? 'active' : ''}`} onClick={() => applyFont('dancing')}>
                         <span style={{ fontFamily: 'Dancing Script', fontSize: '16px' }}>Aa</span> Dancing Script
@@ -267,6 +280,25 @@ export default function AppearancePanel() {
                     </button>
                     <button className={`option-btn ${font === 'parisienne' ? 'active' : ''}`} onClick={() => applyFont('parisienne')}>
                         <span style={{ fontFamily: 'Parisienne', fontSize: '16px' }}>Aa</span> Parisienne
+                    </button>
+                </div>
+            </div>
+
+            {/* TACTILE AUDIO */}
+            <div>
+                <div className="section-title">Tactile Sound</div>
+                <div className="option-grid">
+                    <button className={`option-btn ${audioProfile === 'mechanical' ? 'active' : ''}`} onClick={() => applyAudio('mechanical')}>
+                        <span style={{ fontSize: '16px' }}>⌨️</span> Mechanical
+                    </button>
+                    <button className={`option-btn ${audioProfile === 'typewriter' ? 'active' : ''}`} onClick={() => applyAudio('typewriter')}>
+                        <span style={{ fontSize: '16px' }}>📠</span> Typewriter
+                    </button>
+                    <button className={`option-btn ${audioProfile === 'bubble' ? 'active' : ''}`} onClick={() => applyAudio('bubble')}>
+                        <span style={{ fontSize: '16px' }}>💧</span> Bubble
+                    </button>
+                    <button className={`option-btn ${audioProfile === 'silent' ? 'active' : ''}`} onClick={() => applyAudio('silent')}>
+                        <span style={{ fontSize: '16px' }}>🔇</span> Silent
                     </button>
                 </div>
             </div>
