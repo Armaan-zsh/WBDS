@@ -136,6 +136,10 @@ export default function AppearancePanel() {
                         <div className="preview-circle" style={{ background: '#f2f0e9' }}></div>
                         Paper
                     </button>
+                    <button className={`option-btn ${theme === 'coffee-paper' ? 'active' : ''}`} onClick={() => applyTheme('coffee-paper')}>
+                        <div className="preview-circle" style={{ background: '#d9c2a3', border: '1px solid #8b5a2b' }}></div>
+                        Coffee Paper
+                    </button>
                     <button className={`option-btn ${theme === 'rose' ? 'active' : ''}`} onClick={() => applyTheme('rose')}>
                         <div className="preview-circle" style={{ background: '#261010' }}></div>
                         Rose
@@ -248,6 +252,21 @@ export default function AppearancePanel() {
                     </button>
                     <button className={`option-btn ${font === 'typewriter' ? 'active' : ''}`} onClick={() => applyFont('typewriter')}>
                         <span style={{ fontFamily: 'Courier New' }}>Aa</span> Type
+                    </button>
+                    <button className={`option-btn ${font === 'dancing' ? 'active' : ''}`} onClick={() => applyFont('dancing')}>
+                        <span style={{ fontFamily: 'Dancing Script', fontSize: '16px' }}>Aa</span> Dancing Script
+                    </button>
+                    <button className={`option-btn ${font === 'great_vibes' ? 'active' : ''}`} onClick={() => applyFont('great_vibes')}>
+                        <span style={{ fontFamily: 'Great Vibes', fontSize: '18px' }}>Aa</span> Great Vibes
+                    </button>
+                    <button className={`option-btn ${font === 'alex_brush' ? 'active' : ''}`} onClick={() => applyFont('alex_brush')}>
+                        <span style={{ fontFamily: 'Alex Brush', fontSize: '16px' }}>Aa</span> Alex Brush
+                    </button>
+                    <button className={`option-btn ${font === 'allura' ? 'active' : ''}`} onClick={() => applyFont('allura')}>
+                        <span style={{ fontFamily: 'Allura', fontSize: '16px' }}>Aa</span> Allura
+                    </button>
+                    <button className={`option-btn ${font === 'parisienne' ? 'active' : ''}`} onClick={() => applyFont('parisienne')}>
+                        <span style={{ fontFamily: 'Parisienne', fontSize: '16px' }}>Aa</span> Parisienne
                     </button>
                 </div>
             </div>

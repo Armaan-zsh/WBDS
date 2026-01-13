@@ -1,5 +1,5 @@
 /* globals.css: The Physics of "The Void" and Beyond */
-@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Fira+Code:wght@300..700&family=IBM+Plex+Mono:wght@100..700&family=Inter:wght@100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Lexend+Deca:wght@100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Allura&family=Comfortaa:wght@300..700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Dancing+Script:wght@400..700&family=Fira+Code:wght@300..700&family=Great+Vibes&family=IBM+Plex+Mono:wght@100..700&family=Inter:wght@100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Lexend+Deca:wght@100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Parisienne&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
 
 :root {
   /* DEFAULTS (THE VOID) */
@@ -225,6 +225,46 @@
 
   --glass-bg: rgba(20, 8, 9, 0.95);
   --glass-border: rgba(255, 58, 50, 0.3);
+}
+
+
+/* THEME: COFFEE PAPER (Realistic) */
+[data-theme='coffee-paper'] {
+  --bg-depth: #e3dcd2;
+  --bg-surface: #d9c2a3;
+  --text-primary: #4a3728;
+  /* Dark Espresso */
+  --text-secondary: #8b5a2b;
+  /* Cinnamon */
+
+  /* Texture Simulation */
+  background-color: #d9c2a3;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.1) 100%),
+    repeating-linear-gradient(45deg, rgba(74, 55, 40, 0.03) 0px, rgba(74, 55, 40, 0.03) 1px, transparent 1px, transparent 2px);
+
+  --glass-bg: rgba(74, 55, 40, 0.1);
+  --glass-border: rgba(74, 55, 40, 0.2);
+}
+
+[data-font='dancing'] {
+  --font-current: 'Dancing Script', cursive;
+}
+
+[data-font='great_vibes'] {
+  --font-current: 'Great Vibes', cursive;
+}
+
+[data-font='alex_brush'] {
+  --font-current: 'Alex Brush', cursive;
+}
+
+[data-font='allura'] {
+  --font-current: 'Allura', cursive;
+}
+
+[data-font='parisienne'] {
+  --font-current: 'Parisienne', cursive;
 }
 
 
