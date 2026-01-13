@@ -58,6 +58,39 @@ export default function LetterComposer({ onSend, onError }) {
         setTimeout(() => setErrorShake(false), 300);
     };
 
+    const handlePaste = (e) => {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData('text');
+
+        // Regex to find URLs
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+        if (containsLinkPattern(pastedData)) {
+            const sanitized = pastedData.replace(urlRegex, '[LINK REMOVED]');
+
+            // Insert at cursor position
+            const selectionStart = textareaRef.current.selectionStart;
+            const selectionEnd = textareaRef.current.selectionEnd;
+            const newValue =
+                text.substring(0, selectionStart) +
+                sanitized +
+                text.substring(selectionEnd);
+
+            setText(newValue);
+            triggerShake();
+            if (onError) onError("Links were stripped. The void is pure.");
+        } else {
+            // Normal paste
+            const selectionStart = textareaRef.current.selectionStart;
+            const selectionEnd = textareaRef.current.selectionEnd;
+            const newValue =
+                text.substring(0, selectionStart) +
+                pastedData +
+                text.substring(selectionEnd);
+            setText(newValue);
+        }
+    };
+
     return (
         <div className={`composer-container ${isFocused ? 'focused' : ''}`}>
             <style jsx>{`
@@ -143,8 +176,11 @@ export default function LetterComposer({ onSend, onError }) {
                     onChange={(e) => setText(e.target.value)}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
+                    onPaste={handlePaste}
                     rows={1}
                     spellCheck={false}
+                    autoCorrect="off"
+                    autoCapitalize="none"
                 />
 
                 <div className="controls">

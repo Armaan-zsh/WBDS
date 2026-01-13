@@ -55,10 +55,9 @@ export function containsLinkPattern(text) {
     // or common suffixes appearing at the end or middle.
 
     const blockPatterns = [
-        /www[a-z0-9]+(com|net|org|xyz|io|co)/, // www.something.com (squashed)
-        /http[a-z0-9]+/,                        // http...
-        /[a-z0-9]+(dot)(com|net|org|xyz)/,      // "google dot com"
-        /[a-z0-9]+(hash|crypto|btc|eth)/        // "send btc" signatures
+        /www\.[a-z0-9]+\.(com|net|org|xyz|io|co)/, // www.something.com (Strict)
+        /http(s)?:\/\/[a-z0-9]+/,                   // http(s)://...
+        /[a-z0-9]+\.(com|net|org|xyz|io|co)(\/|$)/  // domain.com (Strict dot)
     ];
 
     for (const pattern of blockPatterns) {

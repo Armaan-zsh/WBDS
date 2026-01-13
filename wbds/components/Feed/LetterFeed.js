@@ -1,4 +1,5 @@
 'use client';
+import ReactMarkdown from 'react-markdown';
 
 export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterIds }) {
     if (!letters || letters.length === 0) {
@@ -45,11 +46,32 @@ export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterI
            font-size: 18px;
            line-height: 1.6;
            color: var(--text-primary);
-           white-space: pre-wrap;
            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
            max-height: 300px;
            overflow: hidden;
            border: 1px solid var(--glass-border);
+        }
+        
+        /* Markdown Styling */
+        .letter-content :global(p) {
+            margin: 0 0 16px 0;
+        }
+        .letter-content :global(p:last-child) {
+            margin: 0;
+        }
+        .letter-content :global(strong) {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .letter-content :global(em) {
+            font-style: italic;
+            opacity: 0.8;
+        }
+        .letter-content :global(blockquote) {
+            border-left: 2px solid var(--text-secondary);
+            margin: 16px 0;
+            padding-left: 16px;
+            opacity: 0.7;
         }
 
         .letter-meta {
@@ -106,7 +128,7 @@ export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterI
                         >×</button>
                     )}
                     <div className="letter-content">
-                        {letter.content}
+                        <ReactMarkdown>{letter.content}</ReactMarkdown>
                     </div>
                     <div className="letter-meta">
                         <span>Anonymous</span>
