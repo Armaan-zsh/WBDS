@@ -49,7 +49,6 @@ export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterI
            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
            max-height: 300px;
            overflow: hidden;
-           mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
            border: 1px solid var(--glass-border);
         }
 
