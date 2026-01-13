@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase'; // Import Supabase
 import LetterComposer from '../components/Editor/LetterComposer';
 import LetterFeed from '../components/Feed/LetterFeed';
@@ -15,7 +15,11 @@ export default function Home() {
     const [isDesktop, setIsDesktop] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-    const [view, setView] = useState('write'); // 'write' or 'read'
+    const sidebarRef = useRef(null);
+    const toggleBtnRef = useRef(null);
+
+    const [view, setView] = useState('write'); // 'write', 'read', 'best'
+    const [likedLetters, setLikedLetters] = useState(new Set()); // Local liked state
 
     // Simple responsive check
     useEffect(() => {
@@ -29,12 +33,42 @@ export default function Home() {
         return () => window.removeEventListener('resize', checkSize);
     }, []);
 
+    // Handle Click Outside & ESC
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (isSidebarOpen &&
+                sidebarRef.current &&
+                !sidebarRef.current.contains(event.target) &&
+                toggleBtnRef.current &&
+                !toggleBtnRef.current.contains(event.target)
+            ) {
+                setIsSidebarOpen(false);
+            }
+        };
+
+        const handleEsc = (event) => {
+            if (event.key === 'Escape') {
+                setIsSidebarOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleEsc);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEsc);
+        };
+    }, [isSidebarOpen]);
+
     const [myLetterIds, setMyLetterIds] = useState(new Set());
 
-    // Load owned letters logic
+    // Load owned letters and liked letters logic
     useEffect(() => {
-        const saved = JSON.parse(localStorage.getItem('wbds_owned') || '[]');
-        setMyLetterIds(new Set(saved));
+        const savedOwned = JSON.parse(localStorage.getItem('wbds_owned') || '[]');
+        setMyLetterIds(new Set(savedOwned));
+
+        const savedLikes = JSON.parse(localStorage.getItem('wbds_likes') || '[]');
+        setLikedLetters(new Set(savedLikes));
     }, []);
 
     // Persist owned letters
@@ -44,14 +78,36 @@ export default function Home() {
         }
     }, [myLetterIds]);
 
-    // Load letters from Supabase
+    // Persist likes
+    useEffect(() => {
+        localStorage.setItem('wbds_likes', JSON.stringify([...likedLetters]));
+    }, [likedLetters]);
+
+    // Load letters from Supabase (Dynamic based on View)
     useEffect(() => {
         const fetchLetters = async () => {
-            const { data, error } = await supabase
-                .from('letters')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(50);
+            if (view === 'write') return; // Don't fetch in write mode
+
+            let data, error;
+
+            if (view === 'best') {
+                try {
+                    const res = await fetch('/api/letters/best');
+                    data = await res.json();
+                    if (data.error) throw new Error(data.error);
+                } catch (e) {
+                    error = e;
+                }
+            } else {
+                // Default 'read' view (Latest)
+                const result = await supabase
+                    .from('letters')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+                data = result.data;
+                error = result.error;
+            }
 
             if (data) {
                 // Normalize data for UI
@@ -65,22 +121,84 @@ export default function Home() {
 
         fetchLetters();
 
-        // Realtime Subscription
-        const channel = supabase
-            .channel('public:letters')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'letters' }, (payload) => {
-                const newLetter = {
-                    ...payload.new,
-                    timestamp: payload.new.created_at
-                };
-                setLetters(current => [newLetter, ...current]);
-            })
-            .subscribe();
+        // Realtime Subscription (Only for 'read' view)
+        // For 'best', realtime is tricky because order changes. We skip it for 'best'.
+        let channel;
+        if (view === 'read') {
+            channel = supabase
+                .channel('public:letters')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'letters' }, (payload) => {
+                    const newLetter = {
+                        ...payload.new,
+                        timestamp: payload.new.created_at
+                    };
+                    setLetters(current => [newLetter, ...current]);
+                })
+                .subscribe();
+        }
 
         return () => {
-            supabase.removeChannel(channel);
+            if (channel) supabase.removeChannel(channel);
         };
-    }, []);
+    }, [view]); // Refetch when view changes
+
+    const handleLike = async (letterId) => {
+        // Optimistic UI Update
+        const isLiked = likedLetters.has(letterId);
+        const delta = isLiked ? -1 : 1;
+
+        // Update Local Set
+        setLikedLetters(prev => {
+            const next = new Set(prev);
+            if (isLiked) next.delete(letterId);
+            else next.add(letterId);
+            return next;
+        });
+
+        // Update Letter Count in State
+        setLetters(prev => prev.map(l =>
+            l.id === letterId ? { ...l, likes: (l.likes || 0) + delta } : l
+        ));
+
+        // API Call
+        try {
+            const res = await fetch('/api/letters/like', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ letterId })
+            });
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error);
+
+            // Sync with Server Truth
+            // If server says valid: update count exactly
+            setLetters(prev => prev.map(l =>
+                l.id === letterId ? { ...l, likes: data.likes } : l
+            ));
+
+            // Sync Local Set with Server Truth (did it actually like?)
+            setLikedLetters(prev => {
+                const next = new Set(prev);
+                if (data.liked) next.add(letterId);
+                else next.delete(letterId);
+                return next;
+            });
+
+        } catch (err) {
+            handleError("Like failed. The void is indifferent.");
+            // Revert on error
+            setLikedLetters(prev => {
+                const next = new Set(prev);
+                if (isLiked) next.add(letterId); // Re-add if we removed
+                else next.delete(letterId); // Remove if we added
+                return next;
+            });
+            setLetters(prev => prev.map(l =>
+                l.id === letterId ? { ...l, likes: (l.likes || 0) - delta } : l
+            ));
+        }
+    };
 
     const handleLetterSent = async (text) => {
         // Basic Spam Prevention (Cooldown)
@@ -268,13 +386,13 @@ export default function Home() {
             )}
 
             {/* Sidebar (Overlay) */}
-            <div className="sidebar">
+            <div className="sidebar" ref={sidebarRef}>
                 {isDesktop && <AppearancePanel />}
             </div>
 
             {/* Sidebar Toggle */}
             {isDesktop && (
-                <button className="toggle-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                <button className="toggle-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)} ref={toggleBtnRef}>
                     {isSidebarOpen ? '«' : '»'}
                 </button>
             )}
@@ -291,6 +409,11 @@ export default function Home() {
                         className={`nav-item ${view === 'read' ? 'active' : ''}`}
                         onClick={() => setView('read')}
                     >READ</span>
+
+                    <span
+                        className={`nav-item ${view === 'best' ? 'active' : ''}`}
+                        onClick={() => setView('best')}
+                    >BEST</span>
                 </div>
 
                 {/* VIEW: WRITE */}
@@ -300,14 +423,16 @@ export default function Home() {
                     </div>
                 )}
 
-                {/* VIEW: READ */}
-                {view === 'read' && (
+                {/* VIEW: READ & BEST */}
+                {(view === 'read' || view === 'best') && (
                     <div className="animate-enter">
                         <LetterFeed
                             letters={letters}
                             onLetterClick={setSelectedLetter}
                             onDelete={handleDeleteLetter}
                             myLetterIds={myLetterIds}
+                            onLike={handleLike}
+                            likedLetters={likedLetters}
                         />
                     </div>
                 )}

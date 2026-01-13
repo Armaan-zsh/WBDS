@@ -1,7 +1,7 @@
 'use client';
 import ReactMarkdown from 'react-markdown';
 
-export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterIds }) {
+export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterIds, onLike, likedLetters }) {
     if (!letters || letters.length === 0) {
         return (
             <div className="empty-state">
@@ -116,6 +116,44 @@ export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterI
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        .action-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .like-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .like-btn:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--accent-danger);
+        }
+
+        .like-btn.liked {
+            color: var(--accent-danger);
+        }
+
+        .like-btn.liked svg {
+            filter: drop-shadow(0 0 8px rgba(255, 69, 58, 0.4));
+            transform: scale(1.1);
+        }
+
+        .like-count {
+            font-size: 13px;
+            font-weight: 600;
+        }
       `}</style>
 
             {letters.map((letter) => (
@@ -132,7 +170,18 @@ export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterI
                     </div>
                     <div className="letter-meta">
                         <span>Anonymous</span>
-                        <span>{new Date(letter.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <div className="action-bar">
+                            <button
+                                className={`like-btn ${likedLetters && likedLetters.has(letter.id) ? 'liked' : ''}`}
+                                onClick={(e) => { e.stopPropagation(); onLike(letter.id); }}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill={likedLetters && likedLetters.has(letter.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                </svg>
+                                {letter.likes > 0 && <span className="like-count">{letter.likes}</span>}
+                            </button>
+                            <span className="timestamp">{new Date(letter.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
                     </div>
                 </div>
             ))}
