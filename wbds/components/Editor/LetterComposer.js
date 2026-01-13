@@ -156,11 +156,12 @@ export default function LetterComposer({ onSend, onError }) {
         }
 
         .composer-card {
-           background: var(--bg-surface);
-           border: 1px solid var(--glass-border);
+           background: rgba(10, 10, 10, 0.3); /* High transparency */
+           backdrop-filter: blur(12px); /* Strong blur for readability */
+           border: 1px solid rgba(255, 255, 255, 0.1);
            border-radius: 20px; /* iOS rounded styles */
            padding: 30px;
-           box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+           box-shadow: 0 10px 40px rgba(0,0,0,0.2);
            transition: all 0.4s var(--ease-ios);
            position: relative;
         }

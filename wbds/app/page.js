@@ -8,12 +8,14 @@ import VoidNotification from '../components/Layout/VoidNotification';
 import LetterModal from '../components/Feed/LetterModal';
 import AppearancePanel from '../components/Settings/AppearancePanel';
 import VoidClock from '../components/Layout/VoidClock';
+import GalaxyBackground from '../components/Layout/GalaxyBackground';
 import dynamic from 'next/dynamic';
 
 const RealtimeGlobe = dynamic(() => import('../components/Live/RealtimeGlobe'), {
     ssr: false,
-    loading: () => <div style={{ color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>Initializing Hologram...</div>
+    loading: () => <div style={{ color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>Scanning Deep Space...</div>
 });
+
 export default function Home() {
     const [letters, setLetters] = useState([]);
     const [notification, setNotification] = useState(null);
@@ -26,6 +28,7 @@ export default function Home() {
 
     const [view, setView] = useState('write'); // 'write', 'read', 'best'
     const [likedLetters, setLikedLetters] = useState(new Set()); // Local liked state
+    const [myLetterIds, setMyLetterIds] = useState(new Set());
 
     // Simple responsive check
     useEffect(() => {
@@ -66,8 +69,6 @@ export default function Home() {
         };
     }, [isSidebarOpen]);
 
-    const [myLetterIds, setMyLetterIds] = useState(new Set());
-
     // Load owned letters and liked letters logic
     useEffect(() => {
         const savedOwned = JSON.parse(localStorage.getItem('wbds_owned') || '[]');
@@ -92,8 +93,6 @@ export default function Home() {
     // Load letters from Supabase (Dynamic based on View)
     useEffect(() => {
         const fetchLetters = async () => {
-            if (view === 'write') return; // Don't fetch in write mode
-
             let data, error;
 
             if (view === 'best') {
@@ -105,7 +104,7 @@ export default function Home() {
                     error = e;
                 }
             } else {
-                // Default 'read' view (Latest)
+                // Default 'read' view (Latest) AND 'write' view (for globe)
                 const result = await supabase
                     .from('letters')
                     .select('*')
@@ -127,87 +126,30 @@ export default function Home() {
 
         fetchLetters();
 
-        // Realtime Subscription (For 'read' and 'live')
-        let channel;
-        if (view === 'read' || view === 'live') {
-            channel = supabase
-                .channel('public:letters')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'letters' }, (payload) => {
-                    const newLetter = {
-                        ...payload.new,
-                        timestamp: payload.new.created_at
-                    };
-                    setLetters(current => [newLetter, ...current]);
-                })
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'letters' }, (payload) => {
-                    setLetters(current => current.map(l =>
-                        l.id === payload.new.id ? { ...l, likes: payload.new.likes } : l
-                    ));
-                })
-                .subscribe();
-        }
+        // Realtime Subscription (Always Active)
+        const channel = supabase
+            .channel('public:letters')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'letters' }, (payload) => {
+                const newLetter = {
+                    ...payload.new,
+                    timestamp: payload.new.created_at
+                };
+                setLetters(current => [newLetter, ...current]);
+            })
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'letters' }, (payload) => {
+                setLetters(current => current.map(l =>
+                    l.id === payload.new.id ? { ...l, likes: payload.new.likes } : l
+                ));
+            })
+            .subscribe();
 
         return () => {
-            if (channel) supabase.removeChannel(channel);
+            supabase.removeChannel(channel);
         };
-    }, [view]); // Refetch when view changes
+    }, [view]);
 
-    const handleLike = async (letterId) => {
-        // Optimistic UI Update
-        const isLiked = likedLetters.has(letterId);
-        const delta = isLiked ? -1 : 1;
-
-        // Update Local Set
-        setLikedLetters(prev => {
-            const next = new Set(prev);
-            if (isLiked) next.delete(letterId);
-            else next.add(letterId);
-            return next;
-        });
-
-        // Update Letter Count in State
-        setLetters(prev => prev.map(l =>
-            l.id === letterId ? { ...l, likes: (l.likes || 0) + delta } : l
-        ));
-
-        // API Call
-        try {
-            const res = await fetch('/api/letters/like', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ letterId })
-            });
-            const data = await res.json();
-
-            if (!res.ok) throw new Error(data.error);
-
-            // Sync with Server Truth
-            // If server says valid: update count exactly
-            setLetters(prev => prev.map(l =>
-                l.id === letterId ? { ...l, likes: data.likes } : l
-            ));
-
-            // Sync Local Set with Server Truth (did it actually like?)
-            setLikedLetters(prev => {
-                const next = new Set(prev);
-                if (data.liked) next.add(letterId);
-                else next.delete(letterId);
-                return next;
-            });
-
-        } catch (err) {
-            handleError("Like failed. The void is indifferent.");
-            // Revert on error
-            setLikedLetters(prev => {
-                const next = new Set(prev);
-                if (isLiked) next.add(letterId); // Re-add if we removed
-                else next.delete(letterId); // Remove if we added
-                return next;
-            });
-            setLetters(prev => prev.map(l =>
-                l.id === letterId ? { ...l, likes: (l.likes || 0) - delta } : l
-            ));
-        }
+    const handleError = (message) => {
+        setNotification({ message, type: 'error' });
     };
 
     const handleLetterSent = async (text) => {
@@ -252,27 +194,75 @@ export default function Home() {
         }, 10);
     };
 
+    const handleLike = async (letterId) => {
+        // Optimistic UI Update
+        const isLiked = likedLetters.has(letterId);
+        const delta = isLiked ? -1 : 1;
+
+        // Update Local Set
+        setLikedLetters(prev => {
+            const next = new Set(prev);
+            if (isLiked) next.delete(letterId);
+            else next.add(letterId);
+            return next;
+        });
+
+        // Update Letter Count in State
+        setLetters(prev => prev.map(l =>
+            l.id === letterId ? { ...l, likes: (l.likes || 0) + delta } : l
+        ));
+
+        // API Call
+        try {
+            const res = await fetch('/api/letters/like', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ letterId })
+            });
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error);
+
+            // Sync with Server Truth
+            setLetters(prev => prev.map(l =>
+                l.id === letterId ? { ...l, likes: data.likes } : l
+            ));
+
+            // Sync Local Set with Server Truth
+            setLikedLetters(prev => {
+                const next = new Set(prev);
+                if (data.liked) next.add(letterId);
+                else next.delete(letterId);
+                return next;
+            });
+
+        } catch (err) {
+            handleError("Like failed. The void is indifferent.");
+            setLikedLetters(prev => {
+                const next = new Set(prev);
+                if (isLiked) next.add(letterId);
+                else next.delete(letterId);
+                return next;
+            });
+            setLetters(prev => prev.map(l =>
+                l.id === letterId ? { ...l, likes: (l.likes || 0) - delta } : l
+            ));
+        }
+    };
+
     const handleDeleteLetter = async (id) => {
         if (window.confirm("Burn this letter forever?")) {
-            // Optimistic update
             setLetters(prev => prev.filter(l => l.id !== id));
-
-            // Server delete
             const { error } = await supabase.from('letters').delete().eq('id', id);
-
             if (error) {
                 handleError("Could not burn letter. It refuses to die.");
-                // Optional: Revert optimistic update here if needed
             }
         }
     };
 
-    const handleError = (message) => {
-        setNotification({ message, type: 'error' });
-    };
-
     return (
         <div className="app-layout">
+            <GalaxyBackground />
             <VoidClock />
             <style jsx>{`
          .app-layout {
@@ -282,117 +272,141 @@ export default function Home() {
             position: relative;
          }
 
-         /* Sidebar is now an overlay/ghost element that doesn't push content */
-         .sidebar {
-            position: absolute;
-            left: 0;
-            top: 0;
-            z-index: 10;
-            opacity: ${isDesktop && isSidebarOpen ? 1 : 0};
-            pointer-events: ${isDesktop && isSidebarOpen ? 'auto' : 'none'};
-            transition: opacity 0.3s ease;
-         }
-         
-         .toggle-btn {
-            position: fixed;
-            left: ${isDesktop && isSidebarOpen ? '400px' : '40px'};
-            top: 50%;
-            transform: translateY(-50%); 
-            z-index: 100;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            width: auto;
-            height: auto;
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-            font-size: 32px;
-            opacity: 0.6;
-         }
-         
-         .toggle-btn:hover {
-            opacity: 1;
-            transform: translateY(-50%) translateX(4px);
-            color: var(--text-primary);
-         }
+          /* Sidebar is now an overlay/ghost element that doesn't push content */
+          .sidebar {
+             position: absolute;
+             left: 0;
+             top: 0;
+             z-index: 10;
+             opacity: ${isDesktop && isSidebarOpen ? 1 : 0};
+             pointer-events: ${isDesktop && isSidebarOpen ? 'auto' : 'none'};
+             transition: opacity 0.3s ease;
+          }
+          
+          .toggle-btn {
+             position: fixed;
+             left: ${isDesktop && isSidebarOpen ? '400px' : '40px'};
+             top: 50%;
+             transform: translateY(-50%); 
+             z-index: 100;
+             background: transparent;
+             border: none;
+             color: var(--text-secondary);
+             width: auto;
+             height: auto;
+             padding: 10px;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             cursor: pointer;
+             transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+             font-size: 32px;
+             opacity: 0.6;
+          }
+          
+          .toggle-btn:hover {
+             opacity: 1;
+             transform: translateY(-50%) translateX(4px);
+             color: var(--text-primary);
+          }
 
-         .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            width: 100%; /* Full width to catch all scrolls */
-            max-width: 100%; /* Remove constraint */
-            align-items: center; /* Center children */
-            margin: 0;
-            padding: 60px 20px;
-            position: relative;
-            height: 100vh;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-         }
-
-         .main-content::-webkit-scrollbar {
-            display: none;
-         }
-         
-         /* Center the actual content */
-         .nav-header, .write-mode, .animate-enter {
-            width: 100%;
-            max-width: 700px;
-         }
-
-         .nav-header {
-            padding-bottom: 40px;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            gap: 60px; /* Big gap */
-         }
-
-         .nav-item {
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            opacity: 0.3;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-         }
-         
-         .nav-item:hover {
-            opacity: 1;
-            transform: scale(1.1);
-         }
-
-         .nav-item.active {
-            opacity: 1;
-         }
-         
-         .nav-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 4px;
-            height: 4px;
-            background: var(--text-primary);
-            border-radius: 50%;
-         }
-
-         .write-mode {
+          .main-content {
+             flex: 1;
              display: flex;
              flex-direction: column;
+             width: 100%; /* Full width to catch all scrolls */
+             max-width: 100%; /* Remove constraint */
+             align-items: center; /* Center children */
+             margin: 0;
+             padding: 60px 20px;
+             position: relative;
+             height: 100vh;
+             overflow-y: auto;
+             -webkit-overflow-scrolling: touch;
+             scrollbar-width: none;
+          }
+
+          .main-content::-webkit-scrollbar {
+             display: none;
+          }
+          
+          /* Center the actual content */
+          .nav-header, .write-mode, .animate-enter {
+             width: 100%;
+             max-width: 700px;
+          }
+
+          .nav-header {
+             padding-bottom: 20px;
+             text-align: center;
+             display: flex;
              justify-content: center;
-             flex: 1;
-             padding-bottom: 100px; /* Center visually */
-         }
+             gap: 60px; /* Big gap */
+             z-index: 50;
+             position: relative;
+          }
+
+          .nav-item {
+             font-size: 14px;
+             font-weight: 700;
+             letter-spacing: 3px;
+             text-transform: uppercase;
+             opacity: 0.3;
+             cursor: pointer;
+             transition: all 0.3s ease;
+             position: relative;
+          }
+          
+          .nav-item:hover {
+             opacity: 1;
+             transform: scale(1.1);
+          }
+
+          .nav-item.active {
+             opacity: 1;
+          }
+          
+          .nav-item.active::after {
+             content: '';
+             position: absolute;
+             bottom: -8px;
+             left: 50%;
+             transform: translateX(-50%);
+             width: 4px;
+             height: 4px;
+             background: var(--text-primary);
+             border-radius: 50%;
+          }
+
+          .write-mode {
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              flex: 1;
+              padding-bottom: 100px; /* Center visually */
+              position: relative;
+          }
+
+          .globe-background {
+             position: absolute;
+             top: 50%;
+             left: 50%;
+             transform: translate(-50%, -50%);
+             width: 100vw;
+             height: 100vh;
+             z-index: 0;
+             opacity: 0.4;
+             pointer-events: none; /* Let clicks pass through */
+             overflow: hidden;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+          }
+
+          .composer-wrapper {
+              position: relative;
+              z-index: 10;
+          }
        `}</style>
 
             {/* Global Notification */}
@@ -441,23 +455,23 @@ export default function Home() {
                         className={`nav-item ${view === 'best' ? 'active' : ''}`}
                         onClick={() => setView('best')}
                     >BEST</span>
-
-                    <span
-                        className={`nav-item ${view === 'live' ? 'active' : ''}`}
-                        onClick={() => setView('live')}
-                    >LIVE</span>
                 </div>
 
-                {/* VIEW: WRITE */}
+                {/* VIEW: WRITE + GLOBE */}
                 {view === 'write' && (
                     <div className="write-mode animate-enter">
-                        <LetterComposer onSend={handleLetterSent} onError={handleError} />
+                        <div className="globe-background">
+                            <RealtimeGlobe letters={letters} />
+                        </div>
+                        <div className="composer-wrapper">
+                            <LetterComposer onSend={handleLetterSent} onError={handleError} />
+                        </div>
                     </div>
                 )}
 
                 {/* VIEW: READ & BEST */}
                 {(view === 'read' || view === 'best') && (
-                    <div className="animate-enter">
+                    <div className="animate-enter" style={{ zIndex: 10 }}>
                         <LetterFeed
                             letters={letters}
                             onLetterClick={setSelectedLetter}
@@ -466,13 +480,6 @@ export default function Home() {
                             onLike={handleLike}
                             likedLetters={likedLetters}
                         />
-                    </div>
-                )}
-
-                {/* VIEW: LIVE */}
-                {view === 'live' && (
-                    <div className="animate-enter" style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                        <RealtimeGlobe letters={letters} />
                     </div>
                 )}
             </div>

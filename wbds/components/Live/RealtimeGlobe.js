@@ -20,7 +20,7 @@ export default function RealtimeGlobe({ letters }) {
             .filter(l => l.location_lat && l.location_lng)
             .map(l => ({
                 location: [l.location_lat, l.location_lng],
-                size: 0.1
+                size: 0.2
             }));
 
         const globe = createGlobe(canvasRef.current, {
@@ -28,21 +28,29 @@ export default function RealtimeGlobe({ letters }) {
             width: width * 2,
             height: width * 2,
             phi: 0,
-            theta: 0,
+            theta: 0.25,
             dark: 1,
-            diffuse: 1.2,
+            diffuse: 0, // No light diffusion
             mapSamples: 16000,
-            mapBrightness: 6,
-            baseColor: [0.1, 0.1, 0.1], // Dark gray land
-            markerColor: [1, 0.2, 0.2], // Reddish neon lights
-            glowColor: [0.2, 0.2, 0.2], // Subtle glow
+            mapBrightness: 0, // HIDE THE EARTH (Invisible Map)
+            baseColor: [0, 0, 0], // Pure black (transparent-ish)
+            markerColor: [0.6, 0.9, 1], // Cyan/White Starlight
+            glowColor: [0.1, 0.1, 0.2], // Deep Space Blue Glow
+            opacity: 0.8,
             markers: markers,
             onRender: (state) => {
-                // Auto-spin
+                // Auto-spin (Slow and majestic)
                 state.phi = phi;
-                phi += 0.003;
+                phi += 0.001;
                 state.width = width * 2;
                 state.height = width * 2;
+
+                // Twinkling markers (Star effect)
+                const time = Date.now() / 1000;
+                state.markers = markers.map((m, i) => ({
+                    location: m.location,
+                    size: m.size * (0.8 + Math.sin(time * 2 + i) * 0.4) // Random twinkling based on index
+                }));
             }
         });
 
