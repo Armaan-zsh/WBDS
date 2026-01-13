@@ -49,7 +49,7 @@ export default function LetterModal({ letter, onClose }) {
             width: 90%;
             max-width: 500px;
             padding: 40px;
-            border-radius: 4px;
+            border-radius: 24px; /* More Rounded */
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
             transform: scale(0.95);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -58,6 +58,13 @@ export default function LetterModal({ letter, onClose }) {
             font-family: var(--font-current);
             position: relative;
             border: 1px solid var(--glass-border);
+            max-height: 80vh;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .modal-content::-webkit-scrollbar {
+             display: none;
         }
 
         .modal-overlay.open .modal-content {

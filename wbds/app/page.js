@@ -26,19 +26,44 @@ export default function Home() {
         return () => window.removeEventListener('resize', checkSize);
     }, []);
 
+    const [myLetterIds, setMyLetterIds] = useState(new Set());
+
+    // Load owned letters logic
+    useEffect(() => {
+        const saved = JSON.parse(localStorage.getItem('wbds_owned') || '[]');
+        setMyLetterIds(new Set(saved));
+    }, []);
+
+    // Persist owned letters
+    useEffect(() => {
+        if (myLetterIds.size > 0) {
+            localStorage.setItem('wbds_owned', JSON.stringify([...myLetterIds]));
+        }
+    }, [myLetterIds]);
+
     const handleLetterSent = (text) => {
+        const id = Date.now();
         const newLetter = {
-            id: Date.now(),
+            id: id,
             content: text,
-            timestamp: Date.now()
+            timestamp: id
         };
         setLetters([newLetter, ...letters]);
+
+        // Mark as owned
+        setMyLetterIds(prev => new Set(prev).add(id));
 
         // Auto-scroll to feed
         setTimeout(() => {
             const feed = document.querySelector('.feed-section');
-            if (feed) feed.scrollIntoView({ behavior: 'smooth' });
+            if (feed) feed.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
+    };
+
+    const handleDeleteLetter = (id) => {
+        if (window.confirm("Burn this letter forever?")) {
+            setLetters(prev => prev.filter(l => l.id !== id));
+        }
     };
 
     const handleError = (message) => {
@@ -67,7 +92,7 @@ export default function Home() {
          
          .toggle-btn {
             position: fixed;
-            left: ${isDesktop && isSidebarOpen ? '370px' : '40px'};
+            left: ${isDesktop && isSidebarOpen ? '400px' : '40px'};
             top: 50%;
             transform: translateY(-50%); 
             z-index: 100;
@@ -175,7 +200,12 @@ export default function Home() {
 
                 <div className="feed-section">
                     <div style={{ margin: '60px 0 40px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}></div>
-                    <LetterFeed letters={letters} onLetterClick={setSelectedLetter} />
+                    <LetterFeed
+                        letters={letters}
+                        onLetterClick={setSelectedLetter}
+                        onDelete={handleDeleteLetter}
+                        myLetterIds={myLetterIds}
+                    />
                 </div>
             </div>
 

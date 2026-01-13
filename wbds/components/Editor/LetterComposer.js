@@ -42,7 +42,7 @@ export default function LetterComposer({ onSend, onError }) {
             onSend(safeText);
             setText('');
             setStatus('IDLE');
-        }, 500);
+        }, 10);
     };
 
     const handleBurn = () => {

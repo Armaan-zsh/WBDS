@@ -1,10 +1,10 @@
 'use client';
 
-export default function LetterFeed({ letters, onLetterClick }) {
+export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterIds }) {
     if (!letters || letters.length === 0) {
         return (
             <div className="empty-state">
-                <p></p>
+                <p></p> {/* Empty state message */}
                 <style jsx>{`
           .empty-state {
             text-align: center;
@@ -30,6 +30,7 @@ export default function LetterFeed({ letters, onLetterClick }) {
            animation: fadeIn 0.8s ease forwards;
            cursor: pointer;
            transition: transform 0.2s ease, opacity 0.2s ease;
+           position: relative;
         }
         .letter-card:hover {
            transform: scale(1.02);
@@ -40,7 +41,7 @@ export default function LetterFeed({ letters, onLetterClick }) {
            background: var(--bg-surface);
            border-radius: 8px; /* Slightly rounded, like paper */
            padding: 24px;
-           font-family: 'Charter', 'Georgia', serif;
+           font-family: var(--font-current);
            font-size: 18px;
            line-height: 1.6;
            color: var(--text-primary);
@@ -49,6 +50,7 @@ export default function LetterFeed({ letters, onLetterClick }) {
            max-height: 300px;
            overflow: hidden;
            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+           border: 1px solid var(--glass-border);
         }
 
         .letter-meta {
@@ -57,6 +59,28 @@ export default function LetterFeed({ letters, onLetterClick }) {
             color: var(--text-secondary);
             display: flex;
             justify-content: space-between;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--accent-danger);
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .letter-card:hover .delete-btn {
+            opacity: 1;
         }
 
         @keyframes fadeIn {
@@ -67,6 +91,13 @@ export default function LetterFeed({ letters, onLetterClick }) {
 
             {letters.map((letter) => (
                 <div key={letter.id} className="letter-card" onClick={() => onLetterClick(letter)}>
+                    {myLetterIds && myLetterIds.has(letter.id) && (
+                        <button
+                            className="delete-btn"
+                            onClick={(e) => { e.stopPropagation(); onDelete(letter.id); }}
+                            title="Delete your letter"
+                        >×</button>
+                    )}
                     <div className="letter-content">
                         {letter.content}
                     </div>
