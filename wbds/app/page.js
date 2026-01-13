@@ -29,6 +29,7 @@ export default function Home() {
     const [view, setView] = useState('write'); // 'write', 'read', 'best'
     const [likedLetters, setLikedLetters] = useState(new Set()); // Local liked state
     const [myLetterIds, setMyLetterIds] = useState(new Set());
+    const [isWriting, setIsWriting] = useState(false);
 
     // Simple responsive check
     useEffect(() => {
@@ -461,11 +462,12 @@ export default function Home() {
                 {/* VIEW: WRITE + GLOBE */}
                 {view === 'write' && (
                     <div className="write-mode animate-enter">
-                        <div className="globe-background">
-                            <RealtimeGlobe letters={letters} />
-                        </div>
                         <div className="composer-wrapper">
-                            <LetterComposer onSend={handleLetterSent} onError={handleError} />
+                            <LetterComposer
+                                onSend={handleLetterSent}
+                                onError={handleError}
+                                onFocusChange={setIsWriting}
+                            />
                         </div>
                     </div>
                 )}

@@ -168,57 +168,133 @@ export const playSendSound = () => {
     osc2.stop(t + 2.5);
 };
 
+// --- FM SYNTHESIS & FX ---
+
+const createDelay = (ctx) => {
+    const delay = ctx.createDelay();
+    delay.delayTime.value = 0.3; // 300ms
+    const feedback = ctx.createGain();
+    feedback.gain.value = 0.4;
+    const filter = ctx.createBiquadFilter();
+    filter.frequency.value = 2000;
+
+    delay.connect(feedback);
+    feedback.connect(filter);
+    filter.connect(delay);
+
+    return { input: delay, output: delay };
+};
+
+const playFMBell = (ctx, dest, freq) => {
+    const t = ctx.currentTime;
+
+    // Carrier
+    const carrier = ctx.createOscillator();
+    carrier.frequency.value = freq;
+
+    // Modulator
+    const modulator = ctx.createOscillator();
+    modulator.frequency.value = freq * 2.0; // Harmonic ratio
+    const modGain = ctx.createGain();
+    modGain.gain.value = 1000; // FM Index (Brightness)
+
+    // Envelope
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.2, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 2.0);
+
+    // Connections
+    modulator.connect(modGain);
+    modGain.connect(carrier.frequency);
+    carrier.connect(gain);
+    gain.connect(dest);
+
+    modulator.start(t);
+    carrier.start(t);
+    modulator.stop(t + 2);
+    carrier.stop(t + 2);
+};
+
+const playGlitch = (ctx, dest) => {
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(100, t);
+    osc.frequency.exponentialRampToValueAtTime(8000, t + 0.1);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.05, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+
+    osc.connect(gain);
+    gain.connect(dest);
+
+    osc.start(t);
+    osc.stop(t + 0.1);
+};
+
 // --- GENERATIVE AMBIENCE ---
-let ambienceNodes = [];
-let ambienceGain = null;
+let ambienceInterval = null;
+let delayNode = null;
+let masterGain = null;
 
 export const toggleAmbience = (shouldPlay) => {
     initAudio();
     if (!audioCtx) return;
-
-    // Resume context if needed
     if (audioCtx.state === 'suspended') audioCtx.resume();
 
     if (shouldPlay) {
-        if (ambienceNodes.length > 0) return; // Already playing
+        if (ambienceInterval) return; // Already playing
 
-        ambienceGain = audioCtx.createGain();
-        ambienceGain.gain.value = 0.1; // Subtle
-        ambienceGain.connect(audioCtx.destination);
+        // Setup FX Chain
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.3;
+        masterGain.connect(audioCtx.destination);
 
-        // Create 3 Oscillators for a "Space Chord" (Root, Fifth, Octave)
-        const freqs = [110, 164.81, 220]; // A2, E3, A3
+        const fx = createDelay(audioCtx);
+        fx.output.connect(masterGain);
 
-        freqs.forEach((f, i) => {
-            const osc = audioCtx.createOscillator();
-            osc.type = 'sine';
-            osc.frequency.value = f;
+        // Scale: A Minor Pentatonic
+        const scale = [220, 261.63, 293.66, 329.63, 392.00, 440, 523.25]; // A3, C4, D4, E4, G4, A4, C5
 
-            // LFO for movement
-            const lfo = audioCtx.createOscillator();
-            lfo.type = 'sine';
-            lfo.frequency.value = 0.1 + (i * 0.05); // Slow drift
+        // Generative Loop (Aphex Style)
+        const loop = () => {
+            const r = Math.random();
+            const freq = scale[Math.floor(Math.random() * scale.length)];
 
-            const lfoGain = audioCtx.createGain();
-            lfoGain.gain.value = 2.0; // Pitch wander amount
+            // 60% Chance of FM Bell (Melodic)
+            if (r > 0.4) {
+                playFMBell(audioCtx, fx.input, freq);
+            }
+            // 20% Chance of Deep Drone (Bass)
+            else if (r > 0.2) {
+                playFMBell(audioCtx, fx.input, freq / 2); // Octave down
+            }
+            // 20% Chance of Glitch (Texture)
+            else {
+                playGlitch(audioCtx, fx.input);
+            }
 
-            lfo.connect(lfoGain);
-            lfoGain.connect(osc.frequency);
+            // Random Timing (IDM feel)
+            const nextTime = 500 + Math.random() * 2000;
+            ambienceInterval = setTimeout(loop, nextTime);
+        };
 
-            osc.connect(ambienceGain);
-            osc.start();
-            lfo.start();
-
-            ambienceNodes.push(osc, lfo);
-        });
+        loop();
 
     } else {
         // Stop
-        ambienceNodes.forEach(node => node.stop());
-        ambienceNodes = [];
-        if (ambienceGain) {
-            ambienceGain.disconnect();
-            ambienceGain = null;
+        if (ambienceInterval) clearTimeout(ambienceInterval);
+        ambienceInterval = null;
+
+        // Clean up nodes
+        if (masterGain) {
+            masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
+            setTimeout(() => {
+                masterGain.disconnect();
+                masterGain = null;
+            }, 600);
         }
     }
 };

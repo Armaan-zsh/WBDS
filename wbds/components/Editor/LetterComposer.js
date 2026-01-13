@@ -6,7 +6,7 @@ import { maskPrivateInfo, detectPotentialDox } from '../../utils/privacyShield';
 
 import { playTypeSound, playSendSound } from '../../utils/audioEngine';
 
-export default function LetterComposer({ onSend, onError }) {
+export default function LetterComposer({ onSend, onError, onFocusChange }) {
     const [text, setText] = useState('');
     const [isFocused, setIsFocused] = useState(false);
     const [errorShake, setErrorShake] = useState(false);
@@ -259,8 +259,8 @@ export default function LetterComposer({ onSend, onError }) {
                     placeholder="Dear..."
                     value={text}
                     onChange={(e) => setText(e.target.value)}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
+                    onFocus={() => { setIsFocused(true); if (onFocusChange) onFocusChange(true); }}
+                    onBlur={() => { setIsFocused(false); if (onFocusChange) onFocusChange(false); }}
                     onPaste={handlePaste}
                     onKeyDown={handleKeyDown}
                     rows={1}
