@@ -301,6 +301,13 @@ export default function AppearancePanel() {
                         <span style={{ fontSize: '16px' }}>🔇</span> Silent
                     </button>
                 </div>
+
+                <div className="section-title" style={{ marginTop: '20px' }}>Atmosphere</div>
+                <div className="option-grid">
+                    <button className={`option-btn ${isAmbienceOn ? 'active' : ''}`} onClick={handleAmbienceToggle}>
+                        <span style={{ fontSize: '16px' }}>🌌</span> Space Ambience
+                    </button>
+                </div>
             </div>
 
         </div>

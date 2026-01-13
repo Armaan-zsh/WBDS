@@ -152,7 +152,7 @@ export default function Home() {
         setNotification({ message, type: 'error' });
     };
 
-    const handleLetterSent = async (text) => {
+    const handleLetterSent = async (text, unlockAt) => {
         // Basic Spam Prevention (Cooldown)
         const lastSent = localStorage.getItem('wbds_last_sent');
         if (lastSent && Date.now() - parseInt(lastSent) < 30000) { // 30s cooldown
@@ -166,7 +166,8 @@ export default function Home() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     content: text,
-                    theme: 'default'
+                    theme: 'default',
+                    unlockAt: unlockAt ? unlockAt.toISOString() : null
                 })
             });
 

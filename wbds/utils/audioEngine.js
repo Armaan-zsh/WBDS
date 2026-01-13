@@ -167,3 +167,58 @@ export const playSendSound = () => {
     osc2.start(t + 0.6);
     osc2.stop(t + 2.5);
 };
+
+// --- GENERATIVE AMBIENCE ---
+let ambienceNodes = [];
+let ambienceGain = null;
+
+export const toggleAmbience = (shouldPlay) => {
+    initAudio();
+    if (!audioCtx) return;
+
+    // Resume context if needed
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    if (shouldPlay) {
+        if (ambienceNodes.length > 0) return; // Already playing
+
+        ambienceGain = audioCtx.createGain();
+        ambienceGain.gain.value = 0.1; // Subtle
+        ambienceGain.connect(audioCtx.destination);
+
+        // Create 3 Oscillators for a "Space Chord" (Root, Fifth, Octave)
+        const freqs = [110, 164.81, 220]; // A2, E3, A3
+
+        freqs.forEach((f, i) => {
+            const osc = audioCtx.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.value = f;
+
+            // LFO for movement
+            const lfo = audioCtx.createOscillator();
+            lfo.type = 'sine';
+            lfo.frequency.value = 0.1 + (i * 0.05); // Slow drift
+
+            const lfoGain = audioCtx.createGain();
+            lfoGain.gain.value = 2.0; // Pitch wander amount
+
+            lfo.connect(lfoGain);
+            lfoGain.connect(osc.frequency);
+
+            osc.connect(ambienceGain);
+            osc.start();
+            lfo.start();
+
+            ambienceNodes.push(osc, lfo);
+        });
+
+    } else {
+        // Stop
+        ambienceNodes.forEach(node => node.stop());
+        ambienceNodes = [];
+        if (ambienceGain) {
+            ambienceGain.disconnect();
+            ambienceGain = null;
+        }
+    }
+};

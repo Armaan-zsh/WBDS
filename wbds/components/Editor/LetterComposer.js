@@ -11,6 +11,7 @@ export default function LetterComposer({ onSend, onError }) {
     const [isFocused, setIsFocused] = useState(false);
     const [errorShake, setErrorShake] = useState(false);
     const [status, setStatus] = useState('IDLE'); // IDLE, SENDING, BURNING
+    const [unlockAt, setUnlockAt] = useState(null);
 
     const textareaRef = useRef(null);
 
@@ -52,8 +53,9 @@ export default function LetterComposer({ onSend, onError }) {
 
         setStatus('SENDING');
         setTimeout(() => {
-            onSend(safeText);
+            onSend(safeText, unlockAt); // Pass Lock Date
             setText('');
+            setUnlockAt(null);
             setStatus('IDLE');
         }, 1500);
     };
@@ -240,6 +242,32 @@ export default function LetterComposer({ onSend, onError }) {
                 />
 
                 <div className="controls">
+                    {/* Time Capsule Toggle */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
+                        <button
+                            className={`btn-icon ${unlockAt ? 'active' : ''}`}
+                            onClick={() => {
+                                if (unlockAt) {
+                                    setUnlockAt(null); // Clear
+                                } else {
+                                    // Default to 1 Year
+                                    const date = new Date();
+                                    date.setFullYear(date.getFullYear() + 1);
+                                    setUnlockAt(date);
+                                }
+                            }}
+                            title="Time Capsule (Lock Letter)"
+                        >
+                            {unlockAt ? '⏳ Locked' : '⏳'}
+                        </button>
+
+                        {unlockAt && (
+                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                Unlocks: {unlockAt.toLocaleDateString()}
+                            </span>
+                        )}
+                    </div>
+
                     <span className="helper-text">{text.length} chars</span>
                     <button className="btn-action btn-danger" onClick={handleBurn}>
                         {status === 'BURNING' ? '🔥' : 'Burn'}
@@ -247,6 +275,36 @@ export default function LetterComposer({ onSend, onError }) {
                     <button className="btn-action" onClick={handleSend}>
                         {status === 'SENDING' ? 'Sent' : 'Send'}
                     </button>
+
+                    <style jsx>{`
+                        .btn-icon {
+                            background: transparent;
+                            border: 1px solid var(--glass-border);
+                            color: var(--text-secondary);
+                            width: 32px;
+                            height: 32px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        }
+                        .btn-icon:hover {
+                            background: rgba(255,255,255,0.1);
+                            color: var(--text-primary);
+                        }
+                        .btn-icon.active {
+                            background: var(--accent-gold, #ffd700);
+                            color: black;
+                            border-color: var(--accent-gold, #ffd700);
+                            width: auto;
+                            padding: 0 12px;
+                            border-radius: 16px;
+                            font-weight: bold;
+                            font-size: 13px;
+                        }
+                     `}</style>
                 </div>
             </div>
         </div>

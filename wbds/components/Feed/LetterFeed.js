@@ -154,6 +154,85 @@ export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterI
             font-size: 13px;
             font-weight: 600;
         }
+
+        /* LOCKED STATE */
+        .locked-content {
+            background: #000;
+            border-color: #333;
+            color: #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .locked-overlay {
+            text-align: center;
+            z-index: 2;
+        }
+
+        .unlock-date {
+            display: block;
+            margin-top: 8px;
+            font-size: 11px;
+            color: #666;
+            font-family: monospace;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .glitch-text {
+            font-weight: bold;
+            font-size: 24px;
+            color: white;
+            letter-spacing: 4px;
+            position: relative;
+        }
+
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+
+        .glitch-text::before {
+            left: 2px;
+            text-shadow: -1px 0 red;
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim-1 2.5s infinite linear alternate-reverse;
+        }
+
+        .glitch-text::after {
+            left: -2px;
+            text-shadow: -1px 0 blue;
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim-1 {
+            0% { clip: rect(20px, 9999px, 15px, 0); }
+            20% { clip: rect(50px, 9999px, 60px, 0); }
+            40% { clip: rect(10px, 9999px, 80px, 0); }
+            60% { clip: rect(30px, 9999px, 10px, 0); }
+            80% { clip: rect(80px, 9999px, 40px, 0); }
+            100% { clip: rect(60px, 9999px, 90px, 0); }
+        }
+
+        @keyframes glitch-anim-2 {
+            0% { clip: rect(60px, 9999px, 70px, 0); }
+            20% { clip: rect(10px, 9999px, 30px, 0); }
+            40% { clip: rect(90px, 9999px, 10px, 0); }
+            60% { clip: rect(15px, 9999px, 80px, 0); }
+            80% { clip: rect(50px, 9999px, 40px, 0); }
+            100% { clip: rect(30px, 9999px, 60px, 0); }
+        }
       `}</style>
 
             {letters.map((letter) => (
@@ -165,8 +244,17 @@ export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterI
                             title="Delete your letter"
                         >×</button>
                     )}
-                    <div className="letter-content">
-                        <ReactMarkdown>{letter.content}</ReactMarkdown>
+                    <div className={`letter-content ${letter.is_locked ? 'locked-content' : ''}`}>
+                        {letter.is_locked ? (
+                            <div className="locked-overlay">
+                                <div className="glitch-text" data-text="LOCKED">LOCKED</div>
+                                <span className="unlock-date">
+                                    Unlocks {new Date(letter.unlock_at).toLocaleDateString()}
+                                </span>
+                            </div>
+                        ) : (
+                            <ReactMarkdown>{letter.content}</ReactMarkdown>
+                        )}
                     </div>
                     <div className="letter-meta">
                         <span>Anonymous</span>
