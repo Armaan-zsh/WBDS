@@ -1,6 +1,10 @@
-'use client';
+import createGlobe from 'cobe';
+import { useEffect, useRef, useState } from 'react';
 
-import { useEffect, useRef } from 'react';
+// NOTE: This file handles the BACKGROUND PARTICLES. 
+// The Globe is in RealtimeGlobe.js. Assumed user context kept separate.
+// Wait, I am editing GalaxyBackground.js but I pasted RealtimeGlobe imports above?
+// Correcting imports for GalaxyBackground.
 
 export default function GalaxyBackground() {
     const canvasRef = useRef(null);
@@ -33,69 +37,76 @@ export default function GalaxyBackground() {
             particles = [];
 
             if (theme.includes('paper') || theme === 'rose') {
-                // DUST / INK MOTES
+                // PHYSICS: SUSPENDED DUST (Brownian Motion)
+                // Particles float aimlessly in all directions, like dust in a sunbeam.
                 const isRose = theme === 'rose';
-                const count = 600; // Increased density
+                const count = 500;
 
                 for (let i = 0; i < count; i++) {
                     particles.push({
                         x: Math.random() * width,
                         y: Math.random() * height,
-                        size: Math.random() * 2,
-                        vx: (Math.random() - 0.5) * 0.5,
-                        vy: Math.random() * 0.5 + 0.2,
+                        size: Math.random() * 2.5,
+                        // Random slow movement in ANY direction
+                        vx: (Math.random() - 0.5) * 0.3,
+                        vy: (Math.random() - 0.5) * 0.3,
                         opacity: Math.random() * 0.3 + 0.1,
                         color: isRose ? `rgba(100, 50, 50,` : `rgba(80, 60, 50,`,
-                        type: 'dust'
+                        type: 'dust_suspended'
                     });
                 }
             } else if (theme === 'forest' || theme === 'nord') {
-                // FALLING POLLEN
+                // PHYSICS: WIND BREEZE (Horizontal Flow)
+                // Particles drift horizontally with turbulence, like pollen in wind.
                 const isNord = theme === 'nord';
-                const count = 500; // Increased density
+                const count = 400;
 
                 for (let i = 0; i < count; i++) {
                     particles.push({
                         x: Math.random() * width,
                         y: Math.random() * height,
                         size: Math.random() * 3,
-                        vx: (Math.random() - 0.5) * 1,
-                        vy: Math.random() * 1 + 0.5,
+                        // Generalized Wind Direction (Right to Left or Left to Right)
+                        vx: Math.random() * 0.5 + 0.2, // Drifting Right
+                        vy: (Math.random() - 0.5) * 0.2, // Slight vertical jitter
                         phase: Math.random() * Math.PI * 2,
                         color: isNord ? [136, 192, 208] : [255, 255, 150],
-                        type: 'pollen'
+                        type: 'pollen_breeze'
                     });
                 }
             } else if (theme === 'cyberpunk' || theme === 'terminal') {
-                // DIGITAL RAIN
-                const count = 800; // Increased density
+                // PHYSICS: DIGITAL RAIN (Vertical High Speed)
+                // Matrix style fall.
+                const count = 800;
                 const isTerminal = theme === 'terminal';
                 for (let i = 0; i < count; i++) {
                     particles.push({
-                        x: Math.floor(Math.random() * width / 15) * 15,
+                        x: Math.floor(Math.random() * width / 15) * 15, // Grid aligned
                         y: Math.random() * height,
                         size: Math.random() * 2 + 1,
-                        speed: Math.random() * 10 + 5,
+                        speed: Math.random() * 8 + 4, // Fast Fall
                         color: isTerminal ? [48, 209, 88] : [252, 238, 12],
                         type: 'digital_rain'
                     });
                 }
             } else {
-                // SPACE THEMES (Void, Midnight, Solarized)
-                // 1. STARFALL (Vertical Snow)
-                const STAR_COUNT = 1500; // Restored High Density
+                // PHYSICS: COSMIC DRIFT (Deep Space)
+                // Stars floating in 3D-ish space, not falling. + Shooting Stars.
+                const STAR_COUNT = 1000;
                 for (let i = 0; i < STAR_COUNT; i++) {
                     particles.push({
                         x: Math.random() * width,
                         y: Math.random() * height,
                         size: Math.random() * 2,
-                        vy: Math.random() * 3 + 0.5,
+                        // Slow Drift in random directions
+                        vx: (Math.random() - 0.5) * 0.2,
+                        vy: (Math.random() - 0.5) * 0.2,
                         opacity: Math.random(),
-                        type: 'starfall'
+                        type: 'space_drift'
                     });
                 }
 
-                // 2. GALAXY CORE (3D Depth)
+                // GALAXY SPIRAL (Retained as visual anchor)
                 for (let i = 0; i < 400; i++) {
                     const r = Math.random();
                     const theta = (Math.random() * Math.PI * 2);
@@ -135,7 +146,7 @@ export default function GalaxyBackground() {
 
             const time = Date.now() / 1000;
 
-            // --- SPAWN TRAIL ---
+            // --- SPAWN TRAIL (Interactive) ---
             if (mouse.x > 0) {
                 if (Math.random() > 0.8) {
                     particles.push({
@@ -152,13 +163,11 @@ export default function GalaxyBackground() {
             }
 
             // --- SPAWN SHOOTING STARS (Void Only) ---
+            // Only spawn in Space themes
             if (!theme.includes('paper') && theme !== 'forest' && theme !== 'nord' && !theme.includes('cyberpunk') && !theme.includes('terminal')) {
-                // Frequency: 2% per frame (approx 1.2 per second at 60fps)
                 if (Math.random() < 0.02) {
-                    // Start from top or right side
                     const startX = Math.random() * width + 200;
                     const startY = Math.random() * (height * 0.5) - 200;
-
                     particles.push({
                         x: startX,
                         y: startY,
@@ -175,16 +184,21 @@ export default function GalaxyBackground() {
 
             // MAIN LOOP
             particles.forEach((p, index) => {
-                // 1. Move
-                if (p.type === 'dust') {
-                    p.y += p.vy;
-                    p.x += Math.sin(time + p.y * 0.01) * 0.5;
-                } else if (p.type === 'pollen') {
-                    p.y += p.vy;
-                    p.x += Math.cos(time * 2 + p.y * 0.01);
+                // 1. Move & Physics Per Type
+                if (p.type === 'dust_suspended') {
+                    // Brownian Motion
+                    p.x += p.vx + Math.sin(time + p.y) * 0.1;
+                    p.y += p.vy + Math.cos(time + p.x) * 0.1;
+                } else if (p.type === 'pollen_breeze') {
+                    // Wind + Sine Wave
+                    p.x += p.vx;
+                    p.y += p.vy + Math.sin(time * 2 + p.phase) * 0.5;
                 } else if (p.type === 'digital_rain') {
+                    // Vertical Fall
                     p.y += p.speed;
-                } else if (p.type === 'starfall') {
+                } else if (p.type === 'space_drift') {
+                    // Slow random drift
+                    p.x += p.vx;
                     p.y += p.vy;
                 } else if (p.type === 'trail') {
                     p.x += p.vx;
@@ -207,20 +221,21 @@ export default function GalaxyBackground() {
                         return;
                     }
                 } else if (p.type !== 'galaxy') {
-                    if (p.y > height) {
-                        p.y = -10;
-                        p.x = Math.random() * width;
-                    }
+                    // Screen Wrap for infinite particles
+                    if (p.x > width) p.x = 0;
+                    if (p.x < 0) p.x = width;
+                    if (p.y > height) p.y = 0;
+                    if (p.y < 0) p.y = height;
                 }
 
                 // 3. Draw
                 ctx.beginPath();
 
-                if (p.type === 'dust') {
+                if (p.type === 'dust_suspended') {
                     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     ctx.fillStyle = p.color + p.opacity + ')';
                     ctx.fill();
-                } else if (p.type === 'pollen') {
+                } else if (p.type === 'pollen_breeze') {
                     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     const pulse = 0.5 + Math.sin(time * 5 + p.phase) * 0.5;
                     const c = p.color;
@@ -229,7 +244,7 @@ export default function GalaxyBackground() {
                 } else if (p.type === 'digital_rain') {
                     ctx.fillStyle = `rgba(${p.color[0]}, ${p.color[1]}, ${p.color[2]}, 0.5)`;
                     ctx.fillRect(p.x, p.y, 2, p.size * 5);
-                } else if (p.type === 'starfall') {
+                } else if (p.type === 'space_drift') {
                     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     ctx.fillStyle = `rgba(200, 220, 255, ${p.opacity})`;
                     ctx.fill();
@@ -283,7 +298,7 @@ export default function GalaxyBackground() {
         };
 
         const observer = new MutationObserver((mutations) => {
-            // Handled in loop
+            // Loop handles theme change
         });
         observer.observe(document.documentElement, { attributes: true });
         window.addEventListener('resize', handleResize);

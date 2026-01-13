@@ -36,7 +36,7 @@ export default function RealtimeGlobe({ letters }) {
                     markerColor: theme === 'forest' ? [0.8, 1, 0.4] :
                         theme === 'nord' ? [136 / 255, 192 / 255, 208 / 255] : // Nord Cyan
                             [0.6, 0.9, 1],
-                    blendMode: 'plus-lighter'
+                    blendMode: 'screen' // Universal support (Fixes "Black Circle" fallback)
                 };
             }
         };
