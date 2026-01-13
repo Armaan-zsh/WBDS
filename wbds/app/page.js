@@ -14,6 +14,8 @@ export default function Home() {
     const [isDesktop, setIsDesktop] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+    const [view, setView] = useState('write'); // 'write' or 'read'
+
     // Simple responsive check
     useEffect(() => {
         const checkSize = () => {
@@ -53,11 +55,10 @@ export default function Home() {
         // Mark as owned
         setMyLetterIds(prev => new Set(prev).add(id));
 
-        // Auto-scroll to feed
+        // Switch to Read View
         setTimeout(() => {
-            const feed = document.querySelector('.feed-section');
-            if (feed) feed.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
+            setView('read');
+        }, 10);
     };
 
     const handleDeleteLetter = (id) => {
@@ -125,10 +126,11 @@ export default function Home() {
             margin: 0 auto;
             padding: 60px 20px;
             position: relative;
+            min-height: 100vh;
          }
 
          .nav-header {
-            padding-bottom: 60px;
+            padding-bottom: 40px;
             text-align: center;
             display: flex;
             justify-content: center;
@@ -143,6 +145,7 @@ export default function Home() {
             opacity: 0.3;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
          }
          
          .nav-item:hover {
@@ -150,12 +153,28 @@ export default function Home() {
             transform: scale(1.1);
          }
 
-         .write-section {
-             min-height: 70vh;
+         .nav-item.active {
+            opacity: 1;
+         }
+         
+         .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: var(--text-primary);
+            border-radius: 50%;
+         }
+
+         .write-mode {
              display: flex;
              flex-direction: column;
              justify-content: center;
-             padding-bottom: 60px;
+             flex: 1;
+             padding-bottom: 100px; /* Center visually */
          }
        `}</style>
 
@@ -192,42 +211,35 @@ export default function Home() {
                 {/* Header */}
                 <div className="nav-header">
                     <span
-                        className="nav-item"
-                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        className={`nav-item ${view === 'write' ? 'active' : ''}`}
+                        onClick={() => setView('write')}
                     >WBDS</span>
 
                     <span
-                        className="nav-item"
-                        onClick={() => document.querySelector('.feed-section').scrollIntoView({ behavior: 'smooth' })}
+                        className={`nav-item ${view === 'read' ? 'active' : ''}`}
+                        onClick={() => setView('read')}
                     >READ</span>
                 </div>
 
-                {/* WRITING SECTION (Full Screen Height) */}
-                <div className="write-section">
-                    <div className="animate-enter">
+                {/* VIEW: WRITE */}
+                {view === 'write' && (
+                    <div className="write-mode animate-enter">
                         <LetterComposer onSend={handleLetterSent} onError={handleError} />
                     </div>
+                )}
 
-                    {/* Call to Action to Scroll */}
-                    <div
-                        style={{ textAlign: 'center', opacity: 0.3, marginTop: '40px', cursor: 'pointer', fontSize: '24px' }}
-                        onClick={() => document.querySelector('.feed-section').scrollIntoView({ behavior: 'smooth' })}
-                    >
-                        ↓
+                {/* VIEW: READ */}
+                {view === 'read' && (
+                    <div className="animate-enter">
+                        <div style={{ textAlign: 'center', marginBottom: '40px', letterSpacing: '4px', opacity: 0.5, fontSize: '12px' }}>THE ARCHIVE</div>
+                        <LetterFeed
+                            letters={letters}
+                            onLetterClick={setSelectedLetter}
+                            onDelete={handleDeleteLetter}
+                            myLetterIds={myLetterIds}
+                        />
                     </div>
-                </div>
-
-                {/* FEED SECTION (Below Fold) */}
-                <div className="feed-section">
-                    <div style={{ margin: '20px 0 60px 0', borderBottom: '1px solid var(--glass-border)', opacity: 0.3 }}></div>
-                    <div style={{ textAlign: 'center', marginBottom: '40px', letterSpacing: '4px', opacity: 0.5, fontSize: '12px' }}>THE ARCHIVE</div>
-                    <LetterFeed
-                        letters={letters}
-                        onLetterClick={setSelectedLetter}
-                        onDelete={handleDeleteLetter}
-                        myLetterIds={myLetterIds}
-                    />
-                </div>
+                )}
             </div>
         </div>
     );
