@@ -149,6 +149,14 @@ export default function Home() {
             opacity: 1;
             transform: scale(1.1);
          }
+
+         .write-section {
+             min-height: 70vh;
+             display: flex;
+             flex-direction: column;
+             justify-content: center;
+             padding-bottom: 60px;
+         }
        `}</style>
 
             {/* Global Notification */}
@@ -194,12 +202,25 @@ export default function Home() {
                     >READ</span>
                 </div>
 
-                <div className="animate-enter">
-                    <LetterComposer onSend={handleLetterSent} onError={handleError} />
+                {/* WRITING SECTION (Full Screen Height) */}
+                <div className="write-section">
+                    <div className="animate-enter">
+                        <LetterComposer onSend={handleLetterSent} onError={handleError} />
+                    </div>
+
+                    {/* Call to Action to Scroll */}
+                    <div
+                        style={{ textAlign: 'center', opacity: 0.3, marginTop: '40px', cursor: 'pointer', fontSize: '24px' }}
+                        onClick={() => document.querySelector('.feed-section').scrollIntoView({ behavior: 'smooth' })}
+                    >
+                        ↓
+                    </div>
                 </div>
 
+                {/* FEED SECTION (Below Fold) */}
                 <div className="feed-section">
-                    <div style={{ margin: '60px 0 40px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}></div>
+                    <div style={{ margin: '20px 0 60px 0', borderBottom: '1px solid var(--glass-border)', opacity: 0.3 }}></div>
+                    <div style={{ textAlign: 'center', marginBottom: '40px', letterSpacing: '4px', opacity: 0.5, fontSize: '12px' }}>THE ARCHIVE</div>
                     <LetterFeed
                         letters={letters}
                         onLetterClick={setSelectedLetter}
@@ -208,7 +229,6 @@ export default function Home() {
                     />
                 </div>
             </div>
-
         </div>
     );
 }

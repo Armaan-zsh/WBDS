@@ -63,24 +63,32 @@ export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterI
         
         .delete-btn {
             position: absolute;
-            top: -10px;
-            right: -10px;
-            background: var(--accent-danger);
-            color: white;
-            border: none;
-            width: 24px;
-            height: 24px;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 0, 0, 0.1);
+            color: var(--accent-danger);
+            border: 1px solid var(--accent-danger);
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
-            transition: opacity 0.2s ease;
+            transition: all 0.2s ease;
             cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
         }
         
         .letter-card:hover .delete-btn {
             opacity: 1;
+        }
+        
+        .delete-btn:hover {
+            background: var(--accent-danger);
+            color: white;
+            transform: scale(1.1);
         }
 
         @keyframes fadeIn {
