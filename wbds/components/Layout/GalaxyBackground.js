@@ -35,7 +35,7 @@ export default function GalaxyBackground() {
             if (theme.includes('paper') || theme === 'rose') {
                 // DUST / INK MOTES
                 const isRose = theme === 'rose';
-                const count = 400;
+                const count = 600; // Increased density
 
                 for (let i = 0; i < count; i++) {
                     particles.push({
@@ -52,7 +52,7 @@ export default function GalaxyBackground() {
             } else if (theme === 'forest' || theme === 'nord') {
                 // FALLING POLLEN
                 const isNord = theme === 'nord';
-                const count = 300;
+                const count = 500; // Increased density
 
                 for (let i = 0; i < count; i++) {
                     particles.push({
@@ -68,7 +68,7 @@ export default function GalaxyBackground() {
                 }
             } else if (theme === 'cyberpunk' || theme === 'terminal') {
                 // DIGITAL RAIN
-                const count = 600;
+                const count = 800; // Increased density
                 const isTerminal = theme === 'terminal';
                 for (let i = 0; i < count; i++) {
                     particles.push({
@@ -83,7 +83,7 @@ export default function GalaxyBackground() {
             } else {
                 // SPACE THEMES (Void, Midnight, Solarized)
                 // 1. STARFALL (Vertical Snow)
-                const STAR_COUNT = 800;
+                const STAR_COUNT = 1500; // Restored High Density
                 for (let i = 0; i < STAR_COUNT; i++) {
                     particles.push({
                         x: Math.random() * width,
@@ -153,20 +153,20 @@ export default function GalaxyBackground() {
 
             // --- SPAWN SHOOTING STARS (Void Only) ---
             if (!theme.includes('paper') && theme !== 'forest' && theme !== 'nord' && !theme.includes('cyberpunk') && !theme.includes('terminal')) {
-                // Random chance (approx every 1.5 seconds)
-                if (Math.random() < 0.015) {
+                // Frequency: 2% per frame (approx 1.2 per second at 60fps)
+                if (Math.random() < 0.02) {
                     // Start from top or right side
-                    const startX = Math.random() * width + 200; // Offset for angle
+                    const startX = Math.random() * width + 200;
                     const startY = Math.random() * (height * 0.5) - 200;
 
                     particles.push({
                         x: startX,
                         y: startY,
-                        len: Math.random() * 80 + 50, // Long tail
-                        speed: Math.random() * 15 + 10, // Very Fast
+                        len: Math.random() * 80 + 50,
+                        speed: Math.random() * 15 + 10,
                         size: Math.random() * 2 + 1,
-                        vx: -1, // Moving Left
-                        vy: 1,  // Moving Down
+                        vx: -1,
+                        vy: 1,
                         life: 1.0,
                         type: 'shooting_star'
                     });
@@ -193,7 +193,7 @@ export default function GalaxyBackground() {
                 } else if (p.type === 'shooting_star') {
                     p.x += p.vx * p.speed;
                     p.y += p.vy * p.speed;
-                    p.life -= 0.02; // Fast decay
+                    p.life -= 0.02;
                 } else if (p.type === 'galaxy') {
                     const rot = time * 0.1;
                     p.x = Math.cos(p.theta + rot) * (p.r * width / 2) + width / 2;
@@ -243,12 +243,12 @@ export default function GalaxyBackground() {
                     ctx.fill();
                 } else if (p.type === 'shooting_star') {
                     // Gradient Tail
-                    const tailX = p.x - (p.vx * p.len); // Opposite direction
+                    const tailX = p.x - (p.vx * p.len);
                     const tailY = p.y - (p.vy * p.len);
 
                     const grad = ctx.createLinearGradient(p.x, p.y, tailX, tailY);
-                    grad.addColorStop(0, `rgba(255, 255, 255, ${p.life})`); // Head
-                    grad.addColorStop(1, `rgba(255, 255, 255, 0)`); // Tail
+                    grad.addColorStop(0, `rgba(255, 255, 255, ${p.life})`);
+                    grad.addColorStop(1, `rgba(255, 255, 255, 0)`);
 
                     ctx.strokeStyle = grad;
                     ctx.lineWidth = p.size;
@@ -283,7 +283,7 @@ export default function GalaxyBackground() {
         };
 
         const observer = new MutationObserver((mutations) => {
-            // Theme update handled in render loop
+            // Handled in loop
         });
         observer.observe(document.documentElement, { attributes: true });
         window.addEventListener('resize', handleResize);

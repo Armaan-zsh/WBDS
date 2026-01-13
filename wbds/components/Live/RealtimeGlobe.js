@@ -19,21 +19,22 @@ export default function RealtimeGlobe({ letters }) {
 
         const getGlobeConfig = () => {
             const theme = document.documentElement.getAttribute('data-theme') || 'void';
-            // Only Paper themes should be treated as "Light" (Ink on Paper)
-            // 'rose' and 'coffee' are dark enough to need additive blending
-            const isLight = ['paper', 'coffee-paper', 'nord'].includes(theme);
+            // STRICT CLASSIFICATION: Only "Paper" themes use Subtractive Blending (Ink)
+            const isLight = ['paper', 'coffee-paper'].includes(theme);
 
             if (isLight) {
                 return {
                     baseColor: [1, 1, 1], // White for Multiply
-                    markerColor: theme.includes('paper') ? [0.2, 0.2, 0.2] : [0.4, 0.1, 0.1], // Dark Ink
+                    markerColor: [0.2, 0.2, 0.2], // Dark Ink
                     blendMode: 'multiply'
                 };
             } else {
                 return {
-                    baseColor: [0, 0, 0], // Black for Screen
-                    markerColor: theme === 'forest' ? [0.8, 1, 0.4] : [0.6, 0.9, 1],
-                    blendMode: 'plus-lighter' // Superior transparency for dark themes
+                    baseColor: [0, 0, 0], // Black for Additive Transparency
+                    markerColor: theme === 'forest' ? [0.8, 1, 0.4] :
+                        theme === 'nord' ? [136 / 255, 192 / 255, 208 / 255] : // Nord Cyan
+                            [0.6, 0.9, 1],
+                    blendMode: 'plus-lighter'
                 };
             }
         };
