@@ -134,6 +134,11 @@ export default function Home() {
                     };
                     setLetters(current => [newLetter, ...current]);
                 })
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'letters' }, (payload) => {
+                    setLetters(current => current.map(l =>
+                        l.id === payload.new.id ? { ...l, likes: payload.new.likes } : l
+                    ));
+                })
                 .subscribe();
         }
 
