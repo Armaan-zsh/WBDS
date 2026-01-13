@@ -39,7 +39,7 @@ export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterI
         
         .letter-content {
            background: var(--bg-surface);
-           border-radius: 8px; /* Slightly rounded, like paper */
+           border-radius: 24px; /* Curved, modern look */
            padding: 24px;
            font-family: var(--font-current);
            font-size: 18px;
