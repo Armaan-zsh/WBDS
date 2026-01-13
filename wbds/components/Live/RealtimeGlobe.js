@@ -1,12 +1,15 @@
 import createGlobe from 'cobe';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function RealtimeGlobe({ letters }) {
     const canvasRef = useRef();
+    const globeRef = useRef(null);
+    // Track current config logic
+    const [blendMode, setBlendMode] = useState('screen');
 
     useEffect(() => {
-        let phi = 0;
         let width = 0;
+        let phi = 0;
 
         const onResize = () => canvasRef.current && (width = canvasRef.current.offsetWidth);
         window.addEventListener('resize', onResize);
@@ -14,54 +17,87 @@ export default function RealtimeGlobe({ letters }) {
 
         if (!canvasRef.current) return;
 
-        // Convert letters to markers
-        // We only show letters that have location data
+        const getGlobeConfig = () => {
+            const theme = document.documentElement.getAttribute('data-theme') || 'void';
+            // Only Paper themes should be treated as "Light" (Ink on Paper)
+            // 'rose' and 'coffee' are dark enough to need additive blending
+            const isLight = ['paper', 'coffee-paper', 'nord'].includes(theme);
+
+            if (isLight) {
+                return {
+                    baseColor: [1, 1, 1], // White for Multiply
+                    markerColor: theme.includes('paper') ? [0.2, 0.2, 0.2] : [0.4, 0.1, 0.1], // Dark Ink
+                    blendMode: 'multiply'
+                };
+            } else {
+                return {
+                    baseColor: [0, 0, 0], // Black for Screen
+                    markerColor: theme === 'forest' ? [0.8, 1, 0.4] : [0.6, 0.9, 1],
+                    blendMode: 'plus-lighter' // Superior transparency for dark themes
+                };
+            }
+        };
+
         const markers = letters
             .filter(l => l.location_lat && l.location_lng)
             .map(l => ({
                 location: [l.location_lat, l.location_lng],
-                size: 0.2
+                size: 0.15
             }));
 
-        const globe = createGlobe(canvasRef.current, {
+        let config = getGlobeConfig();
+        setBlendMode(config.blendMode);
+
+        globeRef.current = createGlobe(canvasRef.current, {
             devicePixelRatio: 2,
             width: width * 2,
             height: width * 2,
             phi: 0,
             theta: 0.25,
             dark: 1,
-            diffuse: 0, // No light diffusion
+            diffuse: 0,
             mapSamples: 16000,
-            mapBrightness: 0, // HIDE THE EARTH (Invisible Map)
-            baseColor: [0, 0, 0], // Pure black (transparent-ish)
-            markerColor: [0.6, 0.9, 1], // Cyan/White Starlight
-            glowColor: [0.1, 0.1, 0.2], // Deep Space Blue Glow
-            opacity: 0.8,
+            mapBrightness: 0,
+            baseColor: config.baseColor,
+            markerColor: config.markerColor,
+            glowColor: [0, 0, 0],
+            opacity: 1,
             markers: markers,
             onRender: (state) => {
-                // Auto-spin (Slow and majestic)
                 state.phi = phi;
                 phi += 0.001;
                 state.width = width * 2;
                 state.height = width * 2;
 
-                // Twinkling markers (Star effect)
+                // Dynamic Updates
+                state.baseColor = config.baseColor;
+                state.markerColor = config.markerColor;
+
                 const time = Date.now() / 1000;
                 state.markers = markers.map((m, i) => ({
                     location: m.location,
-                    size: m.size * (0.8 + Math.sin(time * 2 + i) * 0.4) // Random twinkling based on index
+                    size: m.size * (0.8 + Math.sin(time * 2 + i) * 0.4)
                 }));
             }
         });
 
-        // Fade in effect
-        setTimeout(() => canvasRef.current.style.opacity = '1', 100);
+        // Observer for Theme Changes
+        const observer = new MutationObserver(() => {
+            config = getGlobeConfig();
+            setBlendMode(config.blendMode);
+        });
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+        setTimeout(() => {
+            if (canvasRef.current) canvasRef.current.style.opacity = '1';
+        }, 100);
 
         return () => {
-            globe.destroy();
+            if (globeRef.current) globeRef.current.destroy();
             window.removeEventListener('resize', onResize);
+            observer.disconnect();
         };
-    }, [letters]); // Re-create globe when markers change (could be optimized but fine for now)
+    }, [letters]);
 
     return (
         <div style={{
@@ -72,7 +108,8 @@ export default function RealtimeGlobe({ letters }) {
             position: 'relative',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            pointerEvents: 'none'
         }}>
             <canvas
                 ref={canvasRef}
@@ -82,18 +119,9 @@ export default function RealtimeGlobe({ letters }) {
                     contain: 'layout paint size',
                     opacity: 0,
                     transition: 'opacity 1s ease',
+                    mixBlendMode: blendMode
                 }}
             />
-            {letters.length === 0 && (
-                <div style={{
-                    position: 'absolute',
-                    color: 'var(--text-secondary)',
-                    opacity: 0.5,
-                    fontSize: '14px',
-                }}>
-                    Scanning for signals...
-                </div>
-            )}
         </div>
     );
 }
