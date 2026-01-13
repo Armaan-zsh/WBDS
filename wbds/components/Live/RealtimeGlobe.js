@@ -25,12 +25,14 @@ export default function RealtimeGlobe({ letters }) {
             if (isLight) {
                 return {
                     baseColor: [1, 1, 1], // White for Multiply
+                    glowColor: [1, 1, 1], // White Glow (Transparent in Multiply)
                     markerColor: [0.2, 0.2, 0.2], // Dark Ink
                     blendMode: 'multiply'
                 };
             } else {
                 return {
                     baseColor: [0, 0, 0], // Black for Additive Transparency
+                    glowColor: [0, 0, 0], // Black Glow (Invisible in Additive)
                     markerColor: theme === 'forest' ? [0.8, 1, 0.4] :
                         theme === 'nord' ? [136 / 255, 192 / 255, 208 / 255] : // Nord Cyan
                             [0.6, 0.9, 1],
@@ -61,7 +63,7 @@ export default function RealtimeGlobe({ letters }) {
             mapBrightness: 0,
             baseColor: config.baseColor,
             markerColor: config.markerColor,
-            glowColor: [0, 0, 0],
+            glowColor: config.glowColor,
             opacity: 1,
             markers: markers,
             onRender: (state) => {
@@ -73,6 +75,7 @@ export default function RealtimeGlobe({ letters }) {
                 // Dynamic Updates
                 state.baseColor = config.baseColor;
                 state.markerColor = config.markerColor;
+                state.glowColor = config.glowColor;
 
                 const time = Date.now() / 1000;
                 state.markers = markers.map((m, i) => ({
