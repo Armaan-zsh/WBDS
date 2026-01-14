@@ -296,7 +296,7 @@ export default function Home() {
 
           /* Sidebar is now an overlay/ghost element that doesn't push content */
           :global(body) {
-            background-color: ${view === 'chain' ? '#000000 !important' : 'transparent'};
+            background-color: ${view === 'chain' || view === 'personal' ? '#000000 !important' : 'transparent'};
           }
           
           .sidebar {
@@ -552,6 +552,7 @@ export default function Home() {
 
             <div className="main-content">
                 {/* Header */}
+                {/* Header */}
                 <div className="nav-header">
                     <span
                         className={`nav-item ${view === 'write' ? 'active' : ''}`}
@@ -572,6 +573,11 @@ export default function Home() {
                         className={`nav-item ${view === 'chain' ? 'active' : ''}`}
                         onClick={() => setView('chain')}
                     >FMWBDS</span>
+
+                    <span
+                        className={`nav-item ${view === 'personal' ? 'active' : ''}`}
+                        onClick={() => setView('personal')}
+                    >YWBDS</span>
                 </div>
 
                 {/* VIEW: WRITE + GLOBE */}
@@ -603,6 +609,11 @@ export default function Home() {
                 {/* VIEW: CHAIN (Global Graph) */}
                 {view === 'chain' && (
                     <GlobalGraph letters={letters} />
+                )}
+
+                {/* VIEW: PERSONAL (YWBDS) */}
+                {view === 'personal' && (
+                    <GlobalGraph letters={letters.filter(l => myLetterIds.has(l.id))} />
                 )}
             </div>
         </div>

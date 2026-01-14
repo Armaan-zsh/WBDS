@@ -9,6 +9,8 @@ export default function AppearancePanel() {
     const [audioProfile, setLocalAudioProfile] = useState('mechanical');
     const [isAmbienceOn, setIsAmbienceOn] = useState(false);
     const [currentAmbience, setCurrentAmbience] = useState('space');
+    const [showRestoreModal, setShowRestoreModal] = useState(false);
+    const [restoreInput, setRestoreInput] = useState('');
 
     useEffect(() => {
         // Load preference
@@ -72,6 +74,21 @@ export default function AppearancePanel() {
 
         setAmbienceProfile(profile);
         toggleAmbience(true);
+    };
+
+    const handleRestore = () => {
+        if (!restoreInput) return;
+        try {
+            const parsed = JSON.parse(restoreInput);
+            if (Array.isArray(parsed)) {
+                localStorage.setItem('wbds_owned', JSON.stringify(parsed));
+                window.location.reload();
+            } else {
+                alert('Invalid Key Format (Must be an array)');
+            }
+        } catch (e) {
+            alert('Invalid Key Data');
+        }
     };
 
     return (
@@ -357,6 +374,124 @@ export default function AppearancePanel() {
                 </div>
             </div>
 
+            {/* DATA & PRIVACY */}
+            <div>
+                <div className="section-title" style={{ marginTop: '20px' }}>Data & Privacy</div>
+                <div className="option-grid">
+                    <button className="option-btn" onClick={() => {
+                        const owned = localStorage.getItem('wbds_owned') || '[]';
+                        navigator.clipboard.writeText(owned);
+                        alert('Key copied to clipboard!\n\nTo restore on another device:\n1. Open this website on that device.\n2. Go to Settings -> Restore Backup.\n3. Paste this key.');
+                    }}>
+                        Copy Backup Key
+                    </button>
+
+                    <button className="option-btn" onClick={() => setShowRestoreModal(true)}>
+                        Restore Backup
+                    </button>
+
+                    <button className="option-btn" style={{ color: '#ff453a', borderColor: 'rgba(255, 69, 58, 0.3)' }} onClick={() => {
+                        if (confirm('This will wipe your local history (owned letters). Continue?')) {
+                            localStorage.removeItem('wbds_owned');
+                            window.location.reload();
+                        }
+                    }}>
+                        Clear History
+                    </button>
+                </div>
+            </div>
+
+            {/* CUSTOM RESTORE MODAL */}
+            {showRestoreModal && (
+                <div className="modal-overlay">
+                    <div className="modal-card">
+                        <h3>Restore Backup</h3>
+                        <p>Paste your Backup Key below to restore your history.</p>
+                        <textarea
+                            className="restore-input"
+                            value={restoreInput}
+                            onChange={(e) => setRestoreInput(e.target.value)}
+                            placeholder='["123", "456", "789"]...'
+                        />
+                        <div className="modal-actions">
+                            <button className="btn-cancel" onClick={() => setShowRestoreModal(false)}>Cancel</button>
+                            <button className="btn-confirm" onClick={handleRestore}>Restore</button>
+                        </div>
+                    </div>
+                    <style jsx>{`
+                        .modal-overlay {
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            width: 100vw;
+                            height: 100vh;
+                            background: rgba(0, 0, 0, 0.6);
+                            backdrop-filter: blur(8px);
+                            z-index: 200;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        .modal-card {
+                            background: var(--bg-surface);
+                            border: 1px solid var(--glass-border);
+                            padding: 24px;
+                            border-radius: 20px;
+                            width: 320px;
+                            text-align: center;
+                            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+                        }
+                        h3 {
+                            margin: 0 0 10px 0;
+                            color: var(--text-primary);
+                            font-size: 18px;
+                        }
+                        p {
+                            color: var(--text-secondary);
+                            font-size: 12px;
+                            margin-bottom: 16px;
+                        }
+                        .restore-input {
+                            width: 100%;
+                            height: 100px;
+                            background: rgba(0,0,0,0.2);
+                            border: 1px solid var(--glass-border);
+                            border-radius: 12px;
+                            padding: 12px;
+                            color: var(--text-primary);
+                            font-family: monospace;
+                            font-size: 12px;
+                            margin-bottom: 20px;
+                            resize: none;
+                        }
+                        .restore-input:focus {
+                            outline: none;
+                            border-color: var(--text-secondary);
+                        }
+                        .modal-actions {
+                            display: flex;
+                            gap: 10px;
+                            justify-content: center;
+                        }
+                        .modal-actions button {
+                            padding: 10px 20px;
+                            border-radius: 50px;
+                            border: none;
+                            font-weight: 600;
+                            cursor: pointer;
+                        }
+                        .btn-cancel {
+                            background: transparent;
+                            border: 1px solid var(--glass-border) !important;
+                            color: var(--text-secondary);
+                        }
+                        .btn-confirm {
+                            background: var(--text-primary);
+                            color: var(--bg-root);
+                        }
+                     `}</style>
+                </div>
+            )}
         </div>
     );
 }

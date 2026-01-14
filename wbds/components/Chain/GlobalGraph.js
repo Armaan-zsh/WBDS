@@ -27,12 +27,29 @@ export default function GlobalGraph({ letters }) {
 
     // Transform Data for Graph
     const graphData = useMemo(() => {
+        const getColor = (theme) => {
+            const colors = {
+                'void': '#ffffff', // White
+                'paper': '#fcd34d', // Gold/Yellow
+                'rose': '#f472b6', // Pink
+                'terminal': '#4ade80', // Green
+                'hacker': '#4ade80',
+                'ocean': '#60a5fa', // Blue
+                'nord': '#81a1c1', // Nord Blue
+                'sunset': '#fb923c', // Orange
+                'default': '#ffffff'
+            };
+            // Random-ish fallback for others based on char code
+            const fallbacks = ['#c084fc', '#2dd4bf', '#fb7185', '#a78bfa'];
+            return colors[theme] || fallbacks[theme ? theme.length % fallbacks.length : 0];
+        };
+
         // Start with real nodes
         const nodes = (letters || []).map(l => ({
             id: l.id,
             user: `Fragment #${l.id}`,
-            val: 3, // Real nodes are bigger
-            color: '#ffffff' // Real nodes are white
+            val: 3,
+            color: getColor(l.theme)
         }));
 
         const links = [];
