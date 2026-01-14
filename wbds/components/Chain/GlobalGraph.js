@@ -46,32 +46,6 @@ export default function GlobalGraph({ letters }) {
             });
         }
 
-        // GHOST NODES (The Fake Universe)
-        // If we don't have enough data, we simulate the "Archive"
-        const ghostCount = 2000;
-        for (let i = 0; i < ghostCount; i++) {
-            nodes.push({
-                id: `ghost-${i}`,
-                user: 'Unknown Fragment',
-                val: 0.5, // Tiny distant stars
-                color: '#222' // Very faint
-            });
-        }
-
-        // Connect ghosts randomly to create the "Web"
-        for (let i = 0; i < ghostCount; i++) {
-            // Link to a random neighbor (real or ghost)
-            const targetIndex = Math.floor(Math.random() * nodes.length);
-            // Avoid self-loops
-            if (nodes[targetIndex].id !== `ghost-${i}`) {
-                links.push({
-                    source: `ghost-${i}`,
-                    target: nodes[targetIndex].id,
-                    color: '#111' // Almost invisible web
-                });
-            }
-        }
-
         return { nodes, links };
     }, [letters]);
 
@@ -84,18 +58,19 @@ export default function GlobalGraph({ letters }) {
                 graphData={graphData}
 
                 // Visual Style (Obsidian-like)
-                backgroundColor="#000000" // Pure Black (No Theme)
+                backgroundColor="#000000" // Pure Black
                 nodeLabel="user"
-                nodeColor={() => "#555555"} // Dark Grey Nodes
+                nodeColor={node => node.color || "#ffffff"}
                 nodeRelSize={4}
-                linkColor={() => "#333333"} // Faint Grey Links
+                linkColor={() => "#333333"}
                 linkWidth={1}
                 linkDirectionalParticles={1}
                 linkDirectionalParticleSpeed={0.005} // Slow flow
                 linkDirectionalParticleWidth={2}
 
-                // Physics
-                d3VelocityDecay={0.6} // Branding feel
+                // Physics - Smoother & Centered
+                d3VelocityDecay={0.4} // Less friction = smoother float
+                d3AlphaDecay={0.01}  // Slower decay = longer settling
                 cooldownTicks={100}
                 onEngineStop={() => {
                     if (graphRef.current) {
