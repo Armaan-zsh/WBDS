@@ -11,7 +11,7 @@ import VoidClock from '../components/Layout/VoidClock';
 import GalaxyBackground from '../components/Layout/GalaxyBackground';
 import dynamic from 'next/dynamic';
 
-import TimeChain from '../components/Chain/TimeChain';
+import GlobalGraph from '../components/Chain/GlobalGraph';
 const RealtimeGlobe = dynamic(() => import('../components/Live/RealtimeGlobe'), {
     ssr: false,
     loading: () => <div style={{ color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>Scanning Deep Space...</div>
@@ -265,7 +265,7 @@ export default function Home() {
 
     return (
         <div className="app-layout">
-            <GalaxyBackground />
+            {view !== 'chain' && <GalaxyBackground />}
             <VoidClock />
             <style jsx>{`
          .app-layout {
@@ -491,10 +491,10 @@ export default function Home() {
                     </div>
                 )}
 
-                {/* VIEW: CHAIN (FMWBDS) */}
+                {/* VIEW: CHAIN (Global Graph) */}
                 {view === 'chain' && (
                     <div className="animate-enter" style={{ zIndex: 10 }}>
-                        <TimeChain letters={letters} />
+                        <GlobalGraph letters={letters} />
                     </div>
                 )}
             </div>
