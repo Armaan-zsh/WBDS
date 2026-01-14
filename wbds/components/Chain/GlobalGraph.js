@@ -27,21 +27,49 @@ export default function GlobalGraph({ letters }) {
 
     // Transform Data for Graph
     const graphData = useMemo(() => {
-        if (!letters || letters.length === 0) return { nodes: [], links: [] };
-
-        const nodes = letters.map(l => ({
+        // Start with real nodes
+        const nodes = (letters || []).map(l => ({
             id: l.id,
-            user: l.id, // Display ID
-            val: 1 // Size base
+            user: `Fragment #${l.id}`,
+            val: 3, // Real nodes are bigger
+            color: '#ffffff' // Real nodes are white
         }));
 
         const links = [];
-        // Connect chronological neighbors (Time Chain logic but in graph form)
-        for (let i = 0; i < letters.length - 1; i++) {
+
+        // Connect real nodes linearly
+        for (let i = 0; i < nodes.length - 1; i++) {
             links.push({
-                source: letters[i].id,
-                target: letters[i + 1].id
+                source: nodes[i].id,
+                target: nodes[i + 1].id,
+                color: '#444'
             });
+        }
+
+        // GHOST NODES (The Fake Universe)
+        // If we don't have enough data, we simulate the "Archive"
+        const ghostCount = 2000;
+        for (let i = 0; i < ghostCount; i++) {
+            nodes.push({
+                id: `ghost-${i}`,
+                user: 'Unknown Fragment',
+                val: 0.5, // Tiny distant stars
+                color: '#222' // Very faint
+            });
+        }
+
+        // Connect ghosts randomly to create the "Web"
+        for (let i = 0; i < ghostCount; i++) {
+            // Link to a random neighbor (real or ghost)
+            const targetIndex = Math.floor(Math.random() * nodes.length);
+            // Avoid self-loops
+            if (nodes[targetIndex].id !== `ghost-${i}`) {
+                links.push({
+                    source: `ghost-${i}`,
+                    target: nodes[targetIndex].id,
+                    color: '#111' // Almost invisible web
+                });
+            }
         }
 
         return { nodes, links };

@@ -276,6 +276,10 @@ export default function Home() {
          }
 
           /* Sidebar is now an overlay/ghost element that doesn't push content */
+          :global(body) {
+            background-color: ${view === 'chain' ? '#000000 !important' : 'transparent'};
+          }
+          
           .sidebar {
              position: absolute;
              left: 0;
