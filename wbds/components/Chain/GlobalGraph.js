@@ -74,7 +74,13 @@ export default function GlobalGraph({ letters }) {
                 cooldownTicks={100}
                 onEngineStop={() => {
                     if (graphRef.current) {
-                        graphRef.current.zoomToFit(400);
+                        // Prevent infinite zoom on single/few nodes
+                        if (graphData.nodes.length <= 2) {
+                            graphRef.current.zoom(6, 400); // Fixed reasonable zoom
+                            graphRef.current.centerAt(0, 0, 400);
+                        } else {
+                            graphRef.current.zoomToFit(400, 100); // 100px padding
+                        }
                     }
                 }}
             />
