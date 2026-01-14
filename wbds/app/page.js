@@ -377,10 +377,11 @@ export default function Home() {
              font-weight: 700;
              letter-spacing: 3px;
              text-transform: uppercase;
-             opacity: 0.3;
+             opacity: 0.6; /* Increased for visibility */
              cursor: pointer;
              transition: all 0.3s ease;
              position: relative;
+             color: var(--text-primary);
           }
           
           .nav-item:hover {
