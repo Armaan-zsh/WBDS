@@ -416,6 +416,91 @@ export default function Home() {
           }
        `}</style>
 
+            {/* Delete Confirmation Modal */}
+            {deleteTargetId && (
+                <div className="modal-overlay">
+                    <div className="modal-card shake-anim">
+                        <h3>Burn this letter?</h3>
+                        <p>This action cannot be undone. The fragment will be lost to the void forever.</p>
+                        <div className="modal-actions">
+                            <button className="btn-cancel" onClick={() => setDeleteTargetId(null)}>Keep</button>
+                            <button className="btn-burn" onClick={confirmDelete}>Burn Forever</button>
+                        </div>
+                    </div>
+                    <style jsx>{`
+                        .modal-overlay {
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            background: rgba(0, 0, 0, 0.7);
+                            backdrop-filter: blur(5px);
+                            z-index: 200;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        .modal-card {
+                            background: var(--bg-surface);
+                            border: 1px solid var(--glass-border);
+                            padding: 30px;
+                            border-radius: 20px;
+                            width: 90%;
+                            max-width: 400px;
+                            text-align: center;
+                            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+                        }
+                        h3 {
+                            margin: 0 0 10px 0;
+                            font-size: 20px;
+                            color: var(--text-primary);
+                        }
+                        p {
+                            margin: 0 0 24px 0;
+                            color: var(--text-secondary);
+                            font-size: 14px;
+                            line-height: 1.5;
+                        }
+                        .modal-actions {
+                            display: flex;
+                            gap: 12px;
+                            justify-content: center;
+                        }
+                        button {
+                            padding: 12px 24px;
+                            border-radius: 50px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: transform 0.1s;
+                            border: none;
+                        }
+                        button:active { transform: scale(0.95); }
+                        .btn-cancel {
+                            background: transparent;
+                            border: 1px solid var(--glass-border);
+                            color: var(--text-primary);
+                        }
+                        .btn-burn {
+                            background: rgba(255, 69, 58, 0.1);
+                            color: #ff453a;
+                            border: 1px solid rgba(255, 69, 58, 0.2);
+                        }
+                         .btn-burn:hover {
+                            background: rgba(255, 69, 58, 0.2);
+                        }
+                        @keyframes shake {
+                            0%, 100% { transform: translateX(0); }
+                            25% { transform: translateX(-5px); }
+                            75% { transform: translateX(5px); }
+                        }
+                        .shake-anim {
+                            animation: shake 0.3s ease-out;
+                        }
+                    `}</style>
+                </div>
+            )}
+
             {/* Global Notification */}
             {notification && (
                 <VoidNotification
