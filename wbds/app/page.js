@@ -30,7 +30,34 @@ export default function Home() {
     const [view, setView] = useState('write'); // 'write', 'read', 'best'
     const [likedLetters, setLikedLetters] = useState(new Set()); // Local liked state
     const [myLetterIds, setMyLetterIds] = useState(new Set());
+    const [deleteTargetId, setDeleteTargetId] = useState(null);
     const [isWriting, setIsWriting] = useState(false);
+
+    const handleDeleteLetter = async (id) => {
+        setDeleteTargetId(id); // Trigger Modal
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTargetId) return;
+
+        const { error } = await supabase
+            .from('letters')
+            .delete()
+            .eq('id', deleteTargetId);
+
+        if (error) {
+            handleError("Could not burn letter. It refuses to die.");
+        } else {
+            setLetters(current => current.filter(l => l.id !== deleteTargetId));
+            setMyLetterIds(prev => {
+                const asked = new Set(prev);
+                asked.delete(deleteTargetId);
+                return asked;
+            });
+            setNotification({ message: 'Letter burned to ash.', type: 'success' });
+        }
+        setDeleteTargetId(null);
+    };
 
     // Simple responsive check
     useEffect(() => {
@@ -253,15 +280,7 @@ export default function Home() {
         }
     };
 
-    const handleDeleteLetter = async (id) => {
-        if (window.confirm("Burn this letter forever?")) {
-            setLetters(prev => prev.filter(l => l.id !== id));
-            const { error } = await supabase.from('letters').delete().eq('id', id);
-            if (error) {
-                handleError("Could not burn letter. It refuses to die.");
-            }
-        }
-    };
+    // Old handleDeleteLetter removed
 
     return (
         <div className="app-layout">
