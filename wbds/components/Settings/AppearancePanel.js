@@ -10,7 +10,10 @@ export default function AppearancePanel() {
     const [isAmbienceOn, setIsAmbienceOn] = useState(false);
     const [currentAmbience, setCurrentAmbience] = useState('space');
     const [showRestoreModal, setShowRestoreModal] = useState(false);
+    const [showCopyModal, setShowCopyModal] = useState(false);
     const [restoreInput, setRestoreInput] = useState('');
+    const [copyInput, setCopyInput] = useState('');
+    const [copyButtonLabel, setCopyButtonLabel] = useState('Copy');
 
     useEffect(() => {
         // Load preference
@@ -302,10 +305,10 @@ export default function AppearancePanel() {
                     <div className="option-grid">
                         <button className="option-btn" onClick={() => {
                             const owned = localStorage.getItem('wbds_owned') || '[]';
-                            navigator.clipboard.writeText(owned);
-                            alert('Key copied to clipboard!\n\nTo restore on another device:\n1. Open this website on that device.\n2. Go to Settings -> Restore Backup.\n3. Paste this key.');
+                            setCopyInput(owned);
+                            setShowCopyModal(true);
                         }}>
-                            Copy Backup Key
+                            View & Copy Key
                         </button>
 
                         <button className="option-btn" onClick={() => setShowRestoreModal(true)}>
@@ -323,6 +326,30 @@ export default function AppearancePanel() {
                     </div>
                 </div>
             </div> {/* Closes the panel-container div */}
+
+            {/* CUSTOM COPY MODAL */}
+            {showCopyModal && (
+                <div className="modal-overlay">
+                    <div className="modal-card">
+                        <h3>Your Encrypted Key</h3>
+                        <p>Copy this code to save your history.</p>
+                        <textarea
+                            className="restore-input"
+                            value={copyInput}
+                            readOnly
+                            onClick={(e) => e.target.select()}
+                        />
+                        <div className="modal-actions">
+                            <button className="btn-cancel" onClick={() => setShowCopyModal(false)}>Close</button>
+                            <button className="btn-confirm" onClick={() => {
+                                navigator.clipboard.writeText(copyInput);
+                                setCopyButtonLabel('Copied!');
+                                setTimeout(() => setCopyButtonLabel('Copy'), 2000);
+                            }}>{copyButtonLabel}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* CUSTOM RESTORE MODAL - Moved outside to ignore parent transform */}
             {showRestoreModal && (
@@ -492,7 +519,8 @@ export default function AppearancePanel() {
             }
             .btn-confirm {
                 background: var(--text-primary);
-                color: var(--bg-root);
+                color: #000000; /* Force black text for maximum contrast on white button */
+                font-weight: 800; /* Extra bold for readability */
             }
          `}</style>
         </>
