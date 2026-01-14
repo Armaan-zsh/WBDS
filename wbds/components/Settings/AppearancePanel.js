@@ -92,7 +92,258 @@ export default function AppearancePanel() {
     };
 
     return (
-        <div className="panel-container">
+        <>
+            <div className="panel-container">
+
+
+                <div>
+                    <div>
+                        <div style={{ paddingBottom: '20px', fontSize: '18px', fontWeight: 'bold', letterSpacing: '0px' }}>
+                            Settings
+                        </div>
+                    </div>
+                </div>
+
+                {/* THEMES */}
+                <div>
+                    <div className="section-title">Atmosphere</div>
+                    <div className="option-grid">
+                        <button className={`option-btn ${theme === 'void' ? 'active' : ''}`} onClick={() => applyTheme('void')}>
+                            <div className="preview-circle" style={{ background: '#000000', border: '1px solid #333' }}></div>
+                            The Void
+                        </button>
+                        <button className={`option-btn ${theme === 'midnight' ? 'active' : ''}`} onClick={() => applyTheme('midnight')}>
+                            <div className="preview-circle" style={{ background: '#020817' }}></div>
+                            Midnight
+                        </button>
+                        <button className={`option-btn ${theme === 'paper' ? 'active' : ''}`} onClick={() => applyTheme('paper')}>
+                            <div className="preview-circle" style={{ background: '#f2f0e9' }}></div>
+                            Paper
+                        </button>
+                        <button className={`option-btn ${theme === 'coffee-paper' ? 'active' : ''}`} onClick={() => applyTheme('coffee-paper')}>
+                            <div className="preview-circle" style={{ background: '#d9c2a3', border: '1px solid #8b5a2b' }}></div>
+                            Coffee Paper
+                        </button>
+                        <button className={`option-btn ${theme === 'rose' ? 'active' : ''}`} onClick={() => applyTheme('rose')}>
+                            <div className="preview-circle" style={{ background: '#261010' }}></div>
+                            Rose
+                        </button>
+                        <button className={`option-btn ${theme === 'forest' ? 'active' : ''}`} onClick={() => applyTheme('forest')}>
+                            <div className="preview-circle" style={{ background: '#1a2f23' }}></div>
+                            Forest
+                        </button>
+                        <button className={`option-btn ${theme === 'coffee' ? 'active' : ''}`} onClick={() => applyTheme('coffee')}>
+                            <div className="preview-circle" style={{ background: '#2b211e' }}></div>
+                            Coffee
+                        </button>
+                        <button className={`option-btn ${theme === 'nord' ? 'active' : ''}`} onClick={() => applyTheme('nord')}>
+                            <div className="preview-circle" style={{ background: '#2e3440' }}></div>
+                            Nord
+                        </button>
+                        <button className={`option-btn ${theme === 'dracula' ? 'active' : ''}`} onClick={() => applyTheme('dracula')}>
+                            <div className="preview-circle" style={{ background: '#282a36' }}></div>
+                            Dracula
+                        </button>
+                        <button className={`option-btn ${theme === 'solarized' ? 'active' : ''}`} onClick={() => applyTheme('solarized')}>
+                            <div className="preview-circle" style={{ background: '#002b36' }}></div>
+                            Solarized
+                        </button>
+                        <button className={`option-btn ${theme === 'cyberpunk' ? 'active' : ''}`} onClick={() => applyTheme('cyberpunk')}>
+                            <div className="preview-circle" style={{ background: '#111', border: '1px solid #fcee0c' }}></div>
+                            Cyberpunk
+                        </button>
+                        <button className={`option-btn ${theme === 'synthwave' ? 'active' : ''}`} onClick={() => applyTheme('synthwave')}>
+                            <div className="preview-circle" style={{ background: '#2b213a', border: '1px solid #ff71ce' }}></div>
+                            Synthwave
+                        </button>
+                        <button className={`option-btn ${theme === 'serika' ? 'active' : ''}`} onClick={() => applyTheme('serika')}>
+                            <div className="preview-circle" style={{ background: '#323437', border: '1px solid #e2b714' }}></div>
+                            Serika
+                        </button>
+                        <button className={`option-btn ${theme === 'carbon' ? 'active' : ''}`} onClick={() => applyTheme('carbon')}>
+                            <div className="preview-circle" style={{ background: '#313131', border: '1px solid #f66e0d' }}></div>
+                            Carbon
+                        </button>
+                        <button className={`option-btn ${theme === '8008' ? 'active' : ''}`} onClick={() => applyTheme('8008')}>
+                            <div className="preview-circle" style={{ background: '#333a45', border: '1px solid #f44c7f' }}></div>
+                            8008
+                        </button>
+                        <button className={`option-btn ${theme === 'red-dragon' ? 'active' : ''}`} onClick={() => applyTheme('red-dragon')}>
+                            <div className="preview-circle" style={{ background: '#1a0b0c', border: '1px solid #ff3a32' }}></div>
+                            Red Dragon
+                        </button>
+                        <button className={`option-btn ${theme === 'terminal' ? 'active' : ''}`} onClick={() => { applyTheme('terminal'); applyFont('typewriter'); }}>
+                            <div className="preview-circle" style={{ background: '#0a0a0a', border: '1px solid #30d158' }}></div>
+                            Terminal
+                        </button>
+                    </div>
+                </div>
+
+                {/* TYPOGRAPHY */}
+                <div>
+                    <div className="section-title">Typography</div>
+                    <div className="option-grid">
+                        <button className={`option-btn ${font === 'serif' ? 'active' : ''}`} onClick={() => applyFont('serif')}>
+                            <span style={{ fontFamily: 'serif' }}>Aa</span> Serif
+                        </button>
+                        <button className={`option-btn ${font === 'sans' ? 'active' : ''}`} onClick={() => applyFont('sans')}>
+                            <span style={{ fontFamily: 'sans-serif' }}>Aa</span> Sans
+                        </button>
+                        <button className={`option-btn ${font === 'mono' ? 'active' : ''}`} onClick={() => applyFont('mono')}>
+                            <span style={{ fontFamily: 'monospace' }}>Aa</span> Mono
+                        </button>
+                        <button className={`option-btn ${font === 'inter' ? 'active' : ''}`} onClick={() => applyFont('inter')}>
+                            <span style={{ fontFamily: 'sans-serif', fontWeight: 600 }}>Aa</span> Inter
+                        </button>
+                        <button className={`option-btn ${font === 'playfair' ? 'active' : ''}`} onClick={() => applyFont('playfair')}>
+                            <span style={{ fontFamily: 'serif', fontStyle: 'italic' }}>Aa</span> Playfair
+                        </button>
+                        <button className={`option-btn ${font === 'merriweather' ? 'active' : ''}`} onClick={() => applyFont('merriweather')}>
+                            <span style={{ fontFamily: 'serif' }}>Aa</span> Merriweather
+                        </button>
+                        <button className={`option-btn ${font === 'fira' ? 'active' : ''}`} onClick={() => applyFont('fira')}>
+                            <span style={{ fontFamily: 'Fira Code' }}>Aa</span> Fira Code
+                        </button>
+                        <button className={`option-btn ${font === 'jetbrains' ? 'active' : ''}`} onClick={() => applyFont('jetbrains')}>
+                            <span style={{ fontFamily: 'JetBrains Mono' }}>Aa</span> JetBrains
+                        </button>
+                        <button className={`option-btn ${font === 'ibm_plex' ? 'active' : ''}`} onClick={() => applyFont('ibm_plex')}>
+                            <span style={{ fontFamily: 'IBM Plex Mono' }}>Aa</span> IBM Plex
+                        </button>
+                        <button className={`option-btn ${font === 'roboto_mono' ? 'active' : ''}`} onClick={() => applyFont('roboto_mono')}>
+                            <span style={{ fontFamily: 'Roboto Mono' }}>Aa</span> Roboto Mono
+                        </button>
+                        <button className={`option-btn ${font === 'source_code' ? 'active' : ''}`} onClick={() => applyFont('source_code')}>
+                            <span style={{ fontFamily: 'Source Code Pro' }}>Aa</span> Source Code
+                        </button>
+                        <button className={`option-btn ${font === 'lexend' ? 'active' : ''}`} onClick={() => applyFont('lexend')}>
+                            <span style={{ fontFamily: 'Lexend Deca' }}>Aa</span> Lexend
+                        </button>
+                        <button className={`option-btn ${font === 'montserrat' ? 'active' : ''}`} onClick={() => applyFont('montserrat')}>
+                            <span style={{ fontFamily: 'Montserrat' }}>Aa</span> Montserrat
+                        </button>
+                        <button className={`option-btn ${font === 'nunito' ? 'active' : ''}`} onClick={() => applyFont('nunito')}>
+                            <span style={{ fontFamily: 'Nunito' }}>Aa</span> Nunito
+                        </button>
+                        <button className={`option-btn ${font === 'comfortaa' ? 'active' : ''}`} onClick={() => applyFont('comfortaa')}>
+                            <span style={{ fontFamily: 'Comfortaa' }}>Aa</span> Comfortaa
+                        </button>
+                        <button className={`option-btn ${font === 'courier_prime' ? 'active' : ''}`} onClick={() => applyFont('courier_prime')}>
+                            <span style={{ fontFamily: 'Courier Prime' }}>Aa</span> Courier Prime
+                        </button>
+                        <button className={`option-btn ${font === 'hand' ? 'active' : ''}`} onClick={() => applyFont('hand')}>
+                            <span style={{ fontFamily: 'cursive' }}>Aa</span> Hand
+                        </button>
+                        <button className={`option-btn ${font === 'typewriter' ? 'active' : ''}`} onClick={() => applyFont('typewriter')}>
+                            <span style={{ fontFamily: 'Courier New' }}>Aa</span> Typewriter
+                        </button>
+                        <button className={`option-btn ${font === 'dancing' ? 'active' : ''}`} onClick={() => applyFont('dancing')}>
+                            <span style={{ fontFamily: 'Dancing Script', fontSize: '16px' }}>Aa</span> Dancing Script
+                        </button>
+                        <button className={`option-btn ${font === 'great_vibes' ? 'active' : ''}`} onClick={() => applyFont('great_vibes')}>
+                            <span style={{ fontFamily: 'Great Vibes', fontSize: '18px' }}>Aa</span> Great Vibes
+                        </button>
+                        <button className={`option-btn ${font === 'alex_brush' ? 'active' : ''}`} onClick={() => applyFont('alex_brush')}>
+                            <span style={{ fontFamily: 'Alex Brush', fontSize: '16px' }}>Aa</span> Alex Brush
+                        </button>
+                        <button className={`option-btn ${font === 'allura' ? 'active' : ''}`} onClick={() => applyFont('allura')}>
+                            <span style={{ fontFamily: 'Allura', fontSize: '16px' }}>Aa</span> Allura
+                        </button>
+                        <button className={`option-btn ${font === 'parisienne' ? 'active' : ''}`} onClick={() => applyFont('parisienne')}>
+                            <span style={{ fontFamily: 'Parisienne', fontSize: '16px' }}>Aa</span> Parisienne
+                        </button>
+                    </div>
+                </div>
+
+                {/* TACTILE AUDIO */}
+                <div>
+                    <div className="section-title">Tactile Sound</div>
+                    <div className="option-grid">
+                        <button className={`option-btn ${audioProfile === 'mechanical' ? 'active' : ''}`} onClick={() => applyAudio('mechanical')}>
+                            Mechanical
+                        </button>
+                        <button className={`option-btn ${audioProfile === 'typewriter' ? 'active' : ''}`} onClick={() => applyAudio('typewriter')}>
+                            Typewriter
+                        </button>
+                        <button className={`option-btn ${audioProfile === 'bubble' ? 'active' : ''}`} onClick={() => applyAudio('bubble')}>
+                            Bubble
+                        </button>
+                        <button className={`option-btn ${audioProfile === 'silent' ? 'active' : ''}`} onClick={() => applyAudio('silent')}>
+                            Silent
+                        </button>
+                    </div>
+
+                    <div className="section-title" style={{ marginTop: '20px' }}>Atmosphere</div>
+                    <div className="option-grid">
+                        <button
+                            className={`option-btn ${isAmbienceOn && currentAmbience === 'deep_space' ? 'active' : ''}`}
+                            onClick={() => handleAmbienceSelect('deep_space')}
+                        >
+                            Deep Space
+                        </button>
+                        <button
+                            className={`option-btn ${isAmbienceOn && currentAmbience === 'interstellar' ? 'active' : ''}`}
+                            onClick={() => handleAmbienceSelect('interstellar')}
+                        >
+                            Interstellar
+                        </button>
+                        <button
+                            className={`option-btn ${isAmbienceOn && currentAmbience === 'cosmic_ocean' ? 'active' : ''}`}
+                            onClick={() => handleAmbienceSelect('cosmic_ocean')}
+                        >
+                            Cosmic Ocean
+                        </button>
+                    </div>
+                </div>
+
+                {/* DATA & PRIVACY */}
+                <div>
+                    <div className="section-title" style={{ marginTop: '20px' }}>Data & Privacy</div>
+                    <div className="option-grid">
+                        <button className="option-btn" onClick={() => {
+                            const owned = localStorage.getItem('wbds_owned') || '[]';
+                            navigator.clipboard.writeText(owned);
+                            alert('Key copied to clipboard!\n\nTo restore on another device:\n1. Open this website on that device.\n2. Go to Settings -> Restore Backup.\n3. Paste this key.');
+                        }}>
+                            Copy Backup Key
+                        </button>
+
+                        <button className="option-btn" onClick={() => setShowRestoreModal(true)}>
+                            Restore Backup
+                        </button>
+
+                        <button className="option-btn" style={{ color: '#ff453a', borderColor: 'rgba(255, 69, 58, 0.3)' }} onClick={() => {
+                            if (confirm('This will wipe your local history (owned letters). Continue?')) {
+                                localStorage.removeItem('wbds_owned');
+                                window.location.reload();
+                            }
+                        }}>
+                            Clear History
+                        </button>
+                    </div>
+                </div>
+            </div> {/* Closes the panel-container div */}
+
+            {/* CUSTOM RESTORE MODAL - Moved outside to ignore parent transform */}
+            {showRestoreModal && (
+                <div className="modal-overlay">
+                    <div className="modal-card">
+                        <h3>Restore Backup</h3>
+                        <p>Paste your Backup Key below to restore your history.</p>
+                        <textarea
+                            className="restore-input"
+                            value={restoreInput}
+                            onChange={(e) => setRestoreInput(e.target.value)}
+                            placeholder='["123", "456", "789"]...'
+                        />
+                        <div className="modal-actions">
+                            <button className="btn-cancel" onClick={() => setShowRestoreModal(false)}>Cancel</button>
+                            <button className="btn-confirm" onClick={handleRestore}>Restore</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <style jsx>{`
         .panel-container {
             width: 280px;
@@ -172,326 +423,78 @@ export default function AppearancePanel() {
             height: 12px;
             border-radius: 50%;
         }
-      `}</style>
 
-            <div>
-                <div>
-                    <div style={{ paddingBottom: '20px', fontSize: '18px', fontWeight: 'bold', letterSpacing: '0px' }}>
-                        Settings
-                    </div>
-                </div>
-            </div>
-
-            {/* THEMES */}
-            <div>
-                <div className="section-title">Atmosphere</div>
-                <div className="option-grid">
-                    <button className={`option-btn ${theme === 'void' ? 'active' : ''}`} onClick={() => applyTheme('void')}>
-                        <div className="preview-circle" style={{ background: '#000000', border: '1px solid #333' }}></div>
-                        The Void
-                    </button>
-                    <button className={`option-btn ${theme === 'midnight' ? 'active' : ''}`} onClick={() => applyTheme('midnight')}>
-                        <div className="preview-circle" style={{ background: '#020817' }}></div>
-                        Midnight
-                    </button>
-                    <button className={`option-btn ${theme === 'paper' ? 'active' : ''}`} onClick={() => applyTheme('paper')}>
-                        <div className="preview-circle" style={{ background: '#f2f0e9' }}></div>
-                        Paper
-                    </button>
-                    <button className={`option-btn ${theme === 'coffee-paper' ? 'active' : ''}`} onClick={() => applyTheme('coffee-paper')}>
-                        <div className="preview-circle" style={{ background: '#d9c2a3', border: '1px solid #8b5a2b' }}></div>
-                        Coffee Paper
-                    </button>
-                    <button className={`option-btn ${theme === 'rose' ? 'active' : ''}`} onClick={() => applyTheme('rose')}>
-                        <div className="preview-circle" style={{ background: '#261010' }}></div>
-                        Rose
-                    </button>
-                    <button className={`option-btn ${theme === 'forest' ? 'active' : ''}`} onClick={() => applyTheme('forest')}>
-                        <div className="preview-circle" style={{ background: '#1a2f23' }}></div>
-                        Forest
-                    </button>
-                    <button className={`option-btn ${theme === 'coffee' ? 'active' : ''}`} onClick={() => applyTheme('coffee')}>
-                        <div className="preview-circle" style={{ background: '#2b211e' }}></div>
-                        Coffee
-                    </button>
-                    <button className={`option-btn ${theme === 'nord' ? 'active' : ''}`} onClick={() => applyTheme('nord')}>
-                        <div className="preview-circle" style={{ background: '#2e3440' }}></div>
-                        Nord
-                    </button>
-                    <button className={`option-btn ${theme === 'dracula' ? 'active' : ''}`} onClick={() => applyTheme('dracula')}>
-                        <div className="preview-circle" style={{ background: '#282a36' }}></div>
-                        Dracula
-                    </button>
-                    <button className={`option-btn ${theme === 'solarized' ? 'active' : ''}`} onClick={() => applyTheme('solarized')}>
-                        <div className="preview-circle" style={{ background: '#002b36' }}></div>
-                        Solarized
-                    </button>
-                    <button className={`option-btn ${theme === 'cyberpunk' ? 'active' : ''}`} onClick={() => applyTheme('cyberpunk')}>
-                        <div className="preview-circle" style={{ background: '#111', border: '1px solid #fcee0c' }}></div>
-                        Cyberpunk
-                    </button>
-                    <button className={`option-btn ${theme === 'synthwave' ? 'active' : ''}`} onClick={() => applyTheme('synthwave')}>
-                        <div className="preview-circle" style={{ background: '#2b213a', border: '1px solid #ff71ce' }}></div>
-                        Synthwave
-                    </button>
-                    <button className={`option-btn ${theme === 'serika' ? 'active' : ''}`} onClick={() => applyTheme('serika')}>
-                        <div className="preview-circle" style={{ background: '#323437', border: '1px solid #e2b714' }}></div>
-                        Serika
-                    </button>
-                    <button className={`option-btn ${theme === 'carbon' ? 'active' : ''}`} onClick={() => applyTheme('carbon')}>
-                        <div className="preview-circle" style={{ background: '#313131', border: '1px solid #f66e0d' }}></div>
-                        Carbon
-                    </button>
-                    <button className={`option-btn ${theme === '8008' ? 'active' : ''}`} onClick={() => applyTheme('8008')}>
-                        <div className="preview-circle" style={{ background: '#333a45', border: '1px solid #f44c7f' }}></div>
-                        8008
-                    </button>
-                    <button className={`option-btn ${theme === 'red-dragon' ? 'active' : ''}`} onClick={() => applyTheme('red-dragon')}>
-                        <div className="preview-circle" style={{ background: '#1a0b0c', border: '1px solid #ff3a32' }}></div>
-                        Red Dragon
-                    </button>
-                    <button className={`option-btn ${theme === 'terminal' ? 'active' : ''}`} onClick={() => { applyTheme('terminal'); applyFont('typewriter'); }}>
-                        <div className="preview-circle" style={{ background: '#0a0a0a', border: '1px solid #30d158' }}></div>
-                        Terminal
-                    </button>
-                </div>
-            </div>
-
-            {/* TYPOGRAPHY */}
-            <div>
-                <div className="section-title">Typography</div>
-                <div className="option-grid">
-                    <button className={`option-btn ${font === 'serif' ? 'active' : ''}`} onClick={() => applyFont('serif')}>
-                        <span style={{ fontFamily: 'serif' }}>Aa</span> Serif
-                    </button>
-                    <button className={`option-btn ${font === 'sans' ? 'active' : ''}`} onClick={() => applyFont('sans')}>
-                        <span style={{ fontFamily: 'sans-serif' }}>Aa</span> Sans
-                    </button>
-                    <button className={`option-btn ${font === 'mono' ? 'active' : ''}`} onClick={() => applyFont('mono')}>
-                        <span style={{ fontFamily: 'monospace' }}>Aa</span> Mono
-                    </button>
-                    <button className={`option-btn ${font === 'inter' ? 'active' : ''}`} onClick={() => applyFont('inter')}>
-                        <span style={{ fontFamily: 'sans-serif', fontWeight: 600 }}>Aa</span> Inter
-                    </button>
-                    <button className={`option-btn ${font === 'playfair' ? 'active' : ''}`} onClick={() => applyFont('playfair')}>
-                        <span style={{ fontFamily: 'serif', fontStyle: 'italic' }}>Aa</span> Playfair
-                    </button>
-                    <button className={`option-btn ${font === 'merriweather' ? 'active' : ''}`} onClick={() => applyFont('merriweather')}>
-                        <span style={{ fontFamily: 'serif' }}>Aa</span> Merriweather
-                    </button>
-                    <button className={`option-btn ${font === 'fira' ? 'active' : ''}`} onClick={() => applyFont('fira')}>
-                        <span style={{ fontFamily: 'Fira Code' }}>Aa</span> Fira Code
-                    </button>
-                    <button className={`option-btn ${font === 'jetbrains' ? 'active' : ''}`} onClick={() => applyFont('jetbrains')}>
-                        <span style={{ fontFamily: 'JetBrains Mono' }}>Aa</span> JetBrains
-                    </button>
-                    <button className={`option-btn ${font === 'ibm_plex' ? 'active' : ''}`} onClick={() => applyFont('ibm_plex')}>
-                        <span style={{ fontFamily: 'IBM Plex Mono' }}>Aa</span> IBM Plex
-                    </button>
-                    <button className={`option-btn ${font === 'roboto_mono' ? 'active' : ''}`} onClick={() => applyFont('roboto_mono')}>
-                        <span style={{ fontFamily: 'Roboto Mono' }}>Aa</span> Roboto Mono
-                    </button>
-                    <button className={`option-btn ${font === 'source_code' ? 'active' : ''}`} onClick={() => applyFont('source_code')}>
-                        <span style={{ fontFamily: 'Source Code Pro' }}>Aa</span> Source Code
-                    </button>
-                    <button className={`option-btn ${font === 'lexend' ? 'active' : ''}`} onClick={() => applyFont('lexend')}>
-                        <span style={{ fontFamily: 'Lexend Deca' }}>Aa</span> Lexend
-                    </button>
-                    <button className={`option-btn ${font === 'montserrat' ? 'active' : ''}`} onClick={() => applyFont('montserrat')}>
-                        <span style={{ fontFamily: 'Montserrat' }}>Aa</span> Montserrat
-                    </button>
-                    <button className={`option-btn ${font === 'nunito' ? 'active' : ''}`} onClick={() => applyFont('nunito')}>
-                        <span style={{ fontFamily: 'Nunito' }}>Aa</span> Nunito
-                    </button>
-                    <button className={`option-btn ${font === 'comfortaa' ? 'active' : ''}`} onClick={() => applyFont('comfortaa')}>
-                        <span style={{ fontFamily: 'Comfortaa' }}>Aa</span> Comfortaa
-                    </button>
-                    <button className={`option-btn ${font === 'courier_prime' ? 'active' : ''}`} onClick={() => applyFont('courier_prime')}>
-                        <span style={{ fontFamily: 'Courier Prime' }}>Aa</span> Courier Prime
-                    </button>
-                    <button className={`option-btn ${font === 'hand' ? 'active' : ''}`} onClick={() => applyFont('hand')}>
-                        <span style={{ fontFamily: 'cursive' }}>Aa</span> Hand
-                    </button>
-                    <button className={`option-btn ${font === 'typewriter' ? 'active' : ''}`} onClick={() => applyFont('typewriter')}>
-                        <span style={{ fontFamily: 'Courier New' }}>Aa</span> Typewriter
-                    </button>
-                    <button className={`option-btn ${font === 'dancing' ? 'active' : ''}`} onClick={() => applyFont('dancing')}>
-                        <span style={{ fontFamily: 'Dancing Script', fontSize: '16px' }}>Aa</span> Dancing Script
-                    </button>
-                    <button className={`option-btn ${font === 'great_vibes' ? 'active' : ''}`} onClick={() => applyFont('great_vibes')}>
-                        <span style={{ fontFamily: 'Great Vibes', fontSize: '18px' }}>Aa</span> Great Vibes
-                    </button>
-                    <button className={`option-btn ${font === 'alex_brush' ? 'active' : ''}`} onClick={() => applyFont('alex_brush')}>
-                        <span style={{ fontFamily: 'Alex Brush', fontSize: '16px' }}>Aa</span> Alex Brush
-                    </button>
-                    <button className={`option-btn ${font === 'allura' ? 'active' : ''}`} onClick={() => applyFont('allura')}>
-                        <span style={{ fontFamily: 'Allura', fontSize: '16px' }}>Aa</span> Allura
-                    </button>
-                    <button className={`option-btn ${font === 'parisienne' ? 'active' : ''}`} onClick={() => applyFont('parisienne')}>
-                        <span style={{ fontFamily: 'Parisienne', fontSize: '16px' }}>Aa</span> Parisienne
-                    </button>
-                </div>
-            </div>
-
-            {/* TACTILE AUDIO */}
-            <div>
-                <div className="section-title">Tactile Sound</div>
-                <div className="option-grid">
-                    <button className={`option-btn ${audioProfile === 'mechanical' ? 'active' : ''}`} onClick={() => applyAudio('mechanical')}>
-                        Mechanical
-                    </button>
-                    <button className={`option-btn ${audioProfile === 'typewriter' ? 'active' : ''}`} onClick={() => applyAudio('typewriter')}>
-                        Typewriter
-                    </button>
-                    <button className={`option-btn ${audioProfile === 'bubble' ? 'active' : ''}`} onClick={() => applyAudio('bubble')}>
-                        Bubble
-                    </button>
-                    <button className={`option-btn ${audioProfile === 'silent' ? 'active' : ''}`} onClick={() => applyAudio('silent')}>
-                        Silent
-                    </button>
-                </div>
-
-                <div className="section-title" style={{ marginTop: '20px' }}>Atmosphere</div>
-                <div className="option-grid">
-                    <button
-                        className={`option-btn ${isAmbienceOn && currentAmbience === 'deep_space' ? 'active' : ''}`}
-                        onClick={() => handleAmbienceSelect('deep_space')}
-                    >
-                        Deep Space
-                    </button>
-                    <button
-                        className={`option-btn ${isAmbienceOn && currentAmbience === 'interstellar' ? 'active' : ''}`}
-                        onClick={() => handleAmbienceSelect('interstellar')}
-                    >
-                        Interstellar
-                    </button>
-                    <button
-                        className={`option-btn ${isAmbienceOn && currentAmbience === 'cosmic_ocean' ? 'active' : ''}`}
-                        onClick={() => handleAmbienceSelect('cosmic_ocean')}
-                    >
-                        Cosmic Ocean
-                    </button>
-                </div>
-            </div>
-
-            {/* DATA & PRIVACY */}
-            <div>
-                <div className="section-title" style={{ marginTop: '20px' }}>Data & Privacy</div>
-                <div className="option-grid">
-                    <button className="option-btn" onClick={() => {
-                        const owned = localStorage.getItem('wbds_owned') || '[]';
-                        navigator.clipboard.writeText(owned);
-                        alert('Key copied to clipboard!\n\nTo restore on another device:\n1. Open this website on that device.\n2. Go to Settings -> Restore Backup.\n3. Paste this key.');
-                    }}>
-                        Copy Backup Key
-                    </button>
-
-                    <button className="option-btn" onClick={() => setShowRestoreModal(true)}>
-                        Restore Backup
-                    </button>
-
-                    <button className="option-btn" style={{ color: '#ff453a', borderColor: 'rgba(255, 69, 58, 0.3)' }} onClick={() => {
-                        if (confirm('This will wipe your local history (owned letters). Continue?')) {
-                            localStorage.removeItem('wbds_owned');
-                            window.location.reload();
-                        }
-                    }}>
-                        Clear History
-                    </button>
-                </div>
-            </div>
-
-            {/* CUSTOM RESTORE MODAL */}
-            {showRestoreModal && (
-                <div className="modal-overlay">
-                    <div className="modal-card">
-                        <h3>Restore Backup</h3>
-                        <p>Paste your Backup Key below to restore your history.</p>
-                        <textarea
-                            className="restore-input"
-                            value={restoreInput}
-                            onChange={(e) => setRestoreInput(e.target.value)}
-                            placeholder='["123", "456", "789"]...'
-                        />
-                        <div className="modal-actions">
-                            <button className="btn-cancel" onClick={() => setShowRestoreModal(false)}>Cancel</button>
-                            <button className="btn-confirm" onClick={handleRestore}>Restore</button>
-                        </div>
-                    </div>
-                    <style jsx>{`
-                        .modal-overlay {
-                            position: fixed;
-                            top: 0;
-                            left: 0;
-                            width: 100vw;
-                            height: 100vh;
-                            background: rgba(0, 0, 0, 0.6);
-                            backdrop-filter: blur(8px);
-                            z-index: 200;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        }
-                        .modal-card {
-                            background: var(--bg-surface);
-                            border: 1px solid var(--glass-border);
-                            padding: 24px;
-                            border-radius: 20px;
-                            width: 320px;
-                            text-align: center;
-                            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-                        }
-                        h3 {
-                            margin: 0 0 10px 0;
-                            color: var(--text-primary);
-                            font-size: 18px;
-                        }
-                        p {
-                            color: var(--text-secondary);
-                            font-size: 12px;
-                            margin-bottom: 16px;
-                        }
-                        .restore-input {
-                            width: 100%;
-                            height: 100px;
-                            background: rgba(0,0,0,0.2);
-                            border: 1px solid var(--glass-border);
-                            border-radius: 12px;
-                            padding: 12px;
-                            color: var(--text-primary);
-                            font-family: monospace;
-                            font-size: 12px;
-                            margin-bottom: 20px;
-                            resize: none;
-                        }
-                        .restore-input:focus {
-                            outline: none;
-                            border-color: var(--text-secondary);
-                        }
-                        .modal-actions {
-                            display: flex;
-                            gap: 10px;
-                            justify-content: center;
-                        }
-                        .modal-actions button {
-                            padding: 10px 20px;
-                            border-radius: 50px;
-                            border: none;
-                            font-weight: 600;
-                            cursor: pointer;
-                        }
-                        .btn-cancel {
-                            background: transparent;
-                            border: 1px solid var(--glass-border) !important;
-                            color: var(--text-secondary);
-                        }
-                        .btn-confirm {
-                            background: var(--text-primary);
-                            color: var(--bg-root);
-                        }
-                     `}</style>
-                </div>
-            )}
-        </div>
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.6);
+                backdrop-filter: blur(8px);
+                z-index: 9999; /* Max z-index */
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .modal-card {
+                background: var(--bg-surface);
+                border: 1px solid var(--glass-border);
+                padding: 24px;
+                border-radius: 20px;
+                width: 320px;
+                text-align: center;
+                box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            }
+            h3 {
+                margin: 0 0 10px 0;
+                color: var(--text-primary);
+                font-size: 18px;
+            }
+            p {
+                color: var(--text-secondary);
+                font-size: 12px;
+                margin-bottom: 16px;
+            }
+            .restore-input {
+                width: 100%;
+                height: 100px;
+                background: rgba(0,0,0,0.2);
+                border: 1px solid var(--glass-border);
+                border-radius: 12px;
+                padding: 12px;
+                color: var(--text-primary);
+                font-family: monospace;
+                font-size: 12px;
+                margin-bottom: 20px;
+                resize: none;
+            }
+            .restore-input:focus {
+                outline: none;
+                border-color: var(--text-secondary);
+            }
+            .modal-actions {
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+            }
+            .modal-actions button {
+                padding: 10px 20px;
+                border-radius: 50px;
+                border: none;
+                font-weight: 600;
+                cursor: pointer;
+            }
+            .btn-cancel {
+                background: transparent;
+                border: 1px solid var(--glass-border) !important;
+                color: var(--text-secondary);
+            }
+            .btn-confirm {
+                background: var(--text-primary);
+                color: var(--bg-root);
+            }
+         `}</style>
+        </>
     );
 }
