@@ -11,6 +11,7 @@ import VoidClock from '../components/Layout/VoidClock';
 import GalaxyBackground from '../components/Layout/GalaxyBackground';
 import dynamic from 'next/dynamic';
 
+import TimeChain from '../components/Chain/TimeChain';
 const RealtimeGlobe = dynamic(() => import('../components/Live/RealtimeGlobe'), {
     ssr: false,
     loading: () => <div style={{ color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>Scanning Deep Space...</div>
@@ -457,6 +458,11 @@ export default function Home() {
                         className={`nav-item ${view === 'best' ? 'active' : ''}`}
                         onClick={() => setView('best')}
                     >BEST</span>
+
+                    <span
+                        className={`nav-item ${view === 'chain' ? 'active' : ''}`}
+                        onClick={() => setView('chain')}
+                    >FMWBDS</span>
                 </div>
 
                 {/* VIEW: WRITE + GLOBE */}
@@ -472,7 +478,6 @@ export default function Home() {
                     </div>
                 )}
 
-                {/* VIEW: READ & BEST */}
                 {(view === 'read' || view === 'best') && (
                     <div className="animate-enter" style={{ zIndex: 10 }}>
                         <LetterFeed
@@ -483,6 +488,13 @@ export default function Home() {
                             onLike={handleLike}
                             likedLetters={likedLetters}
                         />
+                    </div>
+                )}
+
+                {/* VIEW: CHAIN (FMWBDS) */}
+                {view === 'chain' && (
+                    <div className="animate-enter" style={{ zIndex: 10 }}>
+                        <TimeChain letters={letters} />
                     </div>
                 )}
             </div>
