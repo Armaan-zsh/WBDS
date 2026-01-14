@@ -114,7 +114,8 @@ export function containsSocialSolicitation(text) {
     // We look for "@" or "user:" patterns commonly used to drop handles.
     const handlePatterns = [
         /@\w{3,}/,             // @somebody
-        /(user|u)(name)?[:\s-]+\w+/ // username: somebody
+        /\b(user|username)[:\s-]+\w+/, // "user: name" or "username name"
+        /\bu[:\-]+\w+/         // "u: name" (Must have colon/dash, space alone not enough for 'u')
     ];
 
     // Check if phrases exist
