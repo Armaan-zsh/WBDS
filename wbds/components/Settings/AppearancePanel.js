@@ -321,16 +321,16 @@ export default function AppearancePanel() {
                 <div className="section-title">Tactile Sound</div>
                 <div className="option-grid">
                     <button className={`option-btn ${audioProfile === 'mechanical' ? 'active' : ''}`} onClick={() => applyAudio('mechanical')}>
-                        <span style={{ fontSize: '16px' }}>⌨️</span> Mechanical
+                        Mechanical
                     </button>
                     <button className={`option-btn ${audioProfile === 'typewriter' ? 'active' : ''}`} onClick={() => applyAudio('typewriter')}>
-                        <span style={{ fontSize: '16px' }}>📠</span> Typewriter
+                        Typewriter
                     </button>
                     <button className={`option-btn ${audioProfile === 'bubble' ? 'active' : ''}`} onClick={() => applyAudio('bubble')}>
-                        <span style={{ fontSize: '16px' }}>💧</span> Bubble
+                        Bubble
                     </button>
                     <button className={`option-btn ${audioProfile === 'silent' ? 'active' : ''}`} onClick={() => applyAudio('silent')}>
-                        <span style={{ fontSize: '16px' }}>🔇</span> Silent
+                        Silent
                     </button>
                 </div>
 
@@ -340,19 +340,19 @@ export default function AppearancePanel() {
                         className={`option-btn ${isAmbienceOn && currentAmbience === 'deep_space' ? 'active' : ''}`}
                         onClick={() => handleAmbienceSelect('deep_space')}
                     >
-                        <span style={{ fontSize: '16px' }}>🌌</span> Deep Space
+                        Deep Space
                     </button>
                     <button
                         className={`option-btn ${isAmbienceOn && currentAmbience === 'interstellar' ? 'active' : ''}`}
                         onClick={() => handleAmbienceSelect('interstellar')}
                     >
-                        <span style={{ fontSize: '16px' }}>🚀</span> Interstellar
+                        Interstellar
                     </button>
                     <button
                         className={`option-btn ${isAmbienceOn && currentAmbience === 'cosmic_ocean' ? 'active' : ''}`}
                         onClick={() => handleAmbienceSelect('cosmic_ocean')}
                     >
-                        <span style={{ fontSize: '16px' }}>🌊</span> Cosmic Ocean
+                        Cosmic Ocean
                     </button>
                 </div>
             </div>

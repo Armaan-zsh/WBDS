@@ -497,9 +497,7 @@ export default function Home() {
 
                 {/* VIEW: CHAIN (Global Graph) */}
                 {view === 'chain' && (
-                    <div className="animate-enter" style={{ zIndex: 10 }}>
-                        <GlobalGraph letters={letters} />
-                    </div>
+                    <GlobalGraph letters={letters} />
                 )}
             </div>
         </div>
