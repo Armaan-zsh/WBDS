@@ -395,8 +395,18 @@ export default function GalaxyBackground() {
     // RENDER: Premium 3D Canvas or Legacy 2D Canvas
     if (isPremium) {
         return (
-            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
-                <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
+            <div
+                style={{
+                    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1,
+                    background: currentTheme === 'synthwave' ? '#05000a' : '#000000'
+                }}
+            >
+                <Canvas
+                    key={currentTheme} // Force re-mount on theme change
+                    camera={{ position: [0, 0, 5], fov: 75 }}
+                    gl={{ alpha: false, antialias: true }}
+                >
+                    <color attach="background" args={[currentTheme === 'synthwave' ? '#05000a' : '#000000']} />
                     <PerspectiveCamera makeDefault position={[0, 0, 5]} />
                     <ambientLight intensity={0.5} />
 
@@ -404,8 +414,10 @@ export default function GalaxyBackground() {
                     {currentTheme === 'solarized' && <SolarCore />}
                     {currentTheme === 'synthwave' && <RetroGrid />}
 
-                    {/* Add stars background for 3D depth */}
-                    <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+                    {/* Add stars background for 3D depth (except for Synthwave which uses its own fog) */}
+                    {currentTheme !== 'synthwave' &&
+                        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+                    }
                 </Canvas>
             </div>
         );

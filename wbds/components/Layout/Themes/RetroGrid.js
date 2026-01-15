@@ -11,6 +11,7 @@ void main() {
 }
 `;
 
+// --- SUN SHADER (Orange/Red/Yellow Gradient) ---
 const SunFragmentShader = `
 varying vec2 vUv;
 uniform float uTime;
@@ -22,23 +23,27 @@ void main() {
   // Basic Circle
   float alpha = smoothstep(0.5, 0.48, dist);
   
-  // Gradient (Yellow to Pink)
-  vec3 colorTop = vec3(1.0, 0.9, 0.0); // Yellow
-  vec3 colorBottom = vec3(1.0, 0.0, 0.5); // Pink
-  vec3 color = mix(colorBottom, colorTop, vUv.y);
+  // Gradient (Deep Red -> Orange -> Yellow)
+  vec3 colorBottom = vec3(0.6, 0.0, 0.2); // Deep Red/Purple bottom
+  vec3 colorMid = vec3(1.0, 0.3, 0.0);    // Orange
+  vec3 colorTop = vec3(1.0, 0.9, 0.1);    // Bright Yellow
+  
+  vec3 color = mix(colorBottom, colorMid, vUv.y * 2.0);
+  if (vUv.y > 0.5) {
+      color = mix(colorMid, colorTop, (vUv.y - 0.5) * 2.0);
+  }
   
   // Scanlines (The "Blind" effect)
-  float scanline = sin(vUv.y * 50.0 - uTime * 0.2); // Moving up slowly
-  float strip = smoothstep(0.0, 0.2, scanline);
-  
-  // Cutout scanlines only in the bottom half
-  if (vUv.y < 0.5) {
-      alpha *= step(0.1, abs(sin(vUv.y * 40.0))); 
+  float scanline = sin(vUv.y * 60.0 - uTime * 0.2); 
+  // Cutout scanlines
+  if (vUv.y < 0.6) {
+      float cut = smoothstep(0.2, 0.0, scanline);
+      alpha *= cut;
   }
 
   // Glow
   float glow = 1.0 - smoothstep(0.0, 0.5, dist);
-  color += vec3(1.0, 0.2, 0.5) * glow * 0.5;
+  color += vec3(1.0, 0.4, 0.0) * glow * 0.6; // Orange glow
 
   gl_FragColor = vec4(color, alpha);
 }
@@ -53,6 +58,7 @@ void main() {
 }
 `;
 
+// --- GRID SHADER (Darker, thinner lines) ---
 const GridFragmentShader = `
 varying vec2 vUv;
 uniform float uTime;
@@ -65,23 +71,20 @@ void main() {
   // Zoom coordinate space
   uv *= 20.0;
   
-  // Grid Lines
+  // Grid Lines (Thinner, sharper)
   float gridX = step(0.98, fract(uv.x));
   float gridY = step(0.98, fract(uv.y));
   float grid = max(gridX, gridY);
   
-  // Fade into distance (vUv.y goes from 0 at bottom to 1 at top aka horizon)
-  // We want to fade as we approach 1 (horizon) if plane is vertical? 
-  // Wait, standard plane UVs are 0..1.
-  // Let's assume we map this to a floor that fades into the distance.
-  
+  // Fade into distance
   float fade = 1.0 - smoothstep(0.0, 1.0, vUv.y); 
   
-  vec3 neonColor = vec3(1.0, 0.0, 1.0); // Magenta
-  vec3 color = neonColor * grid * fade * 2.0; // Boost brightness
+  // Neon Color (Magenta/Purple mix)
+  vec3 neonColor = vec3(0.8, 0.0, 1.0); 
+  vec3 color = neonColor * grid * fade * 1.5; 
   
-  // Base floor color (Deep purple)
-  vec3 baseColor = vec3(0.05, 0.0, 0.1);
+  // Base floor color (Much darker, almost black)
+  vec3 baseColor = vec3(0.02, 0.0, 0.05);
   
   gl_FragColor = vec4(baseColor + color, 1.0);
 }
@@ -103,14 +106,14 @@ export default function RetroGrid() {
     return (
         <group>
             {/* BACKGROUND COLOR */}
-            <color attach="background" args={['#090011']} />
+            <color attach="background" args={['#05000a']} />
 
             {/* DISTANCE FOG */}
-            <fog attach="fog" args={['#090011', 10, 60]} />
+            <fog attach="fog" args={['#05000a', 10, 50]} />
 
             {/* THE SUN 80s */}
-            <mesh ref={sunRef} position={[0, 10, -40]}>
-                <planeGeometry args={[25, 25]} />
+            <mesh ref={sunRef} position={[0, 8, -40]}>
+                <planeGeometry args={[22, 22]} />
                 <shaderMaterial
                     vertexShader={SunVertexShader}
                     fragmentShader={SunFragmentShader}
@@ -120,7 +123,7 @@ export default function RetroGrid() {
             </mesh>
 
             {/* THE INFINITE GRID FLOOR */}
-            <mesh ref={gridRef} position={[0, -5, -20]} rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh ref={gridRef} position={[0, -4, -20]} rotation={[-Math.PI / 2, 0, 0]}>
                 <planeGeometry args={[100, 100]} />
                 <shaderMaterial
                     vertexShader={GridVertexShader}
@@ -130,8 +133,16 @@ export default function RetroGrid() {
                 />
             </mesh>
 
-            {/* EXTRA GLOW LIGHT for environment */}
-            <pointLight position={[0, 10, -30]} color="#ff00ff" intensity={2} distance={100} />
+            {/* Horizon Glow Sprite (Fake Volumetrics) */}
+            <sprite position={[0, 0, -45]} scale={[100, 20, 1]}>
+                <spriteMaterial
+                    color="#5500aa"
+                    transparent={true}
+                    opacity={0.3}
+                    blending={THREE.AdditiveBlending}
+                />
+            </sprite>
+
             <ambientLight intensity={0.2} />
         </group>
     );
