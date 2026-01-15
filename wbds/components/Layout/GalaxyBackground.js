@@ -1,21 +1,25 @@
 import createGlobe from 'cobe';
 import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { Canvas } from '@react-three/fiber';
+import { PerspectiveCamera, Stars } from '@react-three/drei';
 
 // Import Premium Themes dynamically
-const EventHorizon = dynamic(() => import('./Themes/EventHorizon'));
-const SolarCore = dynamic(() => import('./Themes/SolarCore'));
-const RetroGrid = dynamic(() => import('./Themes/RetroGrid'));
+const EventHorizon = dynamic(() => import('./Themes/EventHorizon'), { ssr: false });
+const SolarCore = dynamic(() => import('./Themes/SolarCore'), { ssr: false });
+const RetroGrid = dynamic(() => import('./Themes/RetroGrid'), { ssr: false });
 
 export default function GalaxyBackground() {
     const canvasRef = useRef(null);
     const [currentTheme, setCurrentTheme] = useState('void');
+    const [isPremium, setIsPremium] = useState(false);
 
     useEffect(() => {
         // Theme Listener
         const checkTheme = () => {
             const t = document.documentElement.getAttribute('data-theme') || 'void';
             setCurrentTheme(t);
+            setIsPremium(['void', 'solarized', 'synthwave'].includes(t));
         };
 
         checkTheme(); // Init
@@ -25,9 +29,9 @@ export default function GalaxyBackground() {
         return () => clearInterval(interval);
     }, []);
 
-    // Effect for Standard Canvas Particles
+    // Effect for Standard Canvas Particles (Legacy)
     useEffect(() => {
-        if (!canvasRef.current || ['void', 'solarized', 'synthwave'].includes(currentTheme)) return;
+        if (!canvasRef.current || isPremium) return;
 
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
@@ -180,21 +184,23 @@ export default function GalaxyBackground() {
         createParticles(currentTheme);
 
         const render = () => {
+            const theme = currentTheme; // capture closure
+
             // CLEAR
-            if (currentTheme.includes('paper')) {
+            if (theme.includes('paper')) {
                 ctx.clearRect(0, 0, width, height);
                 ctx.globalCompositeOperation = 'multiply';
             } else {
                 ctx.globalCompositeOperation = 'source-over';
-                ctx.fillStyle = currentTheme === 'forest' ? '#1a2f23' : '#050508';
+                ctx.fillStyle = theme === 'forest' ? '#1a2f23' : '#050508';
                 ctx.fillRect(0, 0, width, height);
                 ctx.globalCompositeOperation = 'lighter';
             }
 
             const time = Date.now() / 1000;
 
-            // --- SHOOTING STARS (Void Only - though Void is now separate, keeping for defaults) ---
-            if (!currentTheme.includes('paper') && currentTheme !== 'forest') {
+            // --- SHOOTING STARS (Legacy) ---
+            if (!theme.includes('paper') && theme !== 'forest' && theme !== 'nord' && !theme.includes('cyberpunk') && !theme.includes('terminal')) {
                 if (Math.random() < 0.02) {
                     const startX = Math.random() * width + 200;
                     const startY = Math.random() * (height * 0.5) - 200;
@@ -207,7 +213,7 @@ export default function GalaxyBackground() {
                 }
             }
 
-            // MAIN LOOP
+            // MAIN LOOP (Simplified Legacy logic)
             particles.forEach((p, index) => {
 
                 const dx = mouse.x - p.x;
@@ -292,7 +298,7 @@ export default function GalaxyBackground() {
                 // === WRAP / KILL ===
                 if (p.type === 'shooting_star') {
                     if (p.life <= 0 || p.x < -200 || p.y > height + 200) { particles.splice(index, 1); return; }
-                } else if (!['fire', 'steam', 'ember', 'aurora'].includes(p.type)) {
+                } else if (!['fire', 'steam', 'ember', 'aurora', 'grid_line_h', 'grid_line_v', 'synthwave_sun', 'sun_core'].includes(p.type)) {
                     if (p.x > width) p.x = 0; if (p.x < 0) p.x = width;
                     if (p.y > height) p.y = 0; if (p.y < 0) p.y = height;
                 }
@@ -384,14 +390,28 @@ export default function GalaxyBackground() {
             window.removeEventListener('mousemove', handleMouseMove);
             cancelAnimationFrame(animationFrameId);
         };
-    }, [currentTheme]);
+    }, [currentTheme, isPremium]);
 
-    // RENDER SWITCHER
-    if (currentTheme === 'void') return <EventHorizon />;
-    if (currentTheme === 'solarized') return <SolarCore />;
-    if (currentTheme === 'synthwave') return <RetroGrid />;
+    // RENDER: Premium 3D Canvas or Legacy 2D Canvas
+    if (isPremium) {
+        return (
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
+                <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
+                    <PerspectiveCamera makeDefault position={[0, 0, 5]} />
+                    <ambientLight intensity={0.5} />
 
-    // Default: Return the Particle Canvas
+                    {currentTheme === 'void' && <EventHorizon />}
+                    {currentTheme === 'solarized' && <SolarCore />}
+                    {currentTheme === 'synthwave' && <RetroGrid />}
+
+                    {/* Add stars background for 3D depth */}
+                    <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+                </Canvas>
+            </div>
+        );
+    }
+
+    // Default: Legacy Particle Canvas
     return (
         <canvas
             ref={canvasRef}
