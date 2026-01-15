@@ -34,8 +34,75 @@ export default function Home() {
     const [deleteTargetId, setDeleteTargetId] = useState(null);
     const [isWriting, setIsWriting] = useState(false);
 
-    const handleDeleteLetter = async (id) => {
-        setDeleteTargetId(id); // Trigger Modal
+    const [replyTo, setReplyTo] = useState(null); // Track parent letter
+
+    // --- SEND LOGIC ---
+    const handleSaveLetter = async (content, unlockDate, parentId = null) => {
+        setIsWriting(false); // Close editor view after send
+        setReplyTo(null);    // Clear reply state
+
+        // 1. Optimistic UI Update (Instant)
+        const tempId = crypto.randomUUID();
+        const newLetter = {
+            id: tempId,
+            content,
+            created_at: new Date().toISOString(),
+            theme: document.documentElement.getAttribute('data-theme') || 'void',
+            font: document.documentElement.getAttribute('data-font') || 'sans',
+            likes: 0,
+            unlock_at: unlockDate ? unlockDate.toISOString() : null,
+            parent_id: parentId // Local optimistic link
+        };
+
+        // Add to local list immediately
+        if (!unlockDate) {
+            setLetters(prev => [newLetter, ...prev]);
+        }
+
+        // Track ownership locally
+        const newMyIds = new Set(myLetterIds);
+        newMyIds.add(tempId);
+        setMyLetterIds(newMyIds);
+
+        setNotification({ message: unlockDate ? 'Capsule Sealed. See you in the future.' : 'Letter released into the void.', type: 'success' });
+
+        // 2. Async Backend Save
+        const { data, error } = await supabase
+            .from('letters')
+            .insert([{
+                content,
+                theme: newLetter.theme,
+                font: newLetter.font,
+                unlock_at: newLetter.unlock_at,
+                parent_id: parentId // DB Link
+            }])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Send Error:', error);
+            handleError("Transmission failed. The void rejected your message.");
+            // Rollback optimistic update
+            setLetters(prev => prev.filter(l => l.id !== tempId));
+        } else if (data) {
+            // Replace temp ID with real ID
+            setLetters(prev => prev.map(l => l.id === tempId ? { ...l, id: data.id } : l));
+
+            // Update Auth Set
+            setMyLetterIds(prev => {
+                const next = new Set(prev);
+                next.delete(tempId);
+                next.add(data.id);
+                return next;
+            });
+        }
+    };
+
+    const handleReply = (letter) => {
+        setSelectedLetter(null); // Close modal
+        setReplyTo(letter);      // Set context
+        setView('write');        // Go to composer
+        setIsWriting(true);      // Ensure visible on mobile
     };
 
     const confirmDelete = async () => {
@@ -532,13 +599,7 @@ export default function Home() {
                 />
             )}
 
-            {/* Reading Modal */}
-            {selectedLetter && (
-                <LetterModal
-                    letter={selectedLetter}
-                    onClose={() => setSelectedLetter(null)}
-                />
-            )}
+
 
             {/* Sidebar (Overlay) */}
             <div className="sidebar" ref={sidebarRef}>
@@ -582,42 +643,56 @@ export default function Home() {
                     >YWBDS</span>
                 </div>
 
-                {/* VIEW: WRITE + GLOBE */}
+                {/* VIEW: WRITE */}
                 {view === 'write' && (
                     <div className="write-mode animate-enter">
                         <div className="composer-wrapper">
                             <LetterComposer
-                                onSend={handleLetterSent}
-                                onError={handleError}
+                                onSend={handleSaveLetter}
+                                onError={(msg) => setNotification({ message: msg, type: 'error' })}
                                 onFocusChange={setIsWriting}
+                                replyTo={replyTo}
                             />
                         </div>
                     </div>
                 )}
 
+                {/* VIEW: READ / BEST */}
                 {(view === 'read' || view === 'best') && (
                     <div className="animate-enter" style={{ zIndex: 10 }}>
                         <LetterFeed
                             letters={letters}
-                            onLetterClick={setSelectedLetter}
-                            onDelete={handleDeleteLetter}
+                            onOpen={(l) => setSelectedLetter(l)}
+                            viewMode={view}
                             myLetterIds={myLetterIds}
-                            onLike={handleLike}
-                            likedLetters={likedLetters}
                         />
                     </div>
                 )}
 
                 {/* VIEW: CHAIN (Global Graph) */}
                 {view === 'chain' && (
-                    <GlobalGraph letters={letters} />
+                    <GlobalGraph
+                        letters={letters}
+                        onNodeClick={setSelectedLetter}
+                    />
                 )}
 
                 {/* VIEW: PERSONAL (YWBDS) */}
                 {view === 'personal' && (
-                    <GlobalGraph letters={letters.filter(l => myLetterIds.has(l.id))} />
+                    <GlobalGraph
+                        letters={letters.filter(l => myLetterIds.has(l.id))}
+                        onNodeClick={setSelectedLetter}
+                    />
                 )}
             </div>
+
+            {/* SHARED MODAL */}
+            <LetterModal
+                letter={selectedLetter}
+                onClose={() => setSelectedLetter(null)}
+                isOwner={selectedLetter && myLetterIds.has(selectedLetter.id)}
+                onReply={handleReply}
+            />
         </div>
     );
 }

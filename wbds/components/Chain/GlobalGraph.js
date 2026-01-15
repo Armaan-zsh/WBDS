@@ -7,7 +7,7 @@ const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
     loading: () => <div className="graph-loading">Initializing Neural Net...</div>
 });
 
-export default function GlobalGraph({ letters }) {
+export default function GlobalGraph({ letters, onNodeClick }) {
     const graphRef = useRef();
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
@@ -44,24 +44,48 @@ export default function GlobalGraph({ letters }) {
             return colors[theme] || fallbacks[theme ? theme.length % fallbacks.length : 0];
         };
 
+        const nodesMap = new Map();
+
         // Start with real nodes
-        const nodes = (letters || []).map(l => ({
-            id: l.id,
-            user: `Fragment #${l.id}`,
-            val: 3,
-            color: getColor(l.theme)
-        }));
+        const nodes = (letters || []).map(l => {
+            const node = {
+                id: l.id,
+                user: `Fragment #${l.id.toString().substring(0, 4)}`,
+                val: 3,
+                color: getColor(l.theme),
+                data: l // Store full letter data
+            };
+            nodesMap.set(l.id, node);
+            return node;
+        });
 
         const links = [];
 
-        // Connect real nodes linearly
+        // 1. Time Chain (Linear)
+        // Connect i to i+1 (chronological) - Weak connection
         for (let i = 0; i < nodes.length - 1; i++) {
             links.push({
                 source: nodes[i].id,
                 target: nodes[i + 1].id,
-                color: '#444'
+                color: '#333', // Dark / Subtle
+                width: 1,
+                particles: 1 // Slow flow
             });
         }
+
+        // 2. Thread Links (Semantic)
+        // Connect Parent -> Child - Strong connection
+        letters.forEach(l => {
+            if (l.parent_id && nodesMap.has(l.parent_id)) {
+                links.push({
+                    source: l.parent_id,
+                    target: l.id,
+                    color: '#ffd700', // Gold
+                    width: 3, // Thick
+                    particles: 4 // Fast flow
+                });
+            }
+        });
 
         return { nodes, links };
     }, [letters]);
@@ -73,16 +97,19 @@ export default function GlobalGraph({ letters }) {
                 width={dimensions.width}
                 height={dimensions.height}
                 graphData={graphData}
+                onNodeClick={(node) => onNodeClick && onNodeClick(node.data)}
 
                 // Visual Style (Obsidian-like)
                 backgroundColor="#000000" // Pure Black
                 nodeLabel="user"
                 nodeColor={node => node.color || "#ffffff"}
                 nodeRelSize={4}
-                linkColor={() => "#333333"}
-                linkWidth={1}
-                linkDirectionalParticles={1}
-                linkDirectionalParticleSpeed={0.005} // Slow flow
+
+                // Dynamic Link Style
+                linkColor={link => link.color}
+                linkWidth={link => link.width}
+                linkDirectionalParticles={link => link.particles}
+                linkDirectionalParticleSpeed={0.005}
                 linkDirectionalParticleWidth={2}
 
                 // Physics - Smoother & Centered

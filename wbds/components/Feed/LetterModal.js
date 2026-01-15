@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
-export default function LetterModal({ letter, onClose }) {
+export default function LetterModal({ letter, onClose, isOwner, onReply }) {
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
@@ -106,7 +106,46 @@ export default function LetterModal({ letter, onClose }) {
                 <div className="signature">
                     - Anonymous
                 </div>
+
+                {isOwner && (
+                    <div className="owner-actions">
+                        <button className="btn-reply" onClick={() => onReply(letter)}>
+                            <span>↳</span> Reply to Self
+                        </button>
+                    </div>
+                )}
             </div>
+
+            <style jsx>{`
+                .owner-actions {
+                    margin-top: 20px;
+                    display: flex;
+                    justify-content: flex-end;
+                    border-top: 1px solid var(--glass-border);
+                    padding-top: 15px;
+                }
+                
+                .btn-reply {
+                    background: transparent;
+                    border: 1px solid var(--text-secondary);
+                    color: var(--text-primary);
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    font-family: var(--font-current);
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    opacity: 0.7;
+                    transition: all 0.2s;
+                }
+                
+                .btn-reply:hover {
+                    opacity: 1;
+                    background: rgba(255,255,255,0.05);
+                    border-color: var(--text-primary);
+                }
+            `}</style>
         </div>
     );
 }

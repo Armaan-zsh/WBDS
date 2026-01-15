@@ -6,7 +6,7 @@ import { maskPrivateInfo, detectPotentialDox } from '../../utils/privacyShield';
 
 import { playTypeSound, playSendSound } from '../../utils/audioEngine';
 
-export default function LetterComposer({ onSend, onError, onFocusChange }) {
+export default function LetterComposer({ onSend, onError, onFocusChange, replyTo }) {
     const [text, setText] = useState('');
     const [isFocused, setIsFocused] = useState(false);
     const [errorShake, setErrorShake] = useState(false);
@@ -53,7 +53,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange }) {
 
         setStatus('SENDING');
         setTimeout(() => {
-            onSend(safeText, unlockAt); // Pass Lock Date
+            onSend(safeText, unlockAt, replyTo?.id); // Pass Lock Date & Parent ID
             setText('');
             setUnlockAt(null);
             setStatus('IDLE');
@@ -253,10 +253,25 @@ export default function LetterComposer({ onSend, onError, onFocusChange }) {
       `}</style>
 
             <div className="composer-card">
+                {replyTo && (
+                    <div className="reply-context">
+                        <span>↳ Threading with Fragment #{replyTo.id.substring(0, 6)}...</span>
+                        <style jsx>{`
+                            .reply-context {
+                                font-size: 12px;
+                                color: var(--accent-gold, #ffd700);
+                                margin-bottom: 10px;
+                                font-family: monospace;
+                                opacity: 0.8;
+                            }
+                        `}</style>
+                    </div>
+                )}
+
                 <textarea
                     ref={textareaRef}
                     className={`letter-input ${errorShake ? 'animate-shake' : ''}`}
-                    placeholder="Dear..."
+                    placeholder={replyTo ? "Continue the thought..." : "Dear..."}
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     onFocus={() => { setIsFocused(true); if (onFocusChange) onFocusChange(true); }}
