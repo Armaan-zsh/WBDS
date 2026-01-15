@@ -4,39 +4,78 @@ import { useState, useEffect, useRef } from 'react';
 
 export default function SynthwaveRadio() {
     const [isPlaying, setIsPlaying] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // New Loading State
     const [volume, setVolume] = useState(0.5);
     const [isExpanded, setIsExpanded] = useState(false);
     const [error, setError] = useState(false);
 
     // Audio Element Ref
     const audioRef = useRef(null);
-    const streamUrl = 'http://bbr0.radioca.st:8179/stream';
+    // Primary: Synthwave City FM (HTTP), Fallback: Nightride FM (HTTPS)
+    const streamUrl = 'https://stream.nightride.fm/nightride.m4a';
 
     useEffect(() => {
-        // Initialize volume
-        if (audioRef.current) {
-            audioRef.current.volume = volume;
-        }
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        audio.volume = volume;
+
+        // Event Listeners for smooth UI
+        const onPlay = () => {
+            setIsPlaying(true);
+            setIsLoading(false);
+            setError(false);
+        };
+        const onPause = () => setIsPlaying(false);
+        const onWaiting = () => setIsLoading(true); // Buffering
+        const onPlaying = () => setIsLoading(false); // Resumed
+        const onError = (e) => {
+            console.error("Stream Error", e);
+            setIsPlaying(false);
+            setIsLoading(false);
+            setError(true);
+        };
+
+        audio.addEventListener('play', onPlay);
+        audio.addEventListener('pause', onPause);
+        audio.addEventListener('waiting', onWaiting);
+        audio.addEventListener('playing', onPlaying);
+        audio.addEventListener('error', onError);
+
+        return () => {
+            audio.removeEventListener('play', onPlay);
+            audio.removeEventListener('pause', onPause);
+            audio.removeEventListener('waiting', onWaiting);
+            audio.removeEventListener('playing', onPlaying);
+            audio.removeEventListener('error', onError);
+        };
     }, [volume]);
 
-    const togglePlay = () => {
-        if (!audioRef.current) return;
+    const togglePlay = async () => {
+        const audio = audioRef.current;
+        if (!audio) return;
 
         if (isPlaying) {
-            audioRef.current.pause();
-            setIsPlaying(false);
+            audio.pause();
         } else {
-            // Re-load to catch live edge if paused for too long
-            audioRef.current.src = streamUrl;
-            audioRef.current.play()
-                .then(() => {
-                    setError(false);
-                    setIsPlaying(true);
-                })
-                .catch(err => {
-                    console.error("Radio Play Error:", err);
+            try {
+                setIsLoading(true);
+                setError(false);
+
+                // Only set src if not already set to avoid reload
+                if (audio.src !== streamUrl) {
+                    audio.src = streamUrl;
+                }
+
+                await audio.play();
+            } catch (err) {
+                // Ignore AbortError (happens if user spams click)
+                if (err.name !== 'AbortError') {
+                    console.error("Playback failed:", err);
                     setError(true);
-                });
+                }
+                setIsLoading(false);
+            }
         }
     };
 
@@ -54,7 +93,7 @@ export default function SynthwaveRadio() {
             filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.5))'
         }}>
             {/* HIDDEN AUDIO ELEMENT */}
-            <audio ref={audioRef} crossOrigin="anonymous" preload="none" />
+            <audio ref={audioRef} preload="none" />
 
             {/* EXPANDED PLAYER */}
             {isExpanded && (
@@ -73,25 +112,32 @@ export default function SynthwaveRadio() {
                         display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'
                     }}>
                         <span style={{ fontSize: '12px', letterSpacing: '1px', color: '#ff71ce', textShadow: '0 0 5px #ff71ce' }}>
-                            SYNTHWAVE CITY
+                            NIGHTRIDE FM
                         </span>
-                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isPlaying ? '#05ffa1' : '#555', boxShadow: isPlaying ? '0 0 10px #05ffa1' : 'none' }}></div>
+                        <div style={{
+                            width: '8px', height: '8px', borderRadius: '50%',
+                            background: isPlaying ? '#05ffa1' : (isLoading ? '#fcee0c' : '#555'),
+                            boxShadow: isPlaying ? '0 0 10px #05ffa1' : 'none',
+                            animation: isLoading ? 'pulse 1s infinite' : 'none'
+                        }}></div>
                     </div>
 
                     <div style={{ fontSize: '10px', color: '#888', marginBottom: '16px' }}>
-                        {isPlaying ? 'B ROADCASTING LIVE' : 'OFFLINE'}
+                        {isLoading ? 'BUFFERING SIGNAL...' : (isPlaying ? 'BROADCASTING LIVE' : 'OFFLINE')}
                     </div>
 
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <button
                             onClick={togglePlay}
+                            disabled={isLoading}
                             style={{
                                 background: isPlaying ? 'transparent' : '#ff71ce',
                                 border: '1px solid #ff71ce',
                                 color: isPlaying ? '#ff71ce' : '#000',
                                 padding: '8px 16px',
                                 borderRadius: '4px',
-                                cursor: 'pointer',
+                                cursor: isLoading ? 'wait' : 'pointer',
+                                opacity: isLoading ? 0.7 : 1,
                                 fontWeight: 'bold',
                                 fontSize: '12px',
                                 textTransform: 'uppercase',
@@ -99,7 +145,7 @@ export default function SynthwaveRadio() {
                                 flex: 1
                             }}
                         >
-                            {isPlaying ? 'Stop' : 'Play'}
+                            {isLoading ? '...' : (isPlaying ? 'Stop' : 'Play')}
                         </button>
 
                         <input
@@ -148,6 +194,10 @@ export default function SynthwaveRadio() {
                 @keyframes bounce {
                     0% { height: 20%; }
                     100% { height: 100%; }
+                }
+                @keyframes pulse {
+                    0% { opacity: 0.5; }
+                    100% { opacity: 1; }
                 }
             `}</style>
         </div>
