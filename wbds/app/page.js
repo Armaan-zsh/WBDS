@@ -180,9 +180,10 @@ export default function Home() {
 
     // Load owned letters and liked letters logic
     useEffect(() => {
-        // Load owned letters (Support UUID strings)
-        const savedOwned = JSON.parse(localStorage.getItem('wbds_owned') || '[]');
-        setMyLetterIds(new Set(savedOwned));
+        // Load owned letters (Support UUID strings) & Sanitize Bad Data
+        const rawOwned = JSON.parse(localStorage.getItem('wbds_owned') || '[]');
+        const cleanOwned = rawOwned.filter(id => id && typeof id !== 'object' && id !== 'NaN');
+        setMyLetterIds(new Set(cleanOwned));
 
         const savedLikes = JSON.parse(localStorage.getItem('wbds_likes') || '[]');
         setLikedLetters(new Set(savedLikes));
@@ -681,6 +682,9 @@ export default function Home() {
                             onOpen={(l) => setSelectedLetter(l)}
                             viewMode={view}
                             myLetterIds={myLetterIds}
+                            onDelete={setDeleteTargetId}
+                            onLike={handleLike}
+                            likedLetters={likedLetters}
                         />
                     </div>
                 )}

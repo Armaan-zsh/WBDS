@@ -46,17 +46,23 @@ const GlobalGraph = forwardRef(({ letters, onNodeClick }, ref) => {
 
         const nodesMap = new Map();
 
-        // Start with real nodes
-        const nodes = (letters || []).map(l => {
+        // Start with real nodes (Deduplicated)
+        const nodes = [];
+        const seenIds = new Set();
+
+        (letters || []).forEach(l => {
+            if (!l.id || seenIds.has(l.id)) return;
+
+            seenIds.add(l.id);
             const node = {
                 id: l.id,
                 user: `Fragment #${l.id.toString().substring(0, 4)}`,
                 val: 3,
                 color: getColor(l.theme),
-                data: l // Store full letter data
+                data: l
             };
             nodesMap.set(l.id, node);
-            return node;
+            nodes.push(node);
         });
 
         const links = [];
