@@ -1,7 +1,7 @@
 'use client';
 import ReactMarkdown from 'react-markdown';
 
-export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterIds, onLike, likedLetters }) {
+export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onLike, likedLetters }) {
     if (!letters || letters.length === 0) {
         return (
             <div className="empty-state">
@@ -236,7 +236,7 @@ export default function LetterFeed({ letters, onLetterClick, onDelete, myLetterI
       `}</style>
 
             {letters.map((letter) => (
-                <div key={letter.id} className="letter-card" onClick={() => onLetterClick(letter)}>
+                <div key={letter.id} className="letter-card" onClick={() => onOpen && onOpen(letter)}>
                     {myLetterIds && myLetterIds.has(letter.id) && (
                         <button
                             className="delete-btn"
