@@ -49,6 +49,71 @@ void main() {
 }
 `;
 
+// --- CITYSCAPE SHADER (Procedural Skyline) ---
+const CityVertexShader = `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+
+const CityFragmentShader = `
+varying vec2 vUv;
+uniform float uTime;
+
+float random(vec2 st) {
+    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+}
+
+void main() {
+  vec2 uv = vUv;
+  float buildings = 0.0;
+  float windows = 0.0;
+  
+  // --- Layer 1: Back/Tall Buildings ---
+  float density1 = 40.0;
+  float id1 = floor(uv.x * density1);
+  float h1 = random(vec2(id1, 1.0)) * 0.5 + 0.2; // Taller (0.2 to 0.7)
+  
+  if (uv.y < h1) {
+      buildings = 1.0;
+      
+      // Windows logic Layer 1
+      vec2 winUv = uv * vec2(density1, 40.0); // 40 floors
+      float winGrid = step(0.4, fract(winUv.x)) * step(0.4, fract(winUv.y)); // Grid pattern
+      float winRand = step(0.7, random(floor(winUv) + vec2(id1, 0.0))); // Random lights
+      windows += winGrid * winRand * 0.5; // Dimmer windows in back
+  }
+  
+  // --- Layer 2: Front/Short/Dense Buildings ---
+  float density2 = 70.0;
+  float id2 = floor(uv.x * density2 + 123.0); // Offset x
+  float h2 = random(vec2(id2, 2.0)) * 0.25 + 0.05; // Shorter
+  
+  if (uv.y < h2) {
+      buildings = 1.0;
+      
+      // Windows logic Layer 2
+      vec2 winUv = uv * vec2(density2, 60.0);
+      float winGrid = step(0.4, fract(winUv.x)) * step(0.4, fract(winUv.y));
+      float winRand = step(0.6, random(floor(winUv) + vec2(id2, 10.0)));
+      windows = winGrid * winRand; // Override back windows
+  }
+  
+  // Base Building Color (Black Silhouette)
+  vec3 color = vec3(0.0, 0.0, 0.05);
+  
+  // Window Light Color (Cyan/White mix)
+  vec3 winColor = mix(vec3(0.1, 0.8, 1.0), vec3(1.0), 0.5);
+  
+  color += winColor * windows; // Add lights
+  
+  // Alpha: 1 where buildings are
+  gl_FragColor = vec4(color, buildings);
+}
+`;
+
 // --- GRID SHADER ---
 const GridVertexShader = `
 varying vec2 vUv;
