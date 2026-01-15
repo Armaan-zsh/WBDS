@@ -180,9 +180,9 @@ export default function Home() {
 
     // Load owned letters and liked letters logic
     useEffect(() => {
-        // Load owned letters (force Number type for consistency)
+        // Load owned letters (Support UUID strings)
         const savedOwned = JSON.parse(localStorage.getItem('wbds_owned') || '[]');
-        setMyLetterIds(new Set(savedOwned.map(id => Number(id))));
+        setMyLetterIds(new Set(savedOwned));
 
         const savedLikes = JSON.parse(localStorage.getItem('wbds_likes') || '[]');
         setLikedLetters(new Set(savedLikes));
