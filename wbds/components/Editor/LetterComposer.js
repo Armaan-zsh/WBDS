@@ -250,21 +250,20 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             font-weight: bold;
             font-size: 13px;
         }
+
+        .reply-context {
+            font-size: 12px;
+            color: var(--accent-gold, #ffd700);
+            margin-bottom: 10px;
+            font-family: monospace;
+            opacity: 0.8;
+        }
       `}</style>
 
             <div className="composer-card">
                 {replyTo && (
                     <div className="reply-context">
-                        <span>↳ Threading with Fragment #{replyTo.id.substring(0, 6)}...</span>
-                        <style jsx>{`
-                            .reply-context {
-                                font-size: 12px;
-                                color: var(--accent-gold, #ffd700);
-                                margin-bottom: 10px;
-                                font-family: monospace;
-                                opacity: 0.8;
-                            }
-                        `}</style>
+                        <span>↳ Threading with Fragment #{replyTo.id.toString().substring(0, 6)}...</span>
                     </div>
                 )}
 
@@ -318,8 +317,6 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     <button className="btn-action" onClick={handleSend}>
                         {status === 'SENDING' ? 'Sent' : 'Send'}
                     </button>
-
-
                 </div>
             </div>
         </div>
