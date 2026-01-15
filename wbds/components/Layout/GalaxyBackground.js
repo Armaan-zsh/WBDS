@@ -404,7 +404,13 @@ export default function GalaxyBackground() {
                 <Canvas
                     key={currentTheme} // Force re-mount on theme change
                     camera={{ position: [0, 0, 5], fov: 75 }}
-                    gl={{ alpha: false, antialias: true }}
+                    gl={{ alpha: false, antialias: true, powerPreference: 'high-performance', failIfMajorPerformanceCaveat: true }}
+                    onCreated={({ gl }) => {
+                        gl.domElement.addEventListener('webglcontextlost', (e) => {
+                            e.preventDefault();
+                            console.warn('Context Lost: Attempting recovery...');
+                        }, false);
+                    }}
                 >
                     <color attach="background" args={[currentTheme === 'synthwave' ? '#05000a' : '#000000']} />
                     <PerspectiveCamera makeDefault position={[0, 0, 5]} />
