@@ -689,22 +689,15 @@ export default function Home() {
                     </div>
                 )}
 
-                {/* VIEW: CHAIN (Global Graph) */}
-                {view === 'chain' && (
-                    <GlobalGraph
-                        letters={letters}
-                        onNodeClick={setSelectedLetter}
-                    />
-                )}
-
-                {/* VIEW: PERSONAL (YWBDS) */}
-                {view === 'personal' && (
-                    <GlobalGraph
-                        letters={letters.filter(l => myLetterIds.has(l.id))}
-                        onNodeClick={setSelectedLetter}
-                    />
-                )}
             </div>
+
+            {/* VIEW: CHAIN (Global Graph) - Rendered at Root */}
+            {(view === 'chain' || view === 'personal') && (
+                <GlobalGraph
+                    letters={view === 'personal' ? letters.filter(l => myLetterIds.has(l.id)) : letters}
+                    onNodeClick={setSelectedLetter}
+                />
+            )}
 
             {/* SHARED MODAL */}
             <LetterModal
