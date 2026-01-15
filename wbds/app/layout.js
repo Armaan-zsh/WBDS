@@ -1,4 +1,5 @@
 import './globals.css';
+import SynthwaveRadio from '../components/Layout/SynthwaveRadio';
 
 export const metadata = {
     title: 'WBDS',
@@ -18,7 +19,9 @@ export default function RootLayout({ children }) {
                 <main className="viewport">
                     {children}
                 </main>
+                <SynthwaveRadio />
             </body>
         </html>
     );
 }
+

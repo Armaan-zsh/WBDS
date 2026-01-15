@@ -12,6 +12,7 @@ import GalaxyBackground from '../components/Layout/GalaxyBackground';
 import dynamic from 'next/dynamic';
 
 import GlobalGraph from '../components/Chain/GlobalGraph';
+
 const RealtimeGlobe = dynamic(() => import('../components/Live/RealtimeGlobe'), {
     ssr: false,
     loading: () => <div style={{ color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>Scanning Deep Space...</div>
