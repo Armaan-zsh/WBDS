@@ -58,32 +58,25 @@ void main() {
 }
 `;
 
-// --- GRID SHADER (Darker, thinner lines) ---
+// --- GRID SHADER (Cruising Speed) ---
 const GridFragmentShader = `
 varying vec2 vUv;
 uniform float uTime;
 
 void main() {
-  // Moving Grid Logic
   vec2 uv = vUv;
-  uv.y += uTime * 0.2; // Move forward
+  // Cruising speed (reduced from 0.5)
+  uv.y += uTime * 0.15; 
   
-  // Zoom coordinate space
-  uv *= 20.0;
-  
-  // Grid Lines (Thinner, sharper)
-  float gridX = step(0.98, fract(uv.x));
-  float gridY = step(0.98, fract(uv.y));
+  // Grid Lines
+  float gridX = step(0.98, fract(uv.x * 20.0));
+  float gridY = step(0.98, fract(uv.y * 20.0));
   float grid = max(gridX, gridY);
   
-  // Fade into distance
   float fade = 1.0 - smoothstep(0.0, 1.0, vUv.y); 
   
-  // Neon Color (Magenta/Purple mix)
   vec3 neonColor = vec3(0.8, 0.0, 1.0); 
   vec3 color = neonColor * grid * fade * 1.5; 
-  
-  // Base floor color (Much darker, almost black)
   vec3 baseColor = vec3(0.02, 0.0, 0.05);
   
   gl_FragColor = vec4(baseColor + color, 1.0);
@@ -93,55 +86,58 @@ void main() {
 export default function RetroGrid() {
     const sunRef = useRef();
     const gridRef = useRef();
+    const cityRef = useRef();
+
+    // Stable Uniforms
+    const sunUniforms = useRef({ uTime: { value: 0 } }).current;
+    const gridUniforms = useRef({ uTime: { value: 0 } }).current;
 
     useFrame((state) => {
-        if (sunRef.current) {
-            sunRef.current.material.uniforms.uTime.value = state.clock.getElapsedTime();
-        }
-        if (gridRef.current) {
-            gridRef.current.material.uniforms.uTime.value = state.clock.getElapsedTime();
-        }
+        const time = state.clock.getElapsedTime();
+        if (sunRef.current) sunRef.current.material.uniforms.uTime.value = time;
+        if (gridRef.current) gridRef.current.material.uniforms.uTime.value = time;
+        // City doesn't need time unless we scroll sideways, but good to have
+        // if (cityRef.current) cityRef.current.material.uniforms.uTime.value = time;
     });
 
     return (
         <group>
-            {/* BACKGROUND COLOR */}
+            {/* BACKGROUND */}
             <color attach="background" args={['#05000a']} />
+            <fog attach="fog" args={['#05000a', 15, 60]} />
 
-            {/* DISTANCE FOG */}
-            <fog attach="fog" args={['#05000a', 10, 50]} />
-
-            {/* THE SUN 80s */}
-            <mesh ref={sunRef} position={[0, 8, -40]}>
+            {/* SUN */}
+            <mesh ref={sunRef} position={[0, 8, -45]}>
                 <planeGeometry args={[22, 22]} />
                 <shaderMaterial
                     vertexShader={SunVertexShader}
                     fragmentShader={SunFragmentShader}
+                    uniforms={sunUniforms}
+                    transparent={true}
+                />
+            </mesh>
+
+            {/* CITY SKYLINE (Between Sun and Grid) */}
+            <mesh ref={cityRef} position={[0, 0, -42]}>
+                <planeGeometry args={[60, 12]} />
+                <shaderMaterial
+                    vertexShader={CityVertexShader}
+                    fragmentShader={CityFragmentShader}
                     uniforms={{ uTime: { value: 0 } }}
                     transparent={true}
                 />
             </mesh>
 
-            {/* THE INFINITE GRID FLOOR */}
+            {/* GRID FLOOR */}
             <mesh ref={gridRef} position={[0, -4, -20]} rotation={[-Math.PI / 2, 0, 0]}>
                 <planeGeometry args={[100, 100]} />
                 <shaderMaterial
                     vertexShader={GridVertexShader}
                     fragmentShader={GridFragmentShader}
-                    uniforms={{ uTime: { value: 0 } }}
+                    uniforms={gridUniforms}
                     transparent={true}
                 />
             </mesh>
-
-            {/* Horizon Glow Sprite (Fake Volumetrics) */}
-            <sprite position={[0, 0, -45]} scale={[100, 20, 1]}>
-                <spriteMaterial
-                    color="#5500aa"
-                    transparent={true}
-                    opacity={0.3}
-                    blending={THREE.AdditiveBlending}
-                />
-            </sprite>
 
             <ambientLight intensity={0.2} />
         </group>
