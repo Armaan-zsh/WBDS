@@ -1,10 +1,34 @@
 import createGlobe from 'cobe';
 import { useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
+
+// Import Premium Themes dynamically
+const EventHorizon = dynamic(() => import('./Themes/EventHorizon'));
+const SolarCore = dynamic(() => import('./Themes/SolarCore'));
+const RetroGrid = dynamic(() => import('./Themes/RetroGrid'));
 
 export default function GalaxyBackground() {
     const canvasRef = useRef(null);
+    const [currentTheme, setCurrentTheme] = useState('void');
 
     useEffect(() => {
+        // Theme Listener
+        const checkTheme = () => {
+            const t = document.documentElement.getAttribute('data-theme') || 'void';
+            setCurrentTheme(t);
+        };
+
+        checkTheme(); // Init
+
+        // Poll for theme changes (since we modify attributes directly)
+        const interval = setInterval(checkTheme, 500);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Effect for Standard Canvas Particles
+    useEffect(() => {
+        if (!canvasRef.current || ['void', 'solarized', 'synthwave'].includes(currentTheme)) return;
+
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
 
@@ -16,14 +40,13 @@ export default function GalaxyBackground() {
         let animationFrameId;
         let particles = [];
 
-        // --- INTERACTIVITY STATE ---
+        // --- MOUSE ---
         const mouse = { x: -1000, y: -1000, vx: 0, vy: 0 };
         let lastMouse = { x: -1000, y: -1000 };
 
         const handleMouseMove = (e) => {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
-            // Calculate Velocity for Fluid effect
             mouse.vx = (e.clientX - lastMouse.x) * 0.1;
             mouse.vy = (e.clientY - lastMouse.y) * 0.1;
             lastMouse.x = e.clientX;
@@ -31,7 +54,6 @@ export default function GalaxyBackground() {
         };
         window.addEventListener('mousemove', handleMouseMove);
 
-        const getTheme = () => document.documentElement.getAttribute('data-theme') || 'void';
 
         const createParticles = (theme) => {
             particles = [];
@@ -71,18 +93,6 @@ export default function GalaxyBackground() {
                     });
                 }
             }
-            // === VOID - Black Hole (Orbiting Stars) ===
-            else if (theme === 'void') {
-                for (let i = 0; i < 1200; i++) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const radius = Math.random() * Math.max(width, height);
-                    particles.push({
-                        x: width / 2 + Math.cos(angle) * radius, y: height / 2 + Math.sin(angle) * radius,
-                        angle: angle, radius: radius, orbitSpeed: 0.0005 + Math.random() * 0.001,
-                        size: Math.random() * 2 + 0.5, opacity: Math.random(), type: 'black_hole'
-                    });
-                }
-            }
             // === MIDNIGHT - Aurora Borealis ===
             else if (theme === 'midnight') {
                 for (let i = 0; i < 300; i++) {
@@ -93,19 +103,6 @@ export default function GalaxyBackground() {
                         hue: 180 + Math.random() * 60, type: 'aurora'
                     });
                 }
-            }
-            // === SYNTHWAVE - Retro Grid ===
-            else if (theme === 'synthwave') {
-                // Horizontal lines
-                for (let i = 0; i < 30; i++) {
-                    particles.push({ y: height * 0.5 + i * 20, type: 'grid_line_h' });
-                }
-                // Vertical lines
-                for (let i = 0; i < 40; i++) {
-                    particles.push({ x: i * (width / 40), type: 'grid_line_v' });
-                }
-                // Sun
-                particles.push({ type: 'synthwave_sun' });
             }
             // === RED DRAGON - Fire ===
             else if (theme === 'red-dragon') {
@@ -167,19 +164,6 @@ export default function GalaxyBackground() {
                     });
                 }
             }
-            // === SOLARIZED - Solar Flares ===
-            else if (theme === 'solarized') {
-                for (let i = 0; i < 600; i++) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const dist = Math.random() * 300 + 100;
-                    particles.push({
-                        x: width / 2 + Math.cos(angle) * dist, y: height / 2 + Math.sin(angle) * dist,
-                        angle: angle, dist: dist, speed: Math.random() * 0.02,
-                        size: Math.random() * 3 + 1, type: 'solar_flare'
-                    });
-                }
-                particles.push({ type: 'sun_core' });
-            }
             // === DEFAULT FALLBACK - Stars ===
             else {
                 for (let i = 0; i < 1200; i++) {
@@ -193,31 +177,24 @@ export default function GalaxyBackground() {
             }
         };
 
-        let currentTheme = getTheme();
         createParticles(currentTheme);
 
         const render = () => {
-            const theme = getTheme();
-            if (theme !== currentTheme) {
-                currentTheme = theme;
-                createParticles(theme);
-            }
-
             // CLEAR
-            if (theme.includes('paper')) {
+            if (currentTheme.includes('paper')) {
                 ctx.clearRect(0, 0, width, height);
                 ctx.globalCompositeOperation = 'multiply';
             } else {
                 ctx.globalCompositeOperation = 'source-over';
-                ctx.fillStyle = theme === 'forest' ? '#1a2f23' : '#050508';
+                ctx.fillStyle = currentTheme === 'forest' ? '#1a2f23' : '#050508';
                 ctx.fillRect(0, 0, width, height);
                 ctx.globalCompositeOperation = 'lighter';
             }
 
             const time = Date.now() / 1000;
 
-            // --- SHOOTING STARS (Void Only) ---
-            if (!theme.includes('paper') && theme !== 'forest' && theme !== 'nord' && !theme.includes('cyberpunk') && !theme.includes('terminal')) {
+            // --- SHOOTING STARS (Void Only - though Void is now separate, keeping for defaults) ---
+            if (!currentTheme.includes('paper') && currentTheme !== 'forest') {
                 if (Math.random() < 0.02) {
                     const startX = Math.random() * width + 200;
                     const startY = Math.random() * (height * 0.5) - 200;
@@ -260,14 +237,6 @@ export default function GalaxyBackground() {
                     p.y += p.speed;
                     if (p.y > height) p.y = -10;
                 }
-                else if (p.type === 'black_hole') {
-                    // Orbit around center, get pulled towards cursor
-                    p.angle += p.orbitSpeed * (1 + (dist < 300 ? (300 - dist) / 100 : 0));
-                    const centerX = width / 2 + (dist < 400 ? dx * 0.1 : 0);
-                    const centerY = height / 2 + (dist < 400 ? dy * 0.1 : 0);
-                    p.x = centerX + Math.cos(p.angle) * p.radius;
-                    p.y = centerY + Math.sin(p.angle) * p.radius;
-                }
                 else if (p.type === 'aurora') {
                     p.phase += p.speed;
                     p.x += Math.sin(time * 0.5 + p.phase) * 0.5;
@@ -306,11 +275,6 @@ export default function GalaxyBackground() {
                     p.shimmer += 0.1;
                     if (dist < interactionRadius) { p.x += dx * 0.01; p.y += dy * 0.01; } // Trail cursor
                 }
-                else if (p.type === 'solar_flare') {
-                    p.angle += p.speed;
-                    p.x = width / 2 + Math.cos(p.angle) * p.dist;
-                    p.y = height / 2 + Math.sin(p.angle) * p.dist;
-                }
                 else if (p.type === 'space_star') {
                     let sizeMultiplier = 1;
                     if (dist < interactionRadius) {
@@ -328,7 +292,7 @@ export default function GalaxyBackground() {
                 // === WRAP / KILL ===
                 if (p.type === 'shooting_star') {
                     if (p.life <= 0 || p.x < -200 || p.y > height + 200) { particles.splice(index, 1); return; }
-                } else if (!['fire', 'steam', 'ember', 'aurora', 'grid_line_h', 'grid_line_v', 'synthwave_sun', 'sun_core'].includes(p.type)) {
+                } else if (!['fire', 'steam', 'ember', 'aurora'].includes(p.type)) {
                     if (p.x > width) p.x = 0; if (p.x < 0) p.x = width;
                     if (p.y > height) p.y = 0; if (p.y < 0) p.y = height;
                 }
@@ -349,10 +313,6 @@ export default function GalaxyBackground() {
                     ctx.fillStyle = `rgba(${p.color[0]}, ${p.color[1]}, ${p.color[2]}, 0.5)`;
                     ctx.fillRect(p.x, p.y, 2, p.size * 5);
                 }
-                else if (p.type === 'black_hole') {
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(200, 220, 255, ${p.opacity})`; ctx.fill();
-                }
                 else if (p.type === 'aurora') {
                     const grad = ctx.createLinearGradient(p.x, p.y, p.x, p.y + p.height);
                     grad.addColorStop(0, `hsla(${p.hue}, 80%, 60%, 0)`);
@@ -360,19 +320,6 @@ export default function GalaxyBackground() {
                     grad.addColorStop(1, `hsla(${p.hue}, 80%, 60%, 0)`);
                     ctx.fillStyle = grad;
                     ctx.fillRect(p.x, p.y, p.width, p.height);
-                }
-                else if (p.type === 'grid_line_h') {
-                    ctx.strokeStyle = 'rgba(255, 113, 206, 0.3)';
-                    ctx.moveTo(0, p.y); ctx.lineTo(width, p.y); ctx.stroke();
-                }
-                else if (p.type === 'grid_line_v') {
-                    ctx.strokeStyle = 'rgba(1, 205, 254, 0.2)';
-                    ctx.moveTo(p.x, height * 0.5); ctx.lineTo(width / 2 + (p.x - width / 2) * 5, height); ctx.stroke();
-                }
-                else if (p.type === 'synthwave_sun') {
-                    const sunGrad = ctx.createRadialGradient(width / 2, height * 0.5, 0, width / 2, height * 0.5, 150);
-                    sunGrad.addColorStop(0, '#ff71ce'); sunGrad.addColorStop(1, 'transparent');
-                    ctx.fillStyle = sunGrad; ctx.arc(width / 2, height * 0.5, 150, 0, Math.PI * 2); ctx.fill();
                 }
                 else if (p.type === 'fire') {
                     const fireGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
@@ -400,15 +347,6 @@ export default function GalaxyBackground() {
                     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     const shimmer = 0.3 + Math.sin(p.shimmer) * 0.3;
                     ctx.fillStyle = `rgba(226, 183, 20, ${shimmer})`; ctx.fill();
-                }
-                else if (p.type === 'solar_flare') {
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(181, 137, 0, 0.6)`; ctx.fill();
-                }
-                else if (p.type === 'sun_core') {
-                    const coreGrad = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, 100);
-                    coreGrad.addColorStop(0, '#b58900'); coreGrad.addColorStop(1, 'transparent');
-                    ctx.fillStyle = coreGrad; ctx.arc(width / 2, height / 2, 100, 0, Math.PI * 2); ctx.fill();
                 }
                 else if (p.type === 'space_star') {
                     ctx.arc(p.x, p.y, p.renderSize || p.size, 0, Math.PI * 2);
@@ -439,23 +377,26 @@ export default function GalaxyBackground() {
             createParticles(currentTheme);
         };
 
-        const observer = new MutationObserver(() => { });
-        observer.observe(document.documentElement, { attributes: true });
         window.addEventListener('resize', handleResize);
 
         return () => {
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('mousemove', handleMouseMove);
             cancelAnimationFrame(animationFrameId);
-            observer.disconnect();
         };
-    }, []);
+    }, [currentTheme]);
 
+    // RENDER SWITCHER
+    if (currentTheme === 'void') return <EventHorizon />;
+    if (currentTheme === 'solarized') return <SolarCore />;
+    if (currentTheme === 'synthwave') return <RetroGrid />;
+
+    // Default: Return the Particle Canvas
     return (
         <canvas
             ref={canvasRef}
             style={{
-                position: 'fixed', mode: 'flat', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1, pointerEvents: 'none'
+                position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1, pointerEvents: 'none'
             }}
         />
     );

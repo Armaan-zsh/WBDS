@@ -422,6 +422,48 @@ body {
   color: rgba(255, 255, 255, 0.2);
 }
 
+/* === PREMIUM THEME ANIMATIONS === */
+
+/* VOID: Accretion Disk Spin */
+@keyframes spin-accretion {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* VOID: Event Horizon Distortion */
+@keyframes horizon-pulse {
+  0%, 100% { box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 100px rgba(0,0,0,1); }
+  50% { box-shadow: 0 0 70px rgba(0,0,0,0.9), inset 0 0 120px rgba(0,0,0,1); }
+}
+
+/* SOL: Burning Surface */
+@keyframes solar-pulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.02); filter: brightness(1.2); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+@keyframes flare-movement {
+  0% { transform: translate(-50%, -50%) rotate(0deg); opacity: 0.5; }
+  50% { opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) rotate(180deg); opacity: 0.5; }
+}
+
+/* SYNTHWAVE: Moving Grid */
+@keyframes grid-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 40px; }
+}
+
+@keyframes neon-flicker {
+  0%, 100% { opacity: 1; }
+  95% { opacity: 1; }
+  96% { opacity: 0.8; }
+  97% { opacity: 1; }
+  98% { opacity: 0.5; }
+  99% { opacity: 1; }
+}
+
 /* --- ANIMATIONS --- */
 
 @keyframes floatUp {
