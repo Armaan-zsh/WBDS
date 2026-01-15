@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useMemo } from 'react';
+import { useRef, useMemo, useState, useEffect, forwardRef } from 'react';
 import dynamic from 'next/dynamic';
 
 // Dynamic import to avoid SSR issues with canvas
@@ -7,7 +7,7 @@ const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
     loading: () => <div className="graph-loading">Initializing Neural Net...</div>
 });
 
-export default function GlobalGraph({ letters, onNodeClick }) {
+const GlobalGraph = forwardRef(({ letters, onNodeClick }, ref) => {
     const graphRef = useRef();
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
@@ -91,13 +91,18 @@ export default function GlobalGraph({ letters, onNodeClick }) {
     }, [letters]);
 
     return (
-        <div className="graph-wrapper">
+        <div className="graph-wrapper" ref={ref}>
             <ForceGraph2D
                 ref={graphRef}
                 width={dimensions.width}
                 height={dimensions.height}
                 graphData={graphData}
-                onNodeClick={(node) => onNodeClick && onNodeClick(node.data)}
+                onNodeClick={(node) => {
+                    console.log('Node Clicked:', node);
+                    if (onNodeClick && node.data) {
+                        onNodeClick(node.data);
+                    }
+                }}
 
                 // Visual Style (Obsidian-like)
                 backgroundColor="#000000" // Pure Black
@@ -177,4 +182,7 @@ export default function GlobalGraph({ letters, onNodeClick }) {
             `}</style>
         </div>
     );
-}
+});
+
+GlobalGraph.displayName = 'GlobalGraph';
+export default GlobalGraph;

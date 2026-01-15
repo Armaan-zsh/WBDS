@@ -11,7 +11,11 @@ import VoidClock from '../components/Layout/VoidClock';
 import GalaxyBackground from '../components/Layout/GalaxyBackground';
 import dynamic from 'next/dynamic';
 
-import GlobalGraph from '../components/Chain/GlobalGraph';
+const Link = dynamic(() => import('next/link'), { ssr: false }); // Example fallback if needed, but we need GlobalGraph
+const GlobalGraph = dynamic(() => import('../components/Chain/GlobalGraph'), {
+    ssr: false,
+    loading: () => <div style={{ color: '#333' }}>Loading Chain...</div>
+});
 
 const RealtimeGlobe = dynamic(() => import('../components/Live/RealtimeGlobe'), {
     ssr: false,
@@ -85,8 +89,16 @@ export default function Home() {
             // Rollback optimistic update
             setLetters(prev => prev.filter(l => l.id !== tempId));
         } else if (data) {
-            // Replace temp ID with real ID
-            setLetters(prev => prev.map(l => l.id === tempId ? { ...l, id: data.id } : l));
+            // Replace temp ID with real ID, avoiding duplicates
+            setLetters(prev => {
+                const realIdExists = prev.some(l => l.id === data.id);
+                if (realIdExists) {
+                    // Realtime beat us to it; just remove temp
+                    return prev.filter(l => l.id !== tempId);
+                }
+                // Swap temp -> real
+                return prev.map(l => l.id === tempId ? { ...l, id: data.id } : l);
+            });
 
             // Update Auth Set
             setMyLetterIds(prev => {
@@ -232,7 +244,11 @@ export default function Home() {
                     ...payload.new,
                     timestamp: payload.new.created_at
                 };
-                setLetters(current => [newLetter, ...current]);
+                setLetters(current => {
+                    // Deduplicate
+                    if (current.some(l => l.id === newLetter.id)) return current;
+                    return [newLetter, ...current];
+                });
             })
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'letters' }, (payload) => {
                 setLetters(current => current.map(l =>
