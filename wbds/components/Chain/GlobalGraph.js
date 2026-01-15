@@ -119,19 +119,7 @@ const GlobalGraph = forwardRef(({ letters, onNodeClick }, ref) => {
 
                 // Physics - Smoother & Centered
                 d3VelocityDecay={0.4} // Less friction = smoother float
-                d3AlphaDecay={0.01}  // Slower decay = longer settling
-                cooldownTicks={100}
-                onEngineStop={() => {
-                    if (graphRef.current) {
-                        // Prevent infinite zoom on single/few nodes
-                        if (graphData.nodes.length <= 2) {
-                            graphRef.current.zoom(6, 400); // Fixed reasonable zoom
-                            graphRef.current.centerAt(0, 0, 400);
-                        } else {
-                            graphRef.current.zoomToFit(400, 100); // 100px padding
-                        }
-                    }
-                }}
+                d3AlphaDecay={0.005}  // Even slower decay = longer, gentler movement
             />
 
             <div className="overlay-info">
