@@ -248,7 +248,12 @@ export default function Home() {
                 setLetters(current => {
                     // Deduplicate
                     if (current.some(l => l.id === newLetter.id)) return current;
-                    return [newLetter, ...current];
+                    // Safety Valve: Cap at 100 items to prevent memory overflow during viral spikes
+                    const updated = [newLetter, ...current];
+                    if (updated.length > 100) {
+                        return updated.slice(0, 100);
+                    }
+                    return updated;
                 });
             })
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'letters' }, (payload) => {
