@@ -443,6 +443,8 @@ export default function Home() {
              color: var(--text-secondary);
              width: auto;
              height: auto;
+             min-width: 44px;
+             min-height: 44px;
              padding: 10px;
              display: flex;
              align-items: center;
@@ -452,11 +454,23 @@ export default function Home() {
              font-size: 32px;
              opacity: 0.6;
           }
+
+          @media (max-width: 768px) {
+            .toggle-btn {
+              left: 20px !important;
+              top: 20px !important;
+              transform: none !important;
+              font-size: 28px;
+              opacity: 0.8;
+            }
+          }
           
-          .toggle-btn:hover {
-             opacity: 1;
-             transform: translateY(-50%) translateX(4px);
-             color: var(--text-primary);
+          @media (hover: hover) {
+            .toggle-btn:hover {
+              opacity: 1;
+              transform: translateY(-50%) translateX(4px);
+              color: var(--text-primary);
+            }
           }
 
           .main-content {
@@ -473,6 +487,14 @@ export default function Home() {
              overflow-y: auto;
              -webkit-overflow-scrolling: touch;
              scrollbar-width: none;
+             box-sizing: border-box;
+          }
+
+          @media (max-width: 768px) {
+            .main-content {
+              padding: 20px 12px;
+              padding-top: 80px;
+            }
           }
 
           .main-content::-webkit-scrollbar {
@@ -483,6 +505,13 @@ export default function Home() {
           .nav-header, .write-mode, .animate-enter {
              width: 100%;
              max-width: 700px;
+             box-sizing: border-box;
+          }
+
+          @media (max-width: 768px) {
+            .nav-header, .write-mode, .animate-enter {
+              max-width: 100%;
+            }
           }
 
           .nav-header {
@@ -495,6 +524,21 @@ export default function Home() {
              position: relative;
           }
 
+          @media (max-width: 768px) {
+            .nav-header {
+              gap: 24px;
+              padding-bottom: 16px;
+              flex-wrap: wrap;
+            }
+          }
+
+          @media (max-width: 480px) {
+            .nav-header {
+              gap: 16px;
+              padding-bottom: 12px;
+            }
+          }
+
           .nav-item {
              font-size: 14px;
              font-weight: 700;
@@ -505,11 +549,35 @@ export default function Home() {
              transition: all 0.3s ease;
              position: relative;
              color: var(--text-primary);
+             padding: 8px 12px;
+             min-height: 44px;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             touch-action: manipulation;
+          }
+
+          @media (max-width: 768px) {
+            .nav-item {
+              font-size: 12px;
+              letter-spacing: 2px;
+              padding: 6px 10px;
+            }
+          }
+
+          @media (max-width: 480px) {
+            .nav-item {
+              font-size: 11px;
+              letter-spacing: 1px;
+              padding: 6px 8px;
+            }
           }
           
-          .nav-item:hover {
-             opacity: 1;
-             transform: scale(1.1);
+          @media (hover: hover) {
+            .nav-item:hover {
+              opacity: 1;
+              transform: scale(1.1);
+            }
           }
 
           .nav-item.active {
@@ -535,6 +603,16 @@ export default function Home() {
               flex: 1;
               padding-bottom: 100px; /* Center visually */
               position: relative;
+              width: 100%;
+              box-sizing: border-box;
+          }
+
+          @media (max-width: 768px) {
+            .write-mode {
+              padding-bottom: 40px;
+              justify-content: flex-start;
+              padding-top: 20px;
+            }
           }
 
           .globe-background {
@@ -581,6 +659,15 @@ export default function Home() {
               max-width: 400px;
               text-align: center;
               box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+              box-sizing: border-box;
+          }
+
+          @media (max-width: 480px) {
+            .modal-card {
+              padding: 24px 20px;
+              border-radius: 16px;
+              width: 95%;
+            }
           }
           .modal-card h3 {
               margin: 0 0 10px 0;

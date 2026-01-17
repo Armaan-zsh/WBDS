@@ -175,6 +175,15 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
           margin: 0 auto;
           transition: transform 0.4s var(--ease-ios);
           perspective: 1000px;
+          padding: 0 16px;
+          box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+          .composer-container {
+            max-width: 100%;
+            padding: 0 12px;
+          }
         }
 
         .sending .composer-card {
@@ -191,6 +200,22 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
            transition: all 0.4s var(--ease-ios);
            position: relative;
+           width: 100%;
+           box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+          .composer-card {
+            padding: 20px;
+            border-radius: 16px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .composer-card {
+            padding: 16px;
+            border-radius: 12px;
+          }
         }
 
         .focused .composer-card {
@@ -214,6 +239,15 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
           overflow-y: auto;
           padding: 0;
           scrollbar-width: none;
+          box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+          .letter-input {
+            font-size: 18px;
+            min-height: 150px;
+            max-height: 50vh;
+          }
         }
         
         .letter-input::-webkit-scrollbar {
@@ -237,6 +271,14 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
           pointer-events: ${text.length > 0 ? 'auto' : 'none'};
           margin-top: 10px;
           border-top: 1px solid var(--glass-border);
+          flex-wrap: wrap;
+        }
+
+        @media (max-width: 480px) {
+          .controls {
+            flex-direction: column-reverse;
+            gap: 8px;
+          }
         }
 
         .helper-text {
@@ -438,6 +480,16 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     max-width: 500px !important;
                     height: 500px !important;
                     border-radius: 0 !important; /* Square container */
+                    padding: 0 !important;
+                }
+
+                @media (max-width: 600px) {
+                  :global([data-theme='neovim']) .composer-container {
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    height: auto !important;
+                    min-height: 400px !important;
+                  }
                 }
 
                 :global([data-theme='neovim']) .composer-card {
@@ -453,6 +505,14 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     height: 500px !important;
                     min-height: 500px !important;
                     margin: 0 auto !important; /* Ensure centered */
+                }
+
+                @media (max-width: 600px) {
+                  :global([data-theme='neovim']) .composer-card {
+                    width: 100% !important;
+                    height: auto !important;
+                    min-height: 400px !important;
+                  }
                 }
 
                 :global([data-theme='neovim']) .letter-input {

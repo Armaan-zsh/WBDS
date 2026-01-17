@@ -64,6 +64,31 @@ export default function LetterModal({ letter, onClose, isOwner, onReply }) {
             max-height: 80vh;
             overflow-y: auto;
             scrollbar-width: none;
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 768px) {
+          .modal-content {
+            width: 95%;
+            padding: 28px 24px;
+            border-radius: 20px;
+            max-height: 85vh;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .modal-content {
+            width: 100%;
+            padding: 24px 20px;
+            border-radius: 16px 16px 0 0;
+            max-height: 90vh;
+            margin-top: auto;
+            transform: translateY(100%);
+          }
+          .modal-overlay.open .modal-content {
+            transform: translateY(0);
+          }
         }
 
         .modal-content::-webkit-scrollbar {
@@ -77,6 +102,20 @@ export default function LetterModal({ letter, onClose, isOwner, onReply }) {
         .paper-texture {
             font-size: 20px;
             line-height: 1.8;
+        }
+
+        @media (max-width: 768px) {
+          .paper-texture {
+            font-size: 18px;
+            line-height: 1.7;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .paper-texture {
+            font-size: 16px;
+            line-height: 1.6;
+          }
         }
 
         /* Markdown Styles */

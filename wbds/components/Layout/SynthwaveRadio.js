@@ -219,7 +219,9 @@ export default function SynthwaveRadio() {
             fontFamily: "'Courier Prime', monospace",
             pointerEvents: 'auto', // Force interaction
             filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.5))'
-        }}>
+        }}
+        className="synthwave-radio-wrapper"
+        >
             {/* HIDDEN AUDIO ELEMENT - Firefox optimized */}
             <audio 
                 ref={audioRef} 
@@ -230,7 +232,7 @@ export default function SynthwaveRadio() {
 
             {/* EXPANDED PLAYER */}
             {isExpanded && (
-                <div style={{
+                <div className="radio-expanded-player" style={{
                     background: 'rgba(5, 0, 10, 0.9)',
                     border: '1px solid #ff71ce',
                     borderRadius: '12px',
@@ -345,6 +347,33 @@ export default function SynthwaveRadio() {
                 @keyframes pulse {
                     0% { opacity: 0.5; }
                     100% { opacity: 1; }
+                }
+
+                .radio-expanded-player {
+                  width: 260px;
+                }
+
+                @media (max-width: 768px) {
+                  .synthwave-radio-wrapper {
+                    bottom: 20px !important;
+                    right: 16px !important;
+                  }
+                  .radio-expanded-player {
+                    width: 240px;
+                    padding: 14px;
+                  }
+                }
+
+                @media (max-width: 480px) {
+                  .synthwave-radio-wrapper {
+                    bottom: 16px !important;
+                    right: 12px !important;
+                  }
+                  .radio-expanded-player {
+                    width: calc(100vw - 48px);
+                    max-width: 280px;
+                    padding: 12px;
+                  }
                 }
             `}</style>
         </div>

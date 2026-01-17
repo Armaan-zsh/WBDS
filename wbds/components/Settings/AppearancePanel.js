@@ -406,6 +406,22 @@ export default function AppearancePanel() {
             display: none;
         }
 
+        @media (max-width: 768px) {
+          .panel-container {
+            width: 100%;
+            height: 100vh;
+            max-height: 100vh;
+            left: 0;
+            top: 0;
+            transform: none;
+            border-radius: 0;
+            padding: 24px 20px;
+            gap: 24px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+          }
+        }
+
         .section-title {
             font-size: 11px;
             text-transform: uppercase;

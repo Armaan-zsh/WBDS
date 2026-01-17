@@ -24,7 +24,21 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
         .feed-container {
           margin-top: 40px;
           padding-bottom: 100px;
+          width: 100%;
+          box-sizing: border-box;
+          padding-left: 16px;
+          padding-right: 16px;
         }
+
+        @media (max-width: 768px) {
+          .feed-container {
+            margin-top: 20px;
+            padding-left: 12px;
+            padding-right: 12px;
+            padding-bottom: 120px;
+          }
+        }
+
         .letter-card {
            margin-bottom: 40px;
            opacity: 0;
@@ -32,10 +46,21 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
            cursor: pointer;
            transition: transform 0.2s ease, opacity 0.2s ease;
            position: relative;
+           width: 100%;
+           box-sizing: border-box;
         }
-        .letter-card:hover {
-           transform: scale(1.02);
-           opacity: 0.9;
+
+        @media (max-width: 768px) {
+          .letter-card {
+            margin-bottom: 24px;
+          }
+        }
+
+        @media (hover: hover) {
+          .letter-card:hover {
+            transform: scale(1.02);
+            opacity: 0.9;
+          }
         }
         
         .letter-content {
@@ -50,6 +75,25 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
            max-height: 300px;
            overflow: hidden;
            border: 1px solid var(--glass-border);
+           width: 100%;
+           box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+          .letter-content {
+            padding: 16px;
+            font-size: 16px;
+            border-radius: 16px;
+            max-height: 250px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .letter-content {
+            padding: 14px;
+            font-size: 15px;
+            border-radius: 12px;
+          }
         }
         
         /* Markdown Styling */
@@ -89,8 +133,10 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
             background: rgba(255, 0, 0, 0.1);
             color: var(--accent-danger);
             border: 1px solid var(--accent-danger);
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -98,12 +144,27 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
             opacity: 0;
             transition: all 0.2s ease;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 18px;
             line-height: 1;
+            z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+          .delete-btn {
+            opacity: 0.6;
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            min-height: 36px;
+            top: 12px;
+            right: 12px;
+          }
         }
         
-        .letter-card:hover .delete-btn {
+        @media (hover: hover) {
+          .letter-card:hover .delete-btn {
             opacity: 1;
+          }
         }
         
         .delete-btn:hover {
@@ -121,6 +182,13 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
             display: flex;
             align-items: center;
             gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 480px) {
+          .action-bar {
+            gap: 8px;
+          }
         }
 
         .like-btn {
@@ -131,9 +199,12 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 4px 8px;
+            padding: 8px 12px;
+            min-height: 40px;
+            min-width: 40px;
             border-radius: 12px;
             transition: all 0.2s ease;
+            touch-action: manipulation;
         }
 
         .like-btn:hover {
