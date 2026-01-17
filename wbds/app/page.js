@@ -467,7 +467,7 @@ export default function Home() {
              max-width: 100%; /* Remove constraint */
              align-items: center; /* Center children */
              margin: 0;
-             padding: ${currentTheme === 'neovim' ? '10px' : '60px 20px'};
+             padding: ${currentTheme === 'neovim' ? '0' : '60px 20px'};
              position: relative;
              height: 100vh;
              overflow-y: auto;

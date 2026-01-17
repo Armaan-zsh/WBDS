@@ -430,10 +430,111 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                 </div>
 
                 <div className="vim-status-bar">
-                    <span className="vim-mode">-- {vimMode} --</span>
-                    <span className="vim-cmd">{cmdBuffer}</span>
+                    {cmdBuffer ? (
+                        <span className="vim-cmd">{cmdBuffer}<span className="cursor-block"></span></span>
+                    ) : (
+                        <span className="vim-mode">-- {vimMode} --</span>
+                    )}
                 </div>
             </div>
+
+            <style jsx global>{`
+                .cursor-block {
+                    display: inline-block;
+                    width: 10px;
+                    height: 18px;
+                    background: var(--text-primary);
+                    margin-left: 2px;
+                    vertical-align: middle;
+                    animation: blink 1s step-end infinite;
+                }
+                @keyframes blink { 50% { opacity: 0; } }
+
+                .vim-status-bar {
+                    display: none;
+                    margin-top: 10px;
+                    font-family: 'Fira Code', monospace;
+                    font-size: 14px;
+                    color: var(--text-primary);
+                    border-top: 1px solid var(--glass-border);
+                    padding-top: 5px;
+                }
+
+                /* Accessing Global Theme State */
+                :global([data-theme='neovim']) .vim-status-bar,
+                :global([data-theme='terminal']) .vim-status-bar {
+                    display: flex;
+                    align-items: center;
+                }
+
+                /* --- NEOVIM TERMINAL OVERRIDES --- */
+                :global([data-theme='neovim']) .composer-container {
+                    max-width: 100% !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    min-height: 100vh;
+                }
+
+                :global([data-theme='neovim']) .composer-card {
+                    background: transparent !important;
+                    box-shadow: none !important;
+                    border: none !important;
+                    padding: 0 !important;
+                    backdrop-filter: none !important;
+                    display: flex;
+                    flex-direction: column;
+                    height: 100vh;
+                    width: 100vw;
+                    overflow: hidden;
+                }
+
+                :global([data-theme='neovim']) .letter-input {
+                    font-family: 'Fira Code', monospace !important;
+                    font-size: 16px !important;
+                    line-height: 1.5 !important;
+                    padding: 10px 10px !important;
+                    height: calc(100vh - 30px) !important; /* Leave room for status bar */
+                    width: 100vw !important;
+                    border: none !important;
+                    outline: none !important;
+                    resize: none !important;
+                }
+
+
+                /* Hide standard controls in Vim mode to force motions */
+                :global([data-theme='neovim']) .controls {
+                    opacity: 0 !important;
+                    pointer-events: none !important;
+                    height: 0;
+                    overflow: hidden;
+                }
+
+                /* Fix Status Bar to Bottom of Screen */
+                :global([data-theme='neovim']) .vim-status-bar {
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    width: 100vw;
+                    background: var(--bg-surface);
+                    color: var(--text-primary);
+                    padding: 4px 10px;
+                    font-size: 14px;
+                    border-top: none;
+                    z-index: 1000;
+                    justify-content: flex-start; /* Left align like real Vim */
+                }
+
+                .vim-mode {
+                    font-weight: bold;
+                    color: var(--accent-success);
+                }
+                .vim-cmd {
+                    color: var(--text-primary);
+                    font-weight: bold;
+                    display: flex;
+                    align-items: center;
+                }
+            `}</style>
         </div>
     );
 }
