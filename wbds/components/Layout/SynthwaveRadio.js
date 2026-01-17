@@ -12,11 +12,36 @@ export default function SynthwaveRadio() {
     // Audio Element Ref
     const audioRef = useRef(null);
 
+    // Multiple fallback streams for better compatibility and reduced buffering
     const STATIONS = [
-        { name: 'NIGHTRIDE FM', url: 'https://stream.nightride.fm/nightride.mp3' },
-        { name: 'CHILLSYNTH', url: 'https://stream.nightride.fm/chillsynth.mp3' },
-        { name: 'DATAWAVE', url: 'https://stream.nightride.fm/datawave.mp3' },
-        { name: 'SPACED OUT', url: 'https://stream.nightride.fm/spaced.mp3' }
+        { 
+            name: 'NIGHTRIDE FM', 
+            urls: [
+                'https://stream.nightride.fm/nightride.mp3',
+                'http://stream.nightride.fm/nightride.mp3' // HTTP fallback
+            ]
+        },
+        { 
+            name: 'CHILLSYNTH', 
+            urls: [
+                'https://stream.nightride.fm/chillsynth.mp3',
+                'http://stream.nightride.fm/chillsynth.mp3'
+            ]
+        },
+        { 
+            name: 'DATAWAVE', 
+            urls: [
+                'https://stream.nightride.fm/datawave.mp3',
+                'http://stream.nightride.fm/datawave.mp3'
+            ]
+        },
+        { 
+            name: 'SPACED OUT', 
+            urls: [
+                'https://stream.nightride.fm/spaced.mp3',
+                'http://stream.nightride.fm/spaced.mp3'
+            ]
+        }
     ];
 
     const [stationIndex, setStationIndex] = useState(0);
@@ -25,8 +50,12 @@ export default function SynthwaveRadio() {
         const audio = audioRef.current;
         if (!audio) return;
 
-        // removed crossOrigin to prevent CORS blocks on streams
+        // Set volume
         audio.volume = volume;
+        
+        // Firefox-specific optimizations
+        audio.setAttribute('preload', 'auto');
+        audio.load(); // Force load for Firefox compatibility
 
         // Event Listeners for smooth UI
         const onPlay = () => {
@@ -37,45 +66,81 @@ export default function SynthwaveRadio() {
         const onPause = () => setIsPlaying(false);
         const onWaiting = () => setIsLoading(true); // Buffering
         const onPlaying = () => setIsLoading(false); // Resumed
+        const onCanPlay = () => setIsLoading(false); // Ready to play
+        const onLoadStart = () => setIsLoading(true); // Loading started
         const onError = (e) => {
             console.error("Stream Error", e);
             setIsPlaying(false);
             setIsLoading(false);
             setError(true);
-            // Auto-try next station on error if likely connection issue
-            if (isPlaying) {
-                setTimeout(() => changeStation((stationIndex + 1) % STATIONS.length), 1000);
-            }
+        };
+        
+        // Stalled event for network issues
+        const onStalled = () => {
+            console.warn("Stream stalled, attempting to resume...");
+            setIsLoading(true);
         };
 
         audio.addEventListener('play', onPlay);
         audio.addEventListener('pause', onPause);
         audio.addEventListener('waiting', onWaiting);
         audio.addEventListener('playing', onPlaying);
+        audio.addEventListener('canplay', onCanPlay);
+        audio.addEventListener('loadstart', onLoadStart);
         audio.addEventListener('error', onError);
+        audio.addEventListener('stalled', onStalled);
 
         return () => {
             audio.removeEventListener('play', onPlay);
             audio.removeEventListener('pause', onPause);
             audio.removeEventListener('waiting', onWaiting);
             audio.removeEventListener('playing', onPlaying);
+            audio.removeEventListener('canplay', onCanPlay);
+            audio.removeEventListener('loadstart', onLoadStart);
             audio.removeEventListener('error', onError);
+            audio.removeEventListener('stalled', onStalled);
         };
     }, [volume, stationIndex, isPlaying]);
 
-    const changeStation = async (index) => {
+    const changeStation = async (index, urlIndex = 0) => {
         setStationIndex(index);
         const audio = audioRef.current;
-        if (audio) {
-            setIsLoading(true);
-            setError(false);
-            audio.src = STATIONS[index].url;
-            try {
-                await audio.play();
-                setIsPlaying(true);
-            } catch (e) {
-                console.error("Play failed", e);
+        if (!audio || !STATIONS[index]) return;
+        
+        setIsLoading(true);
+        setError(false);
+        
+        // Try current URL, fallback to others if it fails
+        const station = STATIONS[index];
+        const currentUrl = station.urls ? station.urls[urlIndex] : station.url;
+        
+        // Pause and reset before changing source
+        audio.pause();
+        audio.src = '';
+        
+        // Small delay to ensure reset
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Set new source
+        audio.src = currentUrl;
+        
+        // Firefox requires load() after setting src
+        audio.load();
+        
+        try {
+            // Wait a bit for Firefox to process
+            await new Promise(resolve => setTimeout(resolve, 200));
+            await audio.play();
+            setIsPlaying(true);
+        } catch (e) {
+            console.error("Play failed for URL", urlIndex, e);
+            // Try fallback URL if available
+            if (station.urls && urlIndex < station.urls.length - 1) {
+                console.log("Trying fallback URL...");
+                setTimeout(() => changeStation(index, urlIndex + 1), 500);
+            } else {
                 setIsPlaying(false);
+                setError(true);
             }
         }
     };
@@ -86,21 +151,58 @@ export default function SynthwaveRadio() {
 
         if (isPlaying) {
             audio.pause();
+            setIsPlaying(false);
         } else {
             // Initial Load
             if (!audio.src) {
-                audio.src = STATIONS[stationIndex].url;
+                const station = STATIONS[stationIndex];
+                const url = station.urls ? station.urls[0] : station.url;
+                audio.src = url;
+                // Firefox requires load() after setting src
+                audio.load();
             }
+            
             try {
                 setIsLoading(true);
                 setError(false);
-                await audio.play();
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    console.error("Playback failed:", err);
-                    setError(true);
+                
+                // Small delay for Firefox to initialize
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Attempt play - requires user interaction in most browsers
+                const playPromise = audio.play();
+                
+                if (playPromise !== undefined) {
+                    await playPromise;
+                    setIsPlaying(true);
                 }
-                setIsLoading(false);
+            } catch (err) {
+                if (err.name !== 'AbortError' && err.name !== 'NotAllowedError') {
+                    console.error("Playback failed:", err);
+                    // Try fallback URL if available
+                    const station = STATIONS[stationIndex];
+                    if (station.urls && station.urls.length > 1 && audio.src === station.urls[0]) {
+                        console.log("Trying fallback stream...");
+                        audio.src = station.urls[1];
+                        audio.load();
+                        setTimeout(async () => {
+                            try {
+                                await audio.play();
+                                setIsPlaying(true);
+                            } catch (e2) {
+                                console.error("Fallback also failed:", e2);
+                                setError(true);
+                                setIsLoading(false);
+                            }
+                        }, 200);
+                    } else {
+                        setError(true);
+                        setIsLoading(false);
+                    }
+                } else {
+                    setIsLoading(false);
+                    // NotAllowedError usually means user interaction needed - that's OK
+                }
             }
         }
     };
@@ -118,8 +220,13 @@ export default function SynthwaveRadio() {
             pointerEvents: 'auto', // Force interaction
             filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.5))'
         }}>
-            {/* HIDDEN AUDIO ELEMENT */}
-            <audio ref={audioRef} preload="none" />
+            {/* HIDDEN AUDIO ELEMENT - Firefox optimized */}
+            <audio 
+                ref={audioRef} 
+                preload="auto"
+                crossOrigin="anonymous"
+                playsInline
+            />
 
             {/* EXPANDED PLAYER */}
             {isExpanded && (
@@ -163,7 +270,7 @@ export default function SynthwaveRadio() {
                     </div>
 
                     <div style={{ fontSize: '10px', color: '#888', marginBottom: '16px' }}>
-                        {isLoading ? 'TUNING FREQUENCY...' : (isPlaying ? (STATIONS[stationIndex].url.includes('nightride') ? 'BROADCASTING LIVE' : 'SIGNAL LOCKED') : 'OFFLINE')}
+                        {isLoading ? 'TUNING FREQUENCY...' : (isPlaying ? (STATIONS[stationIndex].urls?.[0]?.includes('nightride') || STATIONS[stationIndex].url?.includes('nightride') ? 'BROADCASTING LIVE' : 'SIGNAL LOCKED') : (error ? 'CONNECTION ERROR' : 'OFFLINE'))}
                     </div>
 
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>

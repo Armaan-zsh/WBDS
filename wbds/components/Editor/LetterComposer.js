@@ -301,42 +301,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         }
 
         /* --- NEOVIM TERMINAL OVERRIDES --- */
-        :global([data-theme='neovim']) .composer-card {
-            background: transparent !important;
-            box-shadow: none !important;
-            border: none !important;
-            padding: 0 !important;
-            backdrop-filter: none !important;
-        }
-
-        :global([data-theme='neovim']) .letter-input {
-            font-family: 'Fira Code', monospace !important;
-            font-size: 16px !important;
-            padding-left: 40px; /* Space for imaginary line numbers */
-            min-height: 60vh;
-        }
-
-        /* Hide standard controls in Vim mode to force motions */
-        :global([data-theme='neovim']) .controls {
-            opacity: 0 !important;
-            pointer-events: none !important;
-            height: 0;
-            overflow: hidden;
-        }
-
-        /* Fix Status Bar to Bottom of Screen */
-        :global([data-theme='neovim']) .vim-status-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100vw;
-            background: var(--bg-surface);
-            color: var(--text-primary);
-            padding: 5px 10px;
-            font-size: 14px;
-            border-top: none;
-            z-index: 1000;
-        }
+        /* These are overridden by the global styles below for square appearance */
 
         .vim-mode {
             font-weight: bold;
@@ -472,6 +437,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     width: 500px !important;
                     max-width: 500px !important;
                     height: 500px !important;
+                    border-radius: 0 !important; /* Square container */
                 }
 
                 :global([data-theme='neovim']) .composer-card {
@@ -480,9 +446,9 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     border: 2px solid #ebdbb2 !important; /* High Contrast Border */
                     border-radius: 0 !important; /* Strict Square Corners */
                     padding: 0 !important;
-                    display: flex;
-                    flex-direction: column;
-                    overflow: hidden;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    overflow: hidden !important;
                     width: 500px !important;
                     height: 500px !important;
                     min-height: 500px !important;

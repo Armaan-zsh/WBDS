@@ -23,223 +23,427 @@
   --ease-ios: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* THEME: PAPER (Light) */
+/* THEME: PAPER (Light) - Enhanced Elegant Paper */
 [data-theme='paper'] {
-  --bg-depth: #f2f0e9;
-  /* Off-white paper */
+  --bg-depth: #f5f3f0;
+  /* Warm off-white paper with subtle cream tone */
   --bg-surface: #ffffff;
   --text-primary: #1a1a1a;
-  /* Ink black */
-  --text-secondary: #666666;
-  --accent-danger: #d12e2e;
-  /* Red Ink */
+  /* Rich ink black for perfect contrast */
+  --text-secondary: #5a5853;
+  /* Muted grey with warmth */
+  --accent-danger: #c53030;
+  /* Sophisticated red ink */
+  --accent-success: #2d8659;
+  /* Deep forest green */
 
-  --glass-bg: rgba(255, 255, 255, 0.6);
-  --glass-border: rgba(0, 0, 0, 0.05);
-  --glass-blur: blur(20px) saturate(120%);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-blur: blur(24px) saturate(140%);
+  
+  /* Subtle paper texture */
+  background-image: 
+    radial-gradient(circle at 2px 2px, rgba(0,0,0,0.015) 1px, transparent 0);
+  background-size: 40px 40px;
 }
 
-/* THEME: MIDNIGHT (Blue) */
+/* THEME: MIDNIGHT (Blue) - Enhanced Deep Sky */
 [data-theme='midnight'] {
-  --bg-depth: #020817;
-  /* Deep Navy */
-  --bg-surface: #0f172a;
-  --text-primary: #e2e8f0;
+  --bg-depth: #0a0f1a;
+  /* Deeper navy with subtle blue undertones */
+  --bg-surface: #111827;
+  /* Rich slate with blue hints */
+  --text-primary: #f1f5f9;
+  /* Crisp off-white for clarity */
   --text-secondary: #94a3b8;
+  /* Soft slate blue */
+  --accent-danger: #ef4444;
+  /* Vibrant red */
+  --accent-success: #10b981;
+  /* Emerald green */
 
-  --glass-bg: rgba(15, 23, 42, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(17, 24, 39, 0.85);
+  --glass-border: rgba(148, 163, 184, 0.15);
+  --glass-blur: blur(20px) saturate(180%);
+  
+  /* Subtle starfield effect */
+  background-image: 
+    radial-gradient(2px 2px at 20% 30%, rgba(148, 163, 184, 0.3), transparent),
+    radial-gradient(1px 1px at 50% 70%, rgba(148, 163, 184, 0.2), transparent);
+  background-size: 200% 200%;
 }
 
-/* THEME: ROSE (Soft Pink) */
+/* THEME: ROSE (Soft Pink) - Enhanced Blush */
 [data-theme='rose'] {
-  --bg-depth: #1a0b0b;
-  --bg-surface: #261010;
-  --text-primary: #fecaca;
-  --text-secondary: #fda4af;
+  --bg-depth: #1f0f0f;
+  /* Deep burgundy base */
+  --bg-surface: #2d1a1a;
+  /* Rich rosewood with pink undertones */
+  --text-primary: #fce7f3;
+  /* Soft pink-white */
+  --text-secondary: #f9a8d4;
+  /* Warm rose pink */
+  --accent-danger: #ec4899;
+  /* Vibrant fuchsia */
+  --accent-success: #be185d;
+  /* Deep rose */
 
-  --glass-bg: rgba(38, 16, 16, 0.7);
-  --glass-border: rgba(254, 202, 202, 0.1);
+  --glass-bg: rgba(45, 26, 26, 0.85);
+  --glass-border: rgba(249, 168, 212, 0.2);
+  --glass-blur: blur(22px) saturate(160%);
+  
+  /* Subtle gradient overlay */
+  background-image: 
+    radial-gradient(circle at top left, rgba(236, 72, 153, 0.08), transparent 60%);
 }
 
-/* THEME: TERMINAL (Hacker) */
+/* THEME: TERMINAL (Hacker) - Enhanced Matrix */
 [data-theme='terminal'] {
   --bg-depth: #000000;
-  --bg-surface: #0a0a0a;
-  --text-primary: #30d158;
-  /* Matrix Green */
-  --text-secondary: #1a632d;
+  /* Pure black void */
+  --bg-surface: #0a140a;
+  /* Subtle green-tinted dark */
+  --text-primary: #00ff41;
+  /* Bright matrix green */
+  --text-secondary: #00cc33;
+  /* Slightly muted green */
+  --accent-danger: #ff0040;
+  /* Terminal error red */
+  --accent-success: #00ff41;
+  /* Matrix green success */
 
-  --glass-bg: rgba(0, 20, 0, 0.7);
-  --glass-border: rgba(48, 209, 88, 0.2);
+  --glass-bg: rgba(0, 20, 0, 0.9);
+  --glass-border: rgba(0, 255, 65, 0.3);
+  --glass-blur: blur(16px) saturate(200%);
+  
+  /* Matrix-style grid */
+  background-image: 
+    linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
 }
 
-/* THEME: SUNSET (Vaporwave/Retrowave) */
+/* THEME: SUNSET (Vaporwave/Retrowave) - Enhanced Aesthetic */
 [data-theme='sunset'] {
-  --bg-depth: #2d1b2e;
-  /* Deep Purple */
-  --bg-surface: #432c44;
-  --text-primary: #ff9e64;
-  /* Orange */
-  --text-secondary: #b392f0;
-  /* Lavender */
+  --bg-depth: #2a1b2e;
+  /* Deep purple-black */
+  --bg-surface: #3d2a45;
+  /* Rich purple with pink hints */
+  --text-primary: #ff8c69;
+  /* Vibrant sunset orange */
+  --text-secondary: #c19ee0;
+  /* Soft lavender */
+  --accent-danger: #ff6b9d;
+  /* Hot pink */
+  --accent-success: #ffd93d;
+  /* Golden yellow */
 
-  --glass-bg: rgba(67, 44, 68, 0.7);
-  --glass-border: rgba(255, 158, 100, 0.2);
+  --glass-bg: rgba(61, 42, 69, 0.8);
+  --glass-border: rgba(255, 140, 105, 0.25);
+  --glass-blur: blur(24px) saturate(170%);
+  
+  /* Sunset gradient overlay */
+  background-image: 
+    linear-gradient(135deg, rgba(255, 140, 105, 0.1) 0%, rgba(193, 158, 224, 0.1) 100%);
 }
 
-/* THEME: SYNTHWAVE (Premium) */
+/* THEME: SYNTHWAVE (Premium) - Enhanced Neon Dreams */
 [data-theme='synthwave'] {
-  --bg-depth: #090011;
-  /* Deepest Void Purple */
+  --bg-depth: #0a0015;
+  /* Deepest void purple */
   --bg-surface: #1a0b2e;
-  /* Dark Purple Surface */
+  /* Rich dark purple */
   --text-primary: #ff71ce;
-  /* Neon Pink */
+  /* Electric neon pink */
   --text-secondary: #01cdfe;
-  /* Neon Cyan */
+  /* Bright neon cyan */
   --accent-danger: #ff0055;
+  /* Hot magenta */
   --accent-success: #05ffa1;
+  /* Neon mint */
 
-  --glass-bg: rgba(26, 11, 46, 0.7);
-  --glass-border: rgba(255, 113, 206, 0.2);
-  --glass-blur: blur(20px) saturate(150%);
+  --glass-bg: rgba(26, 11, 46, 0.85);
+  --glass-border: rgba(255, 113, 206, 0.3);
+  --glass-blur: blur(24px) saturate(180%);
+  
+  /* Synthwave grid pattern */
+  background-image: 
+    linear-gradient(rgba(1, 205, 254, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(1, 205, 254, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  box-shadow: inset 0 0 200px rgba(255, 113, 206, 0.1);
 }
 
-/* THEME: FOREST (Nature) */
+/* THEME: FOREST (Nature) - Enhanced Emerald */
 [data-theme='forest'] {
-  --bg-depth: #1a2f23;
-  /* Dark Green */
-  --bg-surface: #243e30;
+  --bg-depth: #16261f;
+  /* Deep forest green */
+  --bg-surface: #1e3a2a;
+  /* Rich emerald base */
   --text-primary: #e8f5e9;
-  /* Off White */
-  --text-secondary: #a5d6a7;
-  /* Light Green */
+  /* Soft white-green */
+  --text-secondary: #81c995;
+  /* Fresh mint green */
+  --accent-danger: #f87171;
+  /* Soft coral */
+  --accent-success: #4ade80;
+  /* Vibrant green */
 
-  --glass-bg: rgba(36, 62, 48, 0.7);
-  --glass-border: rgba(165, 214, 167, 0.1);
+  --glass-bg: rgba(30, 58, 42, 0.85);
+  --glass-border: rgba(129, 201, 149, 0.2);
+  --glass-blur: blur(22px) saturate(160%);
+  
+  /* Subtle leaf pattern */
+  background-image: 
+    radial-gradient(circle at 30% 50%, rgba(129, 201, 149, 0.05), transparent 50%);
 }
 
-/* THEME: COFFEE (Latte) */
+/* THEME: COFFEE (Latte) - Enhanced Roast */
 [data-theme='coffee'] {
-  --bg-depth: #2b211e;
-  /* Dark Roast */
-  --bg-surface: #3e2f2a;
-  --text-primary: #d7ccc8;
-  /* Foam */
-  --text-secondary: #a1887f;
+  --bg-depth: #241f1c;
+  /* Deep espresso */
+  --bg-surface: #352a25;
+  /* Rich coffee brown */
+  --text-primary: #e8ddd4;
+  /* Creamy latte foam */
+  --text-secondary: #b8967f;
+  /* Caramel brown */
+  --accent-danger: #c97a5f;
+  /* Rusty red-brown */
+  --accent-success: #8b7355;
+  /* Mocha brown */
 
-  --glass-bg: rgba(62, 47, 42, 0.7);
-  --glass-border: rgba(215, 204, 200, 0.1);
+  --glass-bg: rgba(53, 42, 37, 0.85);
+  --glass-border: rgba(184, 150, 127, 0.2);
+  --glass-blur: blur(20px) saturate(150%);
+  
+  /* Coffee bean texture */
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(139, 115, 85, 0.08), transparent 50%);
 }
 
-/* THEME: NORD (Arctic) */
+/* THEME: NORD (Arctic) - Enhanced Polar */
 [data-theme='nord'] {
   --bg-depth: #2e3440;
+  /* Classic nord dark */
   --bg-surface: #3b4252;
+  /* Nord polar night */
   --text-primary: #eceff4;
-  --text-secondary: #88c0d0;
+  /* Pure snow white */
+  --text-secondary: #81a1c1;
+  /* Soft arctic blue */
+  --accent-danger: #bf616a;
+  /* Nord red */
+  --accent-success: #a3be8c;
+  /* Nord green */
 
-  --glass-bg: rgba(59, 66, 82, 0.7);
-  --glass-border: rgba(136, 192, 208, 0.1);
+  --glass-bg: rgba(59, 66, 82, 0.85);
+  --glass-border: rgba(129, 161, 193, 0.2);
+  --glass-blur: blur(22px) saturate(140%);
+  
+  /* Subtle frost effect */
+  background-image: 
+    linear-gradient(45deg, rgba(129, 161, 193, 0.03) 25%, transparent 25%);
+  background-size: 30px 30px;
 }
 
-/* THEME: DRACULA (Vampire) */
+/* THEME: DRACULA (Vampire) - Enhanced Classic */
 [data-theme='dracula'] {
   --bg-depth: #282a36;
+  /* Dracula background */
   --bg-surface: #44475a;
+  /* Dracula selection */
   --text-primary: #f8f8f2;
+  /* Dracula foreground */
   --text-secondary: #bd93f9;
-  /* Purple */
+  /* Dracula purple */
+  --accent-danger: #ff5555;
+  /* Dracula red */
+  --accent-success: #50fa7b;
+  /* Dracula green */
 
-  --glass-bg: rgba(68, 71, 90, 0.7);
-  --glass-border: rgba(189, 147, 249, 0.1);
+  --glass-bg: rgba(68, 71, 90, 0.85);
+  --glass-border: rgba(189, 147, 249, 0.25);
+  --glass-blur: blur(20px) saturate(160%);
+  
+  /* Gothic subtle pattern */
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(189, 147, 249, 0.05), transparent 70%);
 }
 
-/* THEME: SOLARIZED (Classic) */
+/* THEME: SOLARIZED (Classic) - Enhanced Classic */
 [data-theme='solarized'] {
   --bg-depth: #002b36;
+  /* Solarized base03 */
   --bg-surface: #073642;
-  --text-primary: #93a1a1;
-  --text-secondary: #2aa198;
+  /* Solarized base02 */
+  --text-primary: #eee8d5;
+  /* Solarized base2 */
+  --text-secondary: #586e75;
+  /* Solarized base01 */
+  --accent-danger: #dc322f;
+  /* Solarized red */
+  --accent-success: #859900;
+  /* Solarized green */
 
-  --glass-bg: rgba(7, 54, 66, 0.7);
-  --glass-border: rgba(42, 161, 152, 0.1);
+  --glass-bg: rgba(7, 54, 66, 0.85);
+  --glass-border: rgba(42, 161, 152, 0.2);
+  --glass-blur: blur(20px) saturate(140%);
+  
+  /* Subtle teal accent */
+  background-image: 
+    linear-gradient(180deg, rgba(42, 161, 152, 0.03) 0%, transparent 100%);
 }
 
-/* THEME: CYBERPUNK (Neon) */
+/* THEME: CYBERPUNK (Neon) - Enhanced Electric */
 [data-theme='cyberpunk'] {
   --bg-depth: #000000;
-  --bg-surface: #111111;
+  /* Pure black */
+  --bg-surface: #0a0a0a;
+  /* Slightly lighter black */
   --text-primary: #fcee0c;
-  /* Yellow */
-  --text-secondary: #03d8f3;
-  /* Cyan */
+  /* Electric yellow */
+  --text-secondary: #00f5ff;
+  /* Bright cyan */
+  --accent-danger: #ff003c;
+  /* Hot pink-red */
+  --accent-success: #00ff41;
+  /* Neon green */
 
-  --glass-bg: rgba(20, 20, 20, 0.8);
-  --glass-border: rgba(252, 238, 12, 0.3);
+  --glass-bg: rgba(10, 10, 10, 0.9);
+  --glass-border: rgba(252, 238, 12, 0.4);
+  --glass-blur: blur(16px) saturate(200%);
+  
+  /* Cyberpunk grid */
+  background-image: 
+    linear-gradient(rgba(252, 238, 12, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(252, 238, 12, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  box-shadow: inset 0 0 300px rgba(252, 238, 12, 0.05);
 }
 
-/* THEME: SYNTHWAVE (Retro) */
+/* THEME: SYNTHWAVE (Retro) - Enhanced Vaporwave */
 [data-theme='synthwave'] {
   --bg-depth: #2b213a;
+  /* Deep purple */
   --bg-surface: #241b2f;
+  /* Rich purple surface */
   --text-primary: #ff71ce;
-  /* Neon Pink */
+  /* Neon pink */
   --text-secondary: #01cdfe;
-  /* Blue */
+  /* Bright cyan */
+  --accent-danger: #ff0055;
+  /* Hot pink */
+  --accent-success: #05ffa1;
+  /* Neon mint */
 
-  --glass-bg: rgba(36, 27, 47, 0.8);
-  --glass-border: rgba(255, 113, 206, 0.2);
+  --glass-bg: rgba(36, 27, 47, 0.85);
+  --glass-border: rgba(255, 113, 206, 0.3);
+  --glass-blur: blur(24px) saturate(180%);
+  
+  /* Retro grid */
+  background-image: 
+    linear-gradient(rgba(1, 205, 254, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(1, 205, 254, 0.04) 1px, transparent 1px);
+  background-size: 50px 50px;
 }
 
-/* THEME: SERIKA DARK (Monkeytype) */
+/* THEME: SERIKA DARK (Monkeytype) - Enhanced Premium */
 [data-theme='serika'] {
   --bg-depth: #323437;
+  /* Serika dark */
   --bg-surface: #2c2e31;
-  --text-primary: #d1d0c5;
+  /* Serika surface */
+  --text-primary: #e2e2da;
+  /* Warm off-white */
   --text-secondary: #e2b714;
-  /* Gold */
+  /* Rich gold */
+  --accent-danger: #ca4759;
+  /* Muted red */
+  --accent-success: #7e8471;
+  /* Olive green */
 
   --glass-bg: rgba(44, 46, 49, 0.95);
-  --glass-border: rgba(226, 183, 20, 0.2);
+  --glass-border: rgba(226, 183, 20, 0.25);
+  --glass-blur: blur(20px) saturate(150%);
+  
+  /* Subtle gold accents */
+  background-image: 
+    radial-gradient(circle at 80% 20%, rgba(226, 183, 20, 0.05), transparent 50%);
 }
 
-/* THEME: CARBON (Monkeytype) */
+/* THEME: CARBON (Monkeytype) - Enhanced Industrial */
 [data-theme='carbon'] {
   --bg-depth: #313131;
+  /* Carbon dark */
   --bg-surface: #2b2b2b;
+  /* Carbon surface */
   --text-primary: #f5e6c8;
-  /* Beige */
+  /* Warm beige */
   --text-secondary: #f66e0d;
-  /* Orange */
+  /* Vibrant orange */
+  --accent-danger: #e63946;
+  /* Bright red */
+  --accent-success: #06a77d;
+  /* Teal green */
 
   --glass-bg: rgba(43, 43, 43, 0.95);
-  --glass-border: rgba(246, 110, 13, 0.2);
+  --glass-border: rgba(246, 110, 13, 0.3);
+  --glass-blur: blur(20px) saturate(160%);
+  
+  /* Carbon fiber texture */
+  background-image: 
+    repeating-linear-gradient(0deg, rgba(246, 110, 13, 0.03) 0px, transparent 2px),
+    repeating-linear-gradient(90deg, rgba(246, 110, 13, 0.03) 0px, transparent 2px);
+  background-size: 20px 20px;
 }
 
-/* THEME: 8008 (Monkeytype) */
+/* THEME: 8008 (Monkeytype) - Enhanced Retro */
 [data-theme='8008'] {
   --bg-depth: #333a45;
+  /* 8008 dark */
   --bg-surface: #2e343e;
+  /* 8008 surface */
   --text-primary: #e9ecf0;
+  /* Clean white */
   --text-secondary: #f44c7f;
-  /* Pink */
+  /* Vibrant pink */
+  --accent-danger: #e63946;
+  /* Red */
+  --accent-success: #4ecdc4;
+  /* Turquoise */
 
   --glass-bg: rgba(46, 52, 62, 0.95);
-  --glass-border: rgba(244, 76, 127, 0.2);
+  --glass-border: rgba(244, 76, 127, 0.25);
+  --glass-blur: blur(22px) saturate(170%);
+  
+  /* Subtle retro pattern */
+  background-image: 
+    radial-gradient(circle at 30% 70%, rgba(244, 76, 127, 0.06), transparent 50%);
 }
 
-/* THEME: RED DRAGON (Monkeytype) */
+/* THEME: RED DRAGON (Monkeytype) - Enhanced Fiery */
 [data-theme='red-dragon'] {
   --bg-depth: #1a0b0c;
-  --bg-surface: #140809;
-  --text-primary: #e2b59a;
-  --text-secondary: #ff3a32;
-  /* Red */
+  /* Deep crimson-black */
+  --bg-surface: #2d1416;
+  /* Rich burgundy */
+  --text-primary: #f5e6d3;
+  /* Warm cream */
+  --text-secondary: #ff5742;
+  /* Bright red */
+  --accent-danger: #ff3a32;
+  /* Fire red */
+  --accent-success: #d4a574;
+  /* Golden amber */
 
-  --glass-bg: rgba(20, 8, 9, 0.95);
-  --glass-border: rgba(255, 58, 50, 0.3);
+  --glass-bg: rgba(45, 20, 22, 0.95);
+  --glass-border: rgba(255, 87, 66, 0.35);
+  --glass-blur: blur(24px) saturate(180%);
+  
+  /* Fire glow effect */
+  background-image: 
+    radial-gradient(ellipse at bottom, rgba(255, 58, 50, 0.1), transparent 70%);
 }
 
 
@@ -262,17 +466,28 @@
   --glass-border: rgba(74, 55, 40, 0.2);
 }
 
-/* THEME: NEOVIM (Gruvbox) */
+/* THEME: NEOVIM (Gruvbox) - Enhanced Classic */
 [data-theme='neovim'] {
   --bg-depth: #282828;
+  /* Gruvbox dark0 */
   --bg-surface: #3c3836;
+  /* Gruvbox dark1 */
   --text-primary: #ebdbb2;
+  /* Gruvbox light1 */
   --text-secondary: #a89984;
+  /* Gruvbox gray */
   --accent-danger: #cc241d;
+  /* Gruvbox red */
   --accent-success: #98971a;
+  /* Gruvbox green */
 
   --glass-bg: rgba(60, 56, 54, 0.95);
-  --glass-border: rgba(235, 219, 178, 0.1);
+  --glass-border: rgba(235, 219, 178, 0.15);
+  --glass-blur: blur(20px) saturate(140%);
+  
+  /* Subtle vintage texture */
+  background-image: 
+    repeating-linear-gradient(45deg, rgba(168, 153, 132, 0.02) 0px, transparent 2px);
 }
 
 /* THEME: NOTEPAD (Windows 95) */
