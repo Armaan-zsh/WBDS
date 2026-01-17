@@ -55,13 +55,13 @@ const GlobalGraph = forwardRef(({ letters, onNodeClick }, ref) => {
 
             seenIds.add(l.id);
             const node = {
-                id: l.id,
+                id: String(l.id), // Force String ID
                 user: `Fragment #${l.id.toString().substring(0, 4)}`,
                 val: 3,
                 color: getColor(l.theme),
                 data: l
             };
-            nodesMap.set(l.id, node);
+            nodesMap.set(String(l.id), node);
             nodes.push(node);
         });
 
@@ -71,8 +71,8 @@ const GlobalGraph = forwardRef(({ letters, onNodeClick }, ref) => {
         // Connect i to i+1 (chronological) - Weak connection
         for (let i = 0; i < nodes.length - 1; i++) {
             links.push({
-                source: nodes[i].id,
-                target: nodes[i + 1].id,
+                source: String(nodes[i].id),
+                target: String(nodes[i + 1].id),
                 color: '#333', // Dark / Subtle
                 width: 1,
                 particles: 1 // Slow flow
@@ -82,10 +82,13 @@ const GlobalGraph = forwardRef(({ letters, onNodeClick }, ref) => {
         // 2. Thread Links (Semantic)
         // Connect Parent -> Child - Strong connection
         letters.forEach(l => {
-            if (l.parent_id && nodesMap.has(l.parent_id)) {
+            const pid = String(l.parent_id);
+            const cid = String(l.id);
+
+            if (l.parent_id && nodesMap.has(pid)) {
                 links.push({
-                    source: l.parent_id,
-                    target: l.id,
+                    source: pid,
+                    target: cid,
                     color: '#ffd700', // Gold
                     width: 3, // Thick
                     particles: 4 // Fast flow
@@ -93,6 +96,7 @@ const GlobalGraph = forwardRef(({ letters, onNodeClick }, ref) => {
             }
         });
 
+        console.log(`GlobalGraph Nodes: ${nodes.length}`);
         return { nodes, links };
     }, [letters]);
 
