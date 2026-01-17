@@ -293,11 +293,49 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             padding-top: 5px;
         }
 
-        /* Accessing Global Theme State */
+                /* Accessing Global Theme State */
         :global([data-theme='neovim']) .vim-status-bar,
         :global([data-theme='terminal']) .vim-status-bar {
             display: flex;
             justify-content: space-between;
+        }
+
+        /* --- NEOVIM TERMINAL OVERRIDES --- */
+        :global([data-theme='neovim']) .composer-card {
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            backdrop-filter: none !important;
+        }
+
+        :global([data-theme='neovim']) .letter-input {
+            font-family: 'Fira Code', monospace !important;
+            font-size: 16px !important;
+            padding-left: 40px; /* Space for imaginary line numbers */
+            min-height: 60vh;
+        }
+
+        /* Hide standard controls in Vim mode to force motions */
+        :global([data-theme='neovim']) .controls {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            height: 0;
+            overflow: hidden;
+        }
+
+        /* Fix Status Bar to Bottom of Screen */
+        :global([data-theme='neovim']) .vim-status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            padding: 5px 10px;
+            font-size: 14px;
+            border-top: none;
+            z-index: 1000;
         }
 
         .vim-mode {

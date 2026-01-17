@@ -407,7 +407,7 @@ export default function Home() {
 
     return (
         <div className="app-layout">
-            {view !== 'chain' && currentTheme !== 'notepad' && <GalaxyBackground />}
+            {view !== 'chain' && currentTheme !== 'notepad' && currentTheme !== 'neovim' && <GalaxyBackground />}
             <VoidClock />
             <style jsx>{`
          .app-layout {
@@ -467,7 +467,7 @@ export default function Home() {
              max-width: 100%; /* Remove constraint */
              align-items: center; /* Center children */
              margin: 0;
-             padding: 60px 20px;
+             padding: ${currentTheme === 'neovim' ? '10px' : '60px 20px'};
              position: relative;
              height: 100vh;
              overflow-y: auto;
@@ -670,32 +670,34 @@ export default function Home() {
             <div className="main-content">
                 {/* Header */}
                 {/* Header */}
-                <div className="nav-header">
-                    <span
-                        className={`nav-item ${view === 'write' ? 'active' : ''}`}
-                        onClick={() => setView('write')}
-                    >WBDS</span>
+                {currentTheme !== 'neovim' && (
+                    <div className="nav-header">
+                        <span
+                            className={`nav-item ${view === 'write' ? 'active' : ''}`}
+                            onClick={() => setView('write')}
+                        >WBDS</span>
 
-                    <span
-                        className={`nav-item ${view === 'read' ? 'active' : ''}`}
-                        onClick={() => setView('read')}
-                    >READ</span>
+                        <span
+                            className={`nav-item ${view === 'read' ? 'active' : ''}`}
+                            onClick={() => setView('read')}
+                        >READ</span>
 
-                    <span
-                        className={`nav-item ${view === 'best' ? 'active' : ''}`}
-                        onClick={() => setView('best')}
-                    >BEST</span>
+                        <span
+                            className={`nav-item ${view === 'best' ? 'active' : ''}`}
+                            onClick={() => setView('best')}
+                        >BEST</span>
 
-                    <span
-                        className={`nav-item ${view === 'chain' ? 'active' : ''}`}
-                        onClick={() => setView('chain')}
-                    >FMWBDS</span>
+                        <span
+                            className={`nav-item ${view === 'chain' ? 'active' : ''}`}
+                            onClick={() => setView('chain')}
+                        >FMWBDS</span>
 
-                    <span
-                        className={`nav-item ${view === 'personal' ? 'active' : ''}`}
-                        onClick={() => setView('personal')}
-                    >YWBDS</span>
-                </div>
+                        <span
+                            className={`nav-item ${view === 'personal' ? 'active' : ''}`}
+                            onClick={() => setView('personal')}
+                        >YWBDS</span>
+                    </div>
+                )}
 
                 {/* VIEW: WRITE */}
                 {view === 'write' && (
