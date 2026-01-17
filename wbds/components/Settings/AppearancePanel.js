@@ -179,6 +179,14 @@ export default function AppearancePanel() {
                             <div className="preview-circle" style={{ background: '#0a0a0a', border: '1px solid #30d158' }}></div>
                             Terminal
                         </button>
+                        <button className={`option-btn ${theme === 'neovim' ? 'active' : ''}`} onClick={() => { applyTheme('neovim'); applyFont('fira'); applyAudio('mechanical'); }}>
+                            <div className="preview-circle" style={{ background: '#282828', border: '1px solid #ebdbb2' }}></div>
+                            Neovim
+                        </button>
+                        <button className={`option-btn ${theme === 'notepad' ? 'active' : ''}`} onClick={() => { applyTheme('notepad'); applyFont('sans'); applyAudio('typewriter'); }}>
+                            <div className="preview-circle" style={{ background: '#c0c0c0', border: '1px solid #000' }}></div>
+                            Notepad
+                        </button>
                     </div>
                 </div>
 

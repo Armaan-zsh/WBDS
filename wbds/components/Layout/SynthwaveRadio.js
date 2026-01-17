@@ -13,10 +13,10 @@ export default function SynthwaveRadio() {
     const audioRef = useRef(null);
 
     const STATIONS = [
-        { name: 'NIGHTRIDE FM', url: 'https://stream.nightride.fm/nightride.m4a' },
-        { name: 'CHILLSYNTH', url: 'https://stream.nightride.fm/chillsynth.m4a' },
-        { name: 'DATAWAVE', url: 'https://stream.nightride.fm/datawave.m4a' },
-        { name: 'EBSM', url: 'https://stream.nightride.fm/ebsm.m4a' }
+        { name: 'NIGHTRIDE FM', url: 'https://stream.nightride.fm/nightride.mp3' },
+        { name: 'CHILLSYNTH', url: 'https://stream.nightride.fm/chillsynth.mp3' },
+        { name: 'DATAWAVE', url: 'https://stream.nightride.fm/datawave.mp3' },
+        { name: 'SPACED OUT', url: 'https://stream.nightride.fm/spaced.mp3' }
     ];
 
     const [stationIndex, setStationIndex] = useState(0);
@@ -25,7 +25,7 @@ export default function SynthwaveRadio() {
         const audio = audioRef.current;
         if (!audio) return;
 
-        audio.crossOrigin = "anonymous";
+        // removed crossOrigin to prevent CORS blocks on streams
         audio.volume = volume;
 
         // Event Listeners for smooth UI

@@ -75,10 +75,54 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         setTimeout(() => setErrorShake(false), 300);
     };
 
+    const [vimMode, setVimMode] = useState('INSERT'); // INSERT or NORMAL
+    const [cmdBuffer, setCmdBuffer] = useState('');
+
     const handleKeyDown = (e) => {
         playTypeSound(); // CLACK
 
-        if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'i')) {
+        // CHECK VIM THEME
+        const isVim = typeof document !== 'undefined' &&
+            (document.documentElement.getAttribute('data-theme') === 'neovim' ||
+                document.documentElement.getAttribute('data-theme') === 'terminal');
+
+        if (isVim) {
+            if (vimMode === 'INSERT') {
+                if (e.key === 'Escape') {
+                    setVimMode('NORMAL');
+                    return;
+                }
+            } else {
+                // NORMAL MODE
+                e.preventDefault(); // Block typing
+
+                if (e.key === 'i') {
+                    setVimMode('INSERT');
+                    setCmdBuffer('');
+                    return;
+                }
+
+                // Command Buffer Logic
+                if (e.key === ':' || cmdBuffer.startsWith(':')) {
+                    if (e.key === 'Enter') {
+                        // EXECUTE
+                        if (cmdBuffer === ':w') handleSend();
+                        if (cmdBuffer === ':q') handleBurn();
+                        if (cmdBuffer === ':wq') { handleSend(); }
+                        setCmdBuffer('');
+                        setVimMode('NORMAL'); // Stay in normal or reset?
+                    } else if (e.key === 'Backspace') {
+                        setCmdBuffer(prev => prev.slice(0, -1));
+                    } else if (e.key.length === 1) {
+                        setCmdBuffer(prev => prev + e.key);
+                    }
+                    return;
+                }
+            }
+        }
+
+        // Standard Shortcuts (Ctrl+B/I) - Only in Insert Mode or Non-Vim
+        if ((!isVim || vimMode === 'INSERT') && (e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'i')) {
             e.preventDefault();
             const wrapper = e.key === 'b' ? '**' : '*';
 
@@ -345,6 +389,36 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                         {status === 'SENDING' ? 'Sent' : 'Send'}
                     </button>
                 </div>
+
+                {/* VIM STATUS BAR */}
+                <div className="vim-status-bar">
+                    <span className="vim-mode">-- {vimMode} --</span>
+                    <span className="vim-cmd">{cmdBuffer}</span>
+                </div>
+
+                <style jsx global>{`
+                    .vim-status-bar {
+                        display: none;
+                        margin-top: 10px;
+                        font-family: 'Fira Code', monospace;
+                        font-size: 14px;
+                        color: var(--text-primary);
+                        border-top: 1px solid var(--glass-border);
+                        padding-top: 5px;
+                    }
+                    [data-theme='neovim'] .vim-status-bar,
+                    [data-theme='terminal'] .vim-status-bar {
+                        display: flex;
+                        justify-content: space-between;
+                    }
+                    .vim-mode {
+                        font-weight: bold;
+                        color: var(--accent-success);
+                    }
+                    .vim-cmd {
+                        color: var(--text-primary);
+                    }
+                `}</style>
             </div>
         </div>
     );
