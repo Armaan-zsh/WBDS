@@ -15,6 +15,10 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
     const [unlockAt, setUnlockAt] = useState(null);
     const [isVerified, setIsVerified] = useState(false);
 
+    // Vim State
+    const [vimMode, setVimMode] = useState('INSERT'); // INSERT or NORMAL
+    const [cmdBuffer, setCmdBuffer] = useState('');
+
     const textareaRef = useRef(null);
 
     // Auto-resize textarea
@@ -35,7 +39,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             return;
         }
 
-        // 2. Check Social Solicitation (New AI-lite filter)
+        // 2. Check Social Solicitation
         if (containsSocialSolicitation(text)) {
             triggerShake();
             if (onError) onError("No social handles or self-promo allowed.");
@@ -55,7 +59,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
 
         setStatus('SENDING');
         setTimeout(() => {
-            onSend(safeText, unlockAt, replyTo?.id); // Pass Lock Date & Parent ID
+            onSend(safeText, unlockAt, replyTo?.id);
             setText('');
             setUnlockAt(null);
             setStatus('IDLE');
@@ -74,9 +78,6 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         setErrorShake(true);
         setTimeout(() => setErrorShake(false), 300);
     };
-
-    const [vimMode, setVimMode] = useState('INSERT'); // INSERT or NORMAL
-    const [cmdBuffer, setCmdBuffer] = useState('');
 
     const handleKeyDown = (e) => {
         playTypeSound(); // CLACK
@@ -110,7 +111,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                         if (cmdBuffer === ':q') handleBurn();
                         if (cmdBuffer === ':wq') { handleSend(); }
                         setCmdBuffer('');
-                        setVimMode('NORMAL'); // Stay in normal or reset?
+                        setVimMode('NORMAL');
                     } else if (e.key === 'Backspace') {
                         setCmdBuffer(prev => prev.slice(0, -1));
                     } else if (e.key.length === 1) {
@@ -121,26 +122,16 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             }
         }
 
-        // Standard Shortcuts (Ctrl+B/I) - Only in Insert Mode or Non-Vim
+        // Standard Shortcuts (Ctrl+B/I)
         if ((!isVim || vimMode === 'INSERT') && (e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'i')) {
             e.preventDefault();
             const wrapper = e.key === 'b' ? '**' : '*';
-
             const start = textareaRef.current.selectionStart;
             const end = textareaRef.current.selectionEnd;
-
-            if (start === end) return; // No selection
-
+            if (start === end) return;
             const selected = text.substring(start, end);
-            const newValue =
-                text.substring(0, start) +
-                wrapper + selected + wrapper +
-                text.substring(end);
-
+            const newValue = text.substring(0, start) + wrapper + selected + wrapper + text.substring(end);
             setText(newValue);
-
-            // Restore selection (including wrappers)
-            // setTimeout needed to run after React render
             setTimeout(() => {
                 textareaRef.current.setSelectionRange(start, end + (wrapper.length * 2));
             }, 0);
@@ -150,32 +141,20 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
     const handlePaste = (e) => {
         e.preventDefault();
         const pastedData = e.clipboardData.getData('text');
-
-        // Regex to find URLs
         const urlRegex = /(https?:\/\/[^\s]+)/g;
 
         if (containsLinkPattern(pastedData)) {
             const sanitized = pastedData.replace(urlRegex, '[LINK REMOVED]');
-
-            // Insert at cursor position
-            const selectionStart = textareaRef.current.selectionStart;
-            const selectionEnd = textareaRef.current.selectionEnd;
-            const newValue =
-                text.substring(0, selectionStart) +
-                sanitized +
-                text.substring(selectionEnd);
-
+            const start = textareaRef.current.selectionStart;
+            const end = textareaRef.current.selectionEnd;
+            const newValue = text.substring(0, start) + sanitized + text.substring(end);
             setText(newValue);
             triggerShake();
             if (onError) onError("Links were stripped. The void is pure.");
         } else {
-            // Normal paste
-            const selectionStart = textareaRef.current.selectionStart;
-            const selectionEnd = textareaRef.current.selectionEnd;
-            const newValue =
-                text.substring(0, selectionStart) +
-                pastedData +
-                text.substring(selectionEnd);
+            const start = textareaRef.current.selectionStart;
+            const end = textareaRef.current.selectionEnd;
+            const newValue = text.substring(0, start) + pastedData + text.substring(end);
             setText(newValue);
         }
     };
@@ -195,7 +174,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
           max-width: 600px;
           margin: 0 auto;
           transition: transform 0.4s var(--ease-ios);
-          perspective: 1000px; /* Enable 3D space */
+          perspective: 1000px;
         }
 
         .sending .composer-card {
@@ -204,10 +183,10 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         }
 
         .composer-card {
-           background: rgba(10, 10, 10, 0.3); /* High transparency */
-           backdrop-filter: blur(12px); /* Strong blur for readability */
+           background: rgba(10, 10, 10, 0.3);
+           backdrop-filter: blur(12px);
            border: 1px solid rgba(255, 255, 255, 0.1);
-           border-radius: 20px; /* iOS rounded styles */
+           border-radius: 20px;
            padding: 30px;
            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
            transition: all 0.4s var(--ease-ios);
@@ -224,22 +203,21 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
           background: transparent;
           border: none;
           color: var(--text-primary);
-          font-family: var(--font-current); /* Dynamic Font */
+          font-family: var(--font-current);
           font-size: 21px;
           line-height: 1.6;
           width: 100%;
           resize: none;
           outline: none;
           min-height: 200px;
-          max-height: 60vh; /* Prevent infinite growth */
-          overflow-y: auto; /* Enable internal scrolling */
+          max-height: 60vh;
+          overflow-y: auto;
           padding: 0;
-          scrollbar-width: none; /* Firefox */
-          -webkit-overflow-scrolling: touch; /* smooth iOS scrolling */
+          scrollbar-width: none;
         }
         
         .letter-input::-webkit-scrollbar {
-            display: none; /* Chrome/Safari */
+            display: none;
         }
 
         .letter-input::placeholder {
@@ -304,6 +282,31 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             font-family: monospace;
             opacity: 0.8;
         }
+
+        .vim-status-bar {
+            display: none;
+            margin-top: 10px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            color: var(--text-primary);
+            border-top: 1px solid var(--glass-border);
+            padding-top: 5px;
+        }
+
+        /* Accessing Global Theme State */
+        :global([data-theme='neovim']) .vim-status-bar,
+        :global([data-theme='terminal']) .vim-status-bar {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .vim-mode {
+            font-weight: bold;
+            color: var(--accent-success);
+        }
+        .vim-cmd {
+            color: var(--text-primary);
+        }
       `}</style>
 
             <div className="composer-card">
@@ -332,7 +335,6 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                 <TurnstileWidget onVerify={(token) => setIsVerified(true)} />
 
                 <div className="controls">
-                    {/* Time Capsule Toggle - Keep existing code */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
                         <button
                             className={`btn-icon ${unlockAt ? 'active' : ''}`}
@@ -340,7 +342,6 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                                 if (unlockAt) {
                                     setUnlockAt(null);
                                 } else {
-                                    // Default to Tomorrow if not set
                                     const tomorrow = new Date();
                                     tomorrow.setDate(tomorrow.getDate() + 1);
                                     setUnlockAt(tomorrow);
@@ -390,35 +391,10 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     </button>
                 </div>
 
-                {/* VIM STATUS BAR */}
                 <div className="vim-status-bar">
                     <span className="vim-mode">-- {vimMode} --</span>
                     <span className="vim-cmd">{cmdBuffer}</span>
                 </div>
-
-                <style jsx global>{`
-                    .vim-status-bar {
-                        display: none;
-                        margin-top: 10px;
-                        font-family: 'Fira Code', monospace;
-                        font-size: 14px;
-                        color: var(--text-primary);
-                        border-top: 1px solid var(--glass-border);
-                        padding-top: 5px;
-                    }
-                    [data-theme='neovim'] .vim-status-bar,
-                    [data-theme='terminal'] .vim-status-bar {
-                        display: flex;
-                        justify-content: space-between;
-                    }
-                    .vim-mode {
-                        font-weight: bold;
-                        color: var(--accent-success);
-                    }
-                    .vim-cmd {
-                        color: var(--text-primary);
-                    }
-                `}</style>
             </div>
         </div>
     );

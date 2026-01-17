@@ -39,6 +39,30 @@ export default function Home() {
     const [isWriting, setIsWriting] = useState(false);
 
     const [replyTo, setReplyTo] = useState(null); // Track parent letter
+    const [currentTheme, setCurrentTheme] = useState('void'); // Track theme for conditional rendering
+
+    // Watch for Theme Changes (to unmount Galaxy when needed)
+    useEffect(() => {
+        // Initial set
+        if (typeof document !== 'undefined') {
+            setCurrentTheme(document.documentElement.getAttribute('data-theme') || 'void');
+        }
+
+        // Observer
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                    setCurrentTheme(document.documentElement.getAttribute('data-theme') || 'void');
+                }
+            });
+        });
+
+        if (typeof document !== 'undefined') {
+            observer.observe(document.documentElement, { attributes: true });
+        }
+
+        return () => observer.disconnect();
+    }, []);
 
     // --- SEND LOGIC ---
     const handleSaveLetter = async (content, unlockDate, parentId = null) => {
@@ -383,7 +407,7 @@ export default function Home() {
 
     return (
         <div className="app-layout">
-            {view !== 'chain' && <GalaxyBackground />}
+            {view !== 'chain' && currentTheme !== 'notepad' && <GalaxyBackground />}
             <VoidClock />
             <style jsx>{`
          .app-layout {
@@ -395,7 +419,7 @@ export default function Home() {
 
           /* Sidebar is now an overlay/ghost element that doesn't push content */
           :global(body) {
-            background-color: ${view === 'chain' || view === 'personal' ? '#000000 !important' : 'transparent'};
+            background-color: ${view === 'chain' || view === 'personal' ? '#000000 !important' : 'var(--bg-depth) !important'};
           }
           
           .sidebar {

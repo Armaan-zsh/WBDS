@@ -261,6 +261,7 @@
   --glass-bg: rgba(74, 55, 40, 0.1);
   --glass-border: rgba(74, 55, 40, 0.2);
 }
+
 /* THEME: NEOVIM (Gruvbox) */
 [data-theme='neovim'] {
   --bg-depth: #282828;
@@ -276,18 +277,24 @@
 
 /* THEME: NOTEPAD (Windows 95) */
 [data-theme='notepad'] {
-  --bg-depth: #008080; /* Teal Desktop */
-  --bg-surface: #c0c0c0; /* Window Grey */
+  --bg-depth: #00aaaa;
+  /* Brighter Teal Desktop */
+  --bg-surface: #c0c0c0;
+  /* Window Grey */
   --text-primary: #000000;
-  --text-secondary: #000080; /* Navy Blue title? */
+  --text-secondary: #000080;
+  /* Navy Blue title? */
   --accent-danger: #ff0000;
-  
-  --glass-bg: #c0c0c0; /* No glass, solid grey */
-  --glass-border: #ffffff #808080 #808080 #ffffff; /* Bevel simulation might need real borders */
+
+  --glass-bg: #c0c0c0;
+  /* No glass, solid grey */
+  --glass-border: #ffffff #808080 #808080 #ffffff;
+  /* Bevel simulation might need real borders */
   --glass-blur: none;
-  
+
   /* Override font to system by default? Logic handled in JS usually, but could force here */
 }
+
 [data-font='dancing'] {
   --font-current: 'Dancing Script', cursive;
 }
