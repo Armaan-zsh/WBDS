@@ -202,6 +202,7 @@ export default function Home() {
     }, [likedLetters]);
 
     // Load letters from Supabase (Dynamic based on View)
+    // Load letters from Supabase (re-run when view changes)
     useEffect(() => {
         const fetchLetters = async () => {
             let data, error;
@@ -216,11 +217,15 @@ export default function Home() {
                 }
             } else {
                 // Default 'read' view (Latest) AND 'write' view (for globe)
+                // If in 'chain' (Graph) mode, we fetch MORE (500) to populate the sky.
+                // If in 'read' (Feed) mode, we fetch LESS (50) for speed.
+                const limit = (view === 'chain' || view === 'personal') ? 500 : 50;
+
                 const result = await supabase
                     .from('letters')
                     .select('*')
                     .order('created_at', { ascending: false })
-                    .limit(50);
+                    .limit(limit);
                 data = result.data;
                 error = result.error;
             }
@@ -231,13 +236,16 @@ export default function Home() {
                     ...l,
                     timestamp: l.created_at // Map Supabase field to UI field
                 }));
+                // Only overwrite if we found data (don't clear on error)
                 setLetters(formatted);
             }
         };
 
         fetchLetters();
+    }, [view]); // Re-fetch when view changes (e.g. Feed -> Graph)
 
-        // Realtime Subscription (Always Active)
+    // Realtime Subscription (Run Once)
+    useEffect(() => {
         const channel = supabase
             .channel('public:letters')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'letters' }, (payload) => {
@@ -266,7 +274,7 @@ export default function Home() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [view]);
+    }, []);
 
     const handleError = (message) => {
         setNotification({ message, type: 'error' });

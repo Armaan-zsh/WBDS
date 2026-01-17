@@ -110,7 +110,7 @@ export default function SynthwaveRadio() {
             position: 'fixed',
             bottom: '40px', // Raised to avoid bottom sheet/nav overlap
             right: '24px',  // Moved slightly inward
-            zIndex: 99999,  // Maximum Z
+            zIndex: 2147483647,  // Maximum Z (32-bit int)
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'flex-end',

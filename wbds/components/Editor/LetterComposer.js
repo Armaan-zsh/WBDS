@@ -5,6 +5,7 @@ import { containsLinkPattern, containsSocialSolicitation } from '../../utils/con
 import { maskPrivateInfo, detectPotentialDox } from '../../utils/privacyShield';
 
 import { playTypeSound, playSendSound } from '../../utils/audioEngine';
+import TurnstileWidget from '../Security/TurnstileWidget';
 
 export default function LetterComposer({ onSend, onError, onFocusChange, replyTo }) {
     const [text, setText] = useState('');
@@ -12,6 +13,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
     const [errorShake, setErrorShake] = useState(false);
     const [status, setStatus] = useState('IDLE'); // IDLE, SENDING, BURNING
     const [unlockAt, setUnlockAt] = useState(null);
+    const [isVerified, setIsVerified] = useState(false);
 
     const textareaRef = useRef(null);
 
@@ -283,8 +285,10 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     autoCapitalize="none"
                 />
 
+                <TurnstileWidget onVerify={(token) => setIsVerified(true)} />
+
                 <div className="controls">
-                    {/* Time Capsule Toggle */}
+                    {/* Time Capsule Toggle - Keep existing code */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
                         <button
                             className={`btn-icon ${unlockAt ? 'active' : ''}`}
@@ -329,7 +333,15 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     <button className="btn-action btn-danger" onClick={handleBurn}>
                         {status === 'BURNING' ? '🔥' : 'Burn'}
                     </button>
-                    <button className="btn-action" onClick={handleSend}>
+                    <button
+                        className={`btn-action ${!isVerified ? 'disabled' : ''}`}
+                        onClick={handleSend}
+                        disabled={!isVerified}
+                        style={{
+                            opacity: isVerified ? 1 : 0.5,
+                            cursor: isVerified ? 'pointer' : 'not-allowed'
+                        }}
+                    >
                         {status === 'SENDING' ? 'Sent' : 'Send'}
                     </button>
                 </div>

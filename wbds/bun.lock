@@ -14,6 +14,7 @@
         "react-dom": "18.2.0",
         "react-force-graph-2d": "^1.29.0",
         "react-markdown": "^10.1.0",
+        "react-turnstile": "^1.1.4",
         "three": "0.170.0",
       },
       "devDependencies": {
@@ -400,6 +401,8 @@
     "react-markdown": ["react-markdown@10.1.0", "https://registry.npmmirror.com/react-markdown/-/react-markdown-10.1.0.tgz", { "dependencies": { "@types/hast": "3.0.4", "@types/mdast": "4.0.4", "devlop": "1.1.0", "hast-util-to-jsx-runtime": "2.3.6", "html-url-attributes": "3.0.1", "mdast-util-to-hast": "13.2.1", "remark-parse": "11.0.0", "remark-rehype": "11.1.2", "unified": "11.0.5", "unist-util-visit": "5.0.0", "vfile": "6.0.3" }, "peerDependencies": { "@types/react": "18.3.27", "react": "18.2.0" } }, "sha512-qKxVopLT/TyA6BX3Ue5NwabOsAzm0Q7kAPwq6L+wWDwisYs7R8vZ0nRXqq6rkueboxpkjvLGU9fWifiX/ZZFxQ=="],
 
     "react-reconciler": ["react-reconciler@0.27.0", "https://registry.npmmirror.com/react-reconciler/-/react-reconciler-0.27.0.tgz", { "dependencies": { "loose-envify": "^1.1.0", "scheduler": "^0.21.0" }, "peerDependencies": { "react": "^18.0.0" } }, "sha512-HmMDKciQjYmBRGuuhIaKA1ba/7a+UsM5FzOZsMO2JYHt9Jh8reCb7j1eDC95NOyUlKM9KRyvdx0flBuDvYSBoA=="],
+
+    "react-turnstile": ["react-turnstile@1.1.4", "https://registry.npmmirror.com/react-turnstile/-/react-turnstile-1.1.4.tgz", { "peerDependencies": { "react": ">= 16.13.1", "react-dom": ">= 16.13.1" } }, "sha512-oluyRWADdsufCt5eMqacW4gfw8/csr6Tk+fmuaMx0PWMKP1SX1iCviLvD2D5w92eAzIYDHi/krUWGHhlfzxTpQ=="],
 
     "remark-parse": ["remark-parse@11.0.0", "https://registry.npmmirror.com/remark-parse/-/remark-parse-11.0.0.tgz", { "dependencies": { "@types/mdast": "4.0.4", "mdast-util-from-markdown": "2.0.2", "micromark-util-types": "2.0.2", "unified": "11.0.5" } }, "sha512-FCxlKLNGknS5ba/1lmpYijMUzX2esxW5xQqjWxw2eHFfS2MSdaHVINFmhjo+qN1WhZhNimq0dZATN9pH0IDrpA=="],
 
