@@ -670,34 +670,32 @@ export default function Home() {
             <div className="main-content">
                 {/* Header */}
                 {/* Header */}
-                {currentTheme !== 'neovim' && (
-                    <div className="nav-header">
-                        <span
-                            className={`nav-item ${view === 'write' ? 'active' : ''}`}
-                            onClick={() => setView('write')}
-                        >WBDS</span>
+                <div className="nav-header">
+                    <span
+                        className={`nav-item ${view === 'write' ? 'active' : ''}`}
+                        onClick={() => setView('write')}
+                    >WBDS</span>
 
-                        <span
-                            className={`nav-item ${view === 'read' ? 'active' : ''}`}
-                            onClick={() => setView('read')}
-                        >READ</span>
+                    <span
+                        className={`nav-item ${view === 'read' ? 'active' : ''}`}
+                        onClick={() => setView('read')}
+                    >READ</span>
 
-                        <span
-                            className={`nav-item ${view === 'best' ? 'active' : ''}`}
-                            onClick={() => setView('best')}
-                        >BEST</span>
+                    <span
+                        className={`nav-item ${view === 'best' ? 'active' : ''}`}
+                        onClick={() => setView('best')}
+                    >BEST</span>
 
-                        <span
-                            className={`nav-item ${view === 'chain' ? 'active' : ''}`}
-                            onClick={() => setView('chain')}
-                        >FMWBDS</span>
+                    <span
+                        className={`nav-item ${view === 'chain' ? 'active' : ''}`}
+                        onClick={() => setView('chain')}
+                    >FMWBDS</span>
 
-                        <span
-                            className={`nav-item ${view === 'personal' ? 'active' : ''}`}
-                            onClick={() => setView('personal')}
-                        >YWBDS</span>
-                    </div>
-                )}
+                    <span
+                        className={`nav-item ${view === 'personal' ? 'active' : ''}`}
+                        onClick={() => setView('personal')}
+                    >YWBDS</span>
+                </div>
 
                 {/* VIEW: WRITE */}
                 {view === 'write' && (

@@ -469,37 +469,33 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
 
                 /* --- NEOVIM TERMINAL OVERRIDES --- */
                 :global([data-theme='neovim']) .composer-container {
-                    max-width: 100% !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    min-height: 100vh;
+                    /* Inherit standard sizing (center card) */
                 }
 
                 :global([data-theme='neovim']) .composer-card {
-                    background: transparent !important;
-                    box-shadow: none !important;
-                    border: none !important;
+                    background: rgba(40, 40, 40, 0.95) !important; /* Gruvbox Dark Card */
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+                    border: 1px solid rgba(235, 219, 178, 0.1) !important;
+                    border-radius: 12px !important;
                     padding: 0 !important;
-                    backdrop-filter: none !important;
+                    backdrop-filter: blur(10px) !important;
                     display: flex;
                     flex-direction: column;
-                    height: 100vh;
-                    width: 100vw;
-                    overflow: hidden;
+                    overflow: hidden; /* integrated status bar */
+                    min-height: 400px; /* Standard Card Height */
                 }
 
                 :global([data-theme='neovim']) .letter-input {
                     font-family: 'Fira Code', monospace !important;
                     font-size: 16px !important;
                     line-height: 1.5 !important;
-                    padding: 10px 10px !important;
-                    height: calc(100vh - 30px) !important; /* Leave room for status bar */
-                    width: 100vw !important;
+                    padding: 20px 20px !important;
+                    min-height: 350px !important;
+                    width: 100% !important;
                     border: none !important;
                     outline: none !important;
                     resize: none !important;
                 }
-
 
                 /* Hide standard controls in Vim mode to force motions */
                 :global([data-theme='neovim']) .controls {
@@ -509,19 +505,17 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     overflow: hidden;
                 }
 
-                /* Fix Status Bar to Bottom of Screen */
+                /* Status Bar inside the Card */
                 :global([data-theme='neovim']) .vim-status-bar {
-                    position: fixed;
-                    bottom: 0;
-                    left: 0;
-                    width: 100vw;
-                    background: var(--bg-surface);
-                    color: var(--text-primary);
-                    padding: 4px 10px;
-                    font-size: 14px;
-                    border-top: none;
-                    z-index: 1000;
-                    justify-content: flex-start; /* Left align like real Vim */
+                    position: relative; /* Inside card flow */
+                    bottom: auto;
+                    left: auto;
+                    width: 100%;
+                    padding: 8px 15px;
+                    font-size: 13px;
+                    border-top: 1px solid rgba(235, 219, 178, 0.1);
+                    background: rgba(30, 30, 30, 0.5);
+                    justify-content: flex-start;
                 }
 
                 .vim-mode {
