@@ -469,7 +469,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
 
                 /* --- NEOVIM TERMINAL OVERRIDES --- */
                 :global([data-theme='neovim']) .composer-container {
-                    /* Inherit standard sizing (center card) */
+                    max-width: 480px !important;
                 }
 
                 :global([data-theme='neovim']) .composer-card {
