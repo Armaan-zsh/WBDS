@@ -290,23 +290,38 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                             className={`btn-icon ${unlockAt ? 'active' : ''}`}
                             onClick={() => {
                                 if (unlockAt) {
-                                    setUnlockAt(null); // Clear
+                                    setUnlockAt(null);
                                 } else {
-                                    // Default to 1 Year
-                                    const date = new Date();
-                                    date.setFullYear(date.getFullYear() + 1);
-                                    setUnlockAt(date);
+                                    // Default to Tomorrow if not set
+                                    const tomorrow = new Date();
+                                    tomorrow.setDate(tomorrow.getDate() + 1);
+                                    setUnlockAt(tomorrow);
                                 }
                             }}
                             title="Time Capsule (Lock Letter)"
                         >
-                            {unlockAt ? '⏳ Locked' : '⏳'}
+                            {unlockAt ? '⏳' : '⏳'}
                         </button>
 
                         {unlockAt && (
-                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                                Unlocks: {unlockAt.toLocaleDateString()}
-                            </span>
+                            <input
+                                type="date"
+                                min={new Date().toISOString().split('T')[0]}
+                                value={unlockAt.toISOString().split('T')[0]}
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        setUnlockAt(new Date(e.target.value));
+                                    }
+                                }}
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'var(--text-secondary)',
+                                    fontFamily: 'var(--font-current)',
+                                    fontSize: '12px',
+                                    cursor: 'pointer'
+                                }}
+                            />
                         )}
                     </div>
 

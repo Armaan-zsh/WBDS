@@ -7,7 +7,6 @@ export default function LetterModal({ letter, onClose, isOwner, onReply }) {
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
-        console.log('LetterModal Mounted:', letter);
         // Simple timeout for animation
         const timer = setTimeout(() => setIsOpen(true), 10);
         return () => clearTimeout(timer);

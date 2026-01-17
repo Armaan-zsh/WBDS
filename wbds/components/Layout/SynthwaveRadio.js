@@ -11,13 +11,21 @@ export default function SynthwaveRadio() {
 
     // Audio Element Ref
     const audioRef = useRef(null);
-    // Primary: Synthwave City FM (HTTP), Fallback: Nightride FM (HTTPS)
-    const streamUrl = 'https://stream.nightride.fm/nightride.m4a';
+
+    const STATIONS = [
+        { name: 'NIGHTRIDE FM', url: 'https://stream.nightride.fm/nightride.m4a' },
+        { name: 'CHILLSYNTH', url: 'https://stream.nightride.fm/chillsynth.m4a' },
+        { name: 'DATAWAVE', url: 'https://stream.nightride.fm/datawave.m4a' },
+        { name: 'EBSM', url: 'https://stream.nightride.fm/ebsm.m4a' }
+    ];
+
+    const [stationIndex, setStationIndex] = useState(0);
 
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
 
+        audio.crossOrigin = "anonymous";
         audio.volume = volume;
 
         // Event Listeners for smooth UI
@@ -34,6 +42,10 @@ export default function SynthwaveRadio() {
             setIsPlaying(false);
             setIsLoading(false);
             setError(true);
+            // Auto-try next station on error if likely connection issue
+            if (isPlaying) {
+                setTimeout(() => changeStation((stationIndex + 1) % STATIONS.length), 1000);
+            }
         };
 
         audio.addEventListener('play', onPlay);
@@ -49,7 +61,24 @@ export default function SynthwaveRadio() {
             audio.removeEventListener('playing', onPlaying);
             audio.removeEventListener('error', onError);
         };
-    }, [volume]);
+    }, [volume, stationIndex, isPlaying]);
+
+    const changeStation = async (index) => {
+        setStationIndex(index);
+        const audio = audioRef.current;
+        if (audio) {
+            setIsLoading(true);
+            setError(false);
+            audio.src = STATIONS[index].url;
+            try {
+                await audio.play();
+                setIsPlaying(true);
+            } catch (e) {
+                console.error("Play failed", e);
+                setIsPlaying(false);
+            }
+        }
+    };
 
     const togglePlay = async () => {
         const audio = audioRef.current;
@@ -58,18 +87,15 @@ export default function SynthwaveRadio() {
         if (isPlaying) {
             audio.pause();
         } else {
+            // Initial Load
+            if (!audio.src) {
+                audio.src = STATIONS[stationIndex].url;
+            }
             try {
                 setIsLoading(true);
                 setError(false);
-
-                // Only set src if not already set to avoid reload
-                if (audio.src !== streamUrl) {
-                    audio.src = streamUrl;
-                }
-
                 await audio.play();
             } catch (err) {
-                // Ignore AbortError (happens if user spams click)
                 if (err.name !== 'AbortError') {
                     console.error("Playback failed:", err);
                     setError(true);
@@ -111,9 +137,23 @@ export default function SynthwaveRadio() {
                     <div style={{
                         display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'
                     }}>
-                        <span style={{ fontSize: '12px', letterSpacing: '1px', color: '#ff71ce', textShadow: '0 0 5px #ff71ce' }}>
-                            NIGHTRIDE FM
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                                onClick={() => changeStation((stationIndex - 1 + STATIONS.length) % STATIONS.length)}
+                                style={{ background: 'transparent', border: 'none', color: '#ff71ce', cursor: 'pointer', fontSize: '14px' }}
+                            >
+                                «
+                            </button>
+                            <span style={{ fontSize: '12px', letterSpacing: '1px', color: '#ff71ce', textShadow: '0 0 5px #ff71ce', minWidth: '100px', textAlign: 'center' }}>
+                                {STATIONS[stationIndex].name}
+                            </span>
+                            <button
+                                onClick={() => changeStation((stationIndex + 1) % STATIONS.length)}
+                                style={{ background: 'transparent', border: 'none', color: '#ff71ce', cursor: 'pointer', fontSize: '14px' }}
+                            >
+                                »
+                            </button>
+                        </div>
                         <div style={{
                             width: '8px', height: '8px', borderRadius: '50%',
                             background: isPlaying ? '#05ffa1' : (isLoading ? '#fcee0c' : '#555'),
@@ -123,7 +163,7 @@ export default function SynthwaveRadio() {
                     </div>
 
                     <div style={{ fontSize: '10px', color: '#888', marginBottom: '16px' }}>
-                        {isLoading ? 'BUFFERING SIGNAL...' : (isPlaying ? 'BROADCASTING LIVE' : 'OFFLINE')}
+                        {isLoading ? 'TUNING FREQUENCY...' : (isPlaying ? (STATIONS[stationIndex].url.includes('nightride') ? 'BROADCASTING LIVE' : 'SIGNAL LOCKED') : 'OFFLINE')}
                     </div>
 
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>

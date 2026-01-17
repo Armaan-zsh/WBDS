@@ -96,7 +96,6 @@ const GlobalGraph = forwardRef(({ letters, onNodeClick }, ref) => {
             }
         });
 
-        console.log(`GlobalGraph Nodes: ${nodes.length}`);
         return { nodes, links };
     }, [letters]);
 
@@ -108,7 +107,6 @@ const GlobalGraph = forwardRef(({ letters, onNodeClick }, ref) => {
                 height={dimensions.height}
                 graphData={graphData}
                 onNodeClick={(node) => {
-                    console.log('Node Clicked:', node);
                     if (onNodeClick && node.data) {
                         onNodeClick(node.data);
                     }
