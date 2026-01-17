@@ -469,32 +469,38 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
 
                 /* --- NEOVIM TERMINAL OVERRIDES --- */
                 :global([data-theme='neovim']) .composer-container {
-                    max-width: 480px !important;
+                    width: 500px !important;
+                    max-width: 500px !important;
+                    height: 500px !important;
                 }
 
                 :global([data-theme='neovim']) .composer-card {
-                    background: rgba(40, 40, 40, 0.95) !important; /* Gruvbox Dark Card */
-                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
-                    border: 1px solid rgba(235, 219, 178, 0.1) !important;
-                    border-radius: 12px !important;
+                    background: #1d2021 !important; /* Hard Gruvbox Background */
+                    box-shadow: 0 0 0 2px rgba(235, 219, 178, 0.4) !important; /* Visible Outline */
+                    border: 2px solid #ebdbb2 !important; /* High Contrast Border */
+                    border-radius: 0 !important; /* Strict Square Corners */
                     padding: 0 !important;
-                    backdrop-filter: blur(10px) !important;
                     display: flex;
                     flex-direction: column;
-                    overflow: hidden; /* integrated status bar */
-                    min-height: 400px; /* Standard Card Height */
+                    overflow: hidden;
+                    width: 500px !important;
+                    height: 500px !important;
+                    min-height: 500px !important;
+                    margin: 0 auto !important; /* Ensure centered */
                 }
 
                 :global([data-theme='neovim']) .letter-input {
                     font-family: 'Fira Code', monospace !important;
-                    font-size: 16px !important;
-                    line-height: 1.5 !important;
+                    font-size: 15px !important;
+                    line-height: 1.6 !important;
                     padding: 20px 20px !important;
-                    min-height: 350px !important;
                     width: 100% !important;
+                    height: 100% !important;
+                    min-height: 0 !important; /* Allow flex sizing */
                     border: none !important;
                     outline: none !important;
                     resize: none !important;
+                    flex-grow: 1;
                 }
 
                 /* Hide standard controls in Vim mode to force motions */
