@@ -14,7 +14,7 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                 activeElement.tagName === 'TEXTAREA' ||
                 activeElement.isContentEditable
             );
-            
+
             setIsKeyboardOpen(isInput);
         };
 
@@ -26,7 +26,7 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
         // Backup: Visual Viewport API for devices where focus might be tricky
         // If the viewport shrinks by more than 20%, it's likely the keyboard
         const handleResize = () => {
-             if (window.visualViewport) {
+            if (window.visualViewport) {
                 const heightRatio = window.visualViewport.height / window.screen.height;
                 if (heightRatio < 0.7) {
                     setIsKeyboardOpen(true);
@@ -34,7 +34,7 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                     // Only reset if we aren't focused on an input
                     setIsKeyboardOpen(false);
                 }
-             }
+            }
         };
 
         if (window.visualViewport) {
@@ -95,9 +95,13 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                     transition: all 0.3s ease;
                 }
 
-                .footer-links a:not(:last-child),
-                .footer-links .footer-settings-btn {
-                    margin-right: 18px; /* Even spacing between items */
+                .footer-links a:not(:last-child) {
+                    margin-right: 18px;
+                }
+                
+                /* Only add margin to settings if it's visible (mobile override) */
+                .footer-settings-btn {
+                    margin-right: 0;
                 }
 
                 .footer-links a:last-child {
@@ -145,12 +149,13 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                 }
 
                 .footer-settings-btn {
-                    display: none; /* GRID HIDE on Desktop */
+                    display: none !important; /* STRICTLY HIDE on Desktop */
                 }
 
                 @media (max-width: 768px) {
                     .footer-settings-btn {
-                        display: block; /* Show ONLY on mobile */
+                        display: block !important; /* Show ONLY on mobile */
+                        margin-right: 18px; /* Add margin back on mobile */
                         opacity: ${isSettingsOpen ? 1 : 0.7};
                         color: ${isSettingsOpen ? 'var(--text-primary, #fff)' : 'var(--text-secondary, #8e8e93)'};
                     }
