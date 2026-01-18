@@ -108,49 +108,71 @@ export default function LegalPage() {
             </div>
 
             <style jsx>{`
-                .legal-content,
-                .rules-content,
-                .credits-content {
-                    font-family: 'Courier Prime', 'Courier New', monospace;
-                    font-size: 16px; /* Increased from 14px */
-                    line-height: 1.8;
-                    color: #8e8e93;
-                }
-
-                .legal-content p,
-                .rules-content p,
-                .credits-content p {
-                    margin: 0 0 28px 0; /* Slightly more breathing room */
-                    color: #a1a1a6; /* Slightly brighter for readability */
-                }
-
-                /* ... existing styles ... */
-
                 .legal-page {
-                    height: 100vh; /* Fixed height to trigger scroll inside */
+                    height: 100vh;
                     width: 100vw;
                     background: #000000;
                     color: #f2f2f7;
-                    display: block; /* Changed from flex to block to allow natural scroll flow */
+                    display: block;
                     padding: 0;
-                    font-family: 'Courier Prime', 'Courier New', monospace;
-                    position: fixed; /* Fixed to cover screen */
+                    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+                    position: fixed;
                     top: 0;
                     left: 0;
                     z-index: 9999;
-                    overflow-y: auto; /* Enable scroll */
+                    overflow-y: auto;
                     -webkit-overflow-scrolling: touch;
                 }
 
                 .content-wrapper {
                     width: 100%;
                     max-width: 800px;
-                    margin: 0 auto; /* Center horizontally */
-                    padding: 80px 20px; /* Padding inside scrollable area */
+                    margin: 0 auto;
+                    padding: 80px 20px;
                     display: flex;
                     flex-direction: column;
                     gap: 60px;
                     animation: fadeIn 0.8s ease;
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                .main-title {
+                    font-size: 48px;
+                    font-weight: 800;
+                    color: #ffffff;
+                    letter-spacing: -1px; /* Tighter for headlines */
+                    margin-bottom: 10px;
+                    text-align: center;
+                    text-transform: uppercase;
+                }
+
+                .legal-section {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                }
+
+                .legal-section h2 {
+                    font-weight: 700;
+                    font-size: 20px;
+                    color: #ffffff;
+                    margin: 0;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .legal-content,
+                .rules-content,
+                .credits-content {
+                    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+                    font-size: 17px;
+                    line-height: 1.6;
+                    color: #a1a1a6;
+                    font-weight: 400;
                 }
 
                 .legal-content p:last-child,
