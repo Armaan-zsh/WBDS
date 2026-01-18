@@ -91,10 +91,8 @@ export default function SynthwaveRadio() {
         if (isPlaying) {
             audio.pause();
         } else {
-            // Initial Load or if source changed
             if (!audio.src || audio.src !== STATIONS[stationIndex].url) {
                 audio.src = STATIONS[stationIndex].url;
-                audio.load(); // Required by Firefox
             }
             try {
                 setIsLoading(true);
@@ -103,7 +101,7 @@ export default function SynthwaveRadio() {
             } catch (err) {
                 if (err.name !== 'AbortError') {
                     console.error("Playback failed:", err);
-                    setError(true);
+                    setError(err.message || 'PLAYBACK ERROR');
                 }
                 setIsLoading(false);
             }
@@ -130,6 +128,7 @@ export default function SynthwaveRadio() {
             <audio ref={audioRef} crossOrigin="anonymous" />
 
             {/* EXPANDED PLAYER */}
+            {/* Firefox Debug: Removed explicit load(), displaying error message */}
             {isExpanded && (
                 <div className="radio-expanded-player" style={{
                     background: 'rgba(5, 0, 10, 0.9)',
@@ -170,8 +169,8 @@ export default function SynthwaveRadio() {
                         }}></div>
                     </div>
 
-                    <div style={{ fontSize: '10px', color: error ? '#ff453a' : '#888', marginBottom: '16px' }}>
-                        {error ? 'CONNECTION LOST' : isLoading ? 'TUNING FREQUENCY...' : (isPlaying ? 'BROADCASTING LIVE' : 'OFFLINE')}
+                    <div style={{ fontSize: '10px', color: error ? '#ff453a' : '#888', marginBottom: '16px', textTransform: 'uppercase' }}>
+                        {error ? (typeof error === 'string' ? error : 'CONNECTION ERR') : isLoading ? 'TUNING FREQUENCY...' : (isPlaying ? 'BROADCASTING LIVE' : 'OFFLINE')}
                     </div>
 
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
