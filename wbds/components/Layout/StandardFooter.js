@@ -1,4 +1,58 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+
 export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
+    const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+    useEffect(() => {
+        // Function to check if an input element is focused
+        const handleFocusChange = () => {
+            const activeElement = document.activeElement;
+            const isInput = activeElement && (
+                activeElement.tagName === 'INPUT' ||
+                activeElement.tagName === 'TEXTAREA' ||
+                activeElement.isContentEditable
+            );
+            
+            setIsKeyboardOpen(isInput);
+        };
+
+        // Listen for focus and blur events globally
+        // 'focusin' and 'focusout' bubble, while 'focus' and 'blur' do not
+        window.addEventListener('focusin', handleFocusChange);
+        window.addEventListener('focusout', handleFocusChange);
+
+        // Backup: Visual Viewport API for devices where focus might be tricky
+        // If the viewport shrinks by more than 20%, it's likely the keyboard
+        const handleResize = () => {
+             if (window.visualViewport) {
+                const heightRatio = window.visualViewport.height / window.screen.height;
+                if (heightRatio < 0.7) {
+                    setIsKeyboardOpen(true);
+                } else if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+                    // Only reset if we aren't focused on an input
+                    setIsKeyboardOpen(false);
+                }
+             }
+        };
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleResize);
+        }
+
+        return () => {
+            window.removeEventListener('focusin', handleFocusChange);
+            window.removeEventListener('focusout', handleFocusChange);
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', handleResize);
+            }
+        };
+    }, []);
+
+    // If keyboard is open (user is typing), DO NOT RENDER the footer at all
+    if (isKeyboardOpen) return null;
+
     return (
         <footer className="std-footer">
             <div className="footer-links">
@@ -20,9 +74,10 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    z-index: 10000; /* High z-index to stay above content */
+                    z-index: 10000;
                     pointer-events: none; /* Let clicks pass through empty areas */
                     touch-action: none; /* Prevent scrolling on footer */
+                    transition: opacity 0.2s ease; /* Smooth fade out if state changes */
                 }
 
                 .footer-links {
@@ -90,18 +145,16 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                 }
 
                 .footer-settings-btn {
-                    display: none !important; /* STRICTLY HIDE on Desktop */
+                    display: none; /* GRID HIDE on Desktop */
                 }
 
                 @media (max-width: 768px) {
                     .footer-settings-btn {
-                        display: block !important; /* Show ONLY on mobile */
+                        display: block; /* Show ONLY on mobile */
                         opacity: ${isSettingsOpen ? 1 : 0.7};
                         color: ${isSettingsOpen ? 'var(--text-primary, #fff)' : 'var(--text-secondary, #8e8e93)'};
                     }
-                }
 
-                @media (max-width: 768px) {
                     .std-footer {
                         position: fixed; /* anchor to bottom */
                         width: 100%;
@@ -111,13 +164,11 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                         pointer-events: none; /* Let clicks pass through container */
                     }
                     .footer-links {
-                        background: transparent !important; /* removed container background */
-                        border: none !important;
-                        backdrop-filter: none !important;
-                        -webkit-backdrop-filter: none !important;
-                        box-shadow: none !important;
-                        padding: 0 !important;
-                        gap: 0; 
+                        background: transparent;
+                        border: none;
+                        backdrop-filter: none;
+                        padding: 0;
+                        gap: 0; /* Remove gap, use margin instead */
                         pointer-events: auto; /* Enable links */
                     }
 
@@ -132,7 +183,7 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                     a, .footer-settings-btn {
                         font-family: var(--font-mono); /* Tech feel */
                         font-size: 10px;
-                        opacity: 0.8; /* Increased opacity for legibility without background */
+                        opacity: 0.4;
                         letter-spacing: 1px;
                         padding: 10px; /* Touch target */
                         display: flex;
@@ -141,17 +192,10 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                         line-height: 1;
                         margin: 0;
                         height: auto;
-                        text-shadow: 0 1px 4px rgba(0,0,0,0.8); /* Shadow for legibility */
                     }
 
                     .footer-settings-btn {
-                        opacity: ${isSettingsOpen ? 1 : 0.8};
-                    }
-                }
-
-                @media (max-height: 500px) {
-                    .std-footer {
-                        display: none !important; /* Hide when keyboard is open */
+                        opacity: ${isSettingsOpen ? 0.7 : 0.4};
                     }
                 }
             `}</style>
