@@ -103,16 +103,16 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
                 aria-label="Toggle Settings"
             >
                 {isOpen ? (
-                    /* Open State: Show Push Left (Close) Icon */
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="11 17 6 12 11 7"></polyline>
-                        <polyline points="18 17 13 12 18 7"></polyline>
-                    </svg>
-                ) : (
-                    /* Closed State: Show Pull Right (Open) Icon */
+                    /* Open State: Point Away from panel */
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="13 17 18 12 13 7"></polyline>
                         <polyline points="6 17 11 12 6 7"></polyline>
+                    </svg>
+                ) : (
+                    /* Closed State: Point Towards edge */
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="11 17 6 12 11 7"></polyline>
+                        <polyline points="18 17 13 12 18 7"></polyline>
                     </svg>
                 )}
             </button>
@@ -413,10 +413,10 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             left: 0;
             top: 0;
             height: 100vh;
-            width: 400px; /* More room for floating elements */
+            width: 400px;
             z-index: 5000;
-            /* Completely hide the 280px panel + border (282px) */
-            transform: translateX(-285px); 
+            /* Using a larger number to ensure complete concealment (290px) */
+            transform: translateX(-290px); 
             transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             display: flex;
             align-items: center;
@@ -453,7 +453,7 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
         /* Floating Toggle Button (Hanging outside) */
         .sidebar-toggle {
             position: absolute;
-            left: 310px; /* 30px gap from the 280px panel */
+            left: 290px; /* Much closer (only 10px gap from the 280px panel) */
             top: 50%;
             transform: translateY(-50%);
             background: transparent !important;
