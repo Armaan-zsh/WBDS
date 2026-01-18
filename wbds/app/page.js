@@ -347,6 +347,32 @@ export default function Home() {
         }, 10);
     };
 
+    const handleReport = async (letterId) => {
+        const reason = prompt('Why are you reporting this letter?\n1. Contains personal information\n2. Harassment or hate speech\n3. Spam or abuse\n4. Illegal content\n\nEnter reason (1-4) or description:');
+        if (!reason) return;
+
+        try {
+            // Send report to backend (implement API endpoint)
+            const res = await fetch('/api/letters/report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ letterId, reason })
+            });
+
+            if (res.ok) {
+                setNotification({ message: 'Report submitted. Thank you for keeping WBDS safe.', type: 'success' });
+            } else {
+                setNotification({ message: 'Failed to submit report. Please try again.', type: 'error' });
+            }
+        } catch (err) {
+            // Fallback: store locally
+            const reports = JSON.parse(localStorage.getItem('wbds_reports') || '[]');
+            reports.push({ letterId, reason, timestamp: Date.now() });
+            localStorage.setItem('wbds_reports', JSON.stringify(reports));
+            setNotification({ message: 'Report recorded. Thank you.', type: 'success' });
+        }
+    };
+
     const handleLike = async (letterId) => {
         // Optimistic UI Update
         const isLiked = likedLetters.has(letterId);
@@ -809,6 +835,7 @@ export default function Home() {
                             onDelete={setDeleteTargetId}
                             onLike={handleLike}
                             likedLetters={likedLetters}
+                            onReport={handleReport}
                         />
                     </div>
                 )}

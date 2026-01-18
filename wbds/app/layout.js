@@ -1,5 +1,6 @@
 import './globals.css';
 import SynthwaveRadio from '../components/Layout/SynthwaveRadio';
+import AntiScrapingWrapper from '../components/Security/AntiScrapingWrapper';
 
 export const metadata = {
     title: 'WBDS',
@@ -17,10 +18,12 @@ export default function RootLayout({ children }) {
                 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
             </head>
             <body>
-                <main className="viewport">
-                    {children}
-                </main>
-                <SynthwaveRadio />
+                <AntiScrapingWrapper>
+                    <main className="viewport">
+                        {children}
+                    </main>
+                    <SynthwaveRadio />
+                </AntiScrapingWrapper>
             </body>
         </html>
     );

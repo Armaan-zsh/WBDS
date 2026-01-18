@@ -1,7 +1,7 @@
 'use client';
 import ReactMarkdown from 'react-markdown';
 
-export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onLike, likedLetters }) {
+export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onLike, likedLetters, onReport }) {
     if (!letters || letters.length === 0) {
         return (
             <div className="empty-state">
@@ -173,6 +173,53 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
             transform: scale(1.1);
         }
 
+        .report-btn {
+            position: absolute;
+            top: 15px;
+            right: 55px;
+            background: rgba(255, 152, 0, 0.1);
+            color: #ff9800;
+            border: 1px solid #ff9800;
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+          .report-btn {
+            opacity: 0.6;
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            min-height: 36px;
+            top: 12px;
+            right: 50px;
+          }
+        }
+        
+        @media (hover: hover) {
+          .letter-card:hover .report-btn {
+            opacity: 1;
+          }
+        }
+        
+        .report-btn:hover {
+            background: #ff9800;
+            color: white;
+            transform: scale(1.1);
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -308,6 +355,14 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
 
             {letters.map((letter) => (
                 <div key={letter.id} className="letter-card" onClick={() => onOpen && onOpen(letter)}>
+                    {/* Report button - visible for all letters except own */}
+                    {onReport && (!myLetterIds || !myLetterIds.has(letter.id)) && (
+                        <button
+                            className="report-btn"
+                            onClick={(e) => { e.stopPropagation(); onReport(letter.id); }}
+                            title="Report inappropriate content"
+                        >⚠</button>
+                    )}
                     {myLetterIds && myLetterIds.has(letter.id) && (
                         <button
                             className="delete-btn"

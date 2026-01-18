@@ -14,6 +14,8 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
     const [status, setStatus] = useState('IDLE'); // IDLE, SENDING, BURNING
     const [unlockAt, setUnlockAt] = useState(null);
     const [isVerified, setIsVerified] = useState(false);
+    const [doxWarning, setDoxWarning] = useState(null);
+    const MAX_CHARS = 5000; // Maximum character limit
 
     // Vim State
     const [vimMode, setVimMode] = useState('INSERT'); // INSERT or NORMAL
@@ -29,8 +31,38 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         }
     }, [text]);
 
+    // Real-time doxxing detection
+    useEffect(() => {
+        if (!text.trim()) {
+            setDoxWarning(null);
+            return;
+        }
+
+        const doxRisk = detectPotentialDox(text);
+        if (doxRisk.isRisky) {
+            let warningMessage = 'Privacy Warning: ';
+            if (doxRisk.risks && doxRisk.risks.length > 0) {
+                warningMessage += 'Detected sensitive information: ' + doxRisk.risks.join(', ') + '. ';
+            }
+            if (doxRisk.warnings && doxRisk.warnings.length > 0) {
+                warningMessage += 'You mentioned personal details. ';
+            }
+            warningMessage += 'Are you sure this is completely anonymous?';
+            setDoxWarning(warningMessage);
+        } else {
+            setDoxWarning(null);
+        }
+    }, [text]);
+
     const handleSend = () => {
         if (!text.trim()) return;
+
+        // 0. Check character limit
+        if (text.length > MAX_CHARS) {
+            triggerShake();
+            if (onError) onError(`Letter too long. Maximum ${MAX_CHARS} characters.`);
+            return;
+        }
 
         // 1. Check Links
         if (containsLinkPattern(text)) {
@@ -46,13 +78,24 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             return;
         }
 
-        // 3. Check Doxxing Risk
+        // 3. Check Doxxing Risk - Enhanced warning
         const doxRisk = detectPotentialDox(text);
         if (doxRisk.isRisky) {
-            const confirm = window.confirm("Privacy Warning: You mentioned real names or locations. Are you sure this is anonymous?");
+            let warningMsg = 'Privacy Warning:\n\n';
+            if (doxRisk.risks && doxRisk.risks.length > 0) {
+                warningMsg += '🚨 CRITICAL: Detected sensitive information: ' + doxRisk.risks.join(', ') + '\n\n';
+            }
+            if (doxRisk.warnings && doxRisk.warnings.length > 0) {
+                warningMsg += '⚠️ You mentioned personal details that could identify you.\n\n';
+            }
+            warningMsg += 'This will be permanently stored and visible to others.\n';
+            warningMsg += 'Are you absolutely sure this is anonymous and safe to share?';
+            
+            const confirm = window.confirm(warningMsg);
             if (!confirm) return;
         }
 
+        // 4. Final sanitization
         const safeText = maskPrivateInfo(text);
 
         playSendSound(); // WHOOSH
@@ -62,6 +105,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             onSend(safeText, unlockAt, replyTo?.id);
             setText('');
             setUnlockAt(null);
+            setDoxWarning(null);
             setStatus('IDLE');
         }, 1500);
     };
@@ -289,6 +333,38 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             opacity: 0.6;
         }
 
+        .char-count {
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            margin-right: 8px;
+        }
+
+        .char-count.warning {
+            color: #ff9f00;
+        }
+
+        .char-count.error {
+            color: var(--accent-danger);
+            font-weight: bold;
+        }
+
+        .dox-warning {
+            background: rgba(255, 69, 58, 0.1);
+            border: 1px solid var(--accent-danger);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: var(--accent-danger);
+            line-height: 1.5;
+        }
+
+        .dox-warning strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
         .btn-icon {
             background: transparent;
             border: 1px solid var(--glass-border);
@@ -361,12 +437,23 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     </div>
                 )}
 
+                {doxWarning && (
+                    <div className="dox-warning">
+                        <strong>⚠️ Privacy Warning</strong>
+                        {doxWarning}
+                    </div>
+                )}
+
                 <textarea
                     ref={textareaRef}
                     className={`letter-input ${errorShake ? 'animate-shake' : ''}`}
                     placeholder={replyTo ? "Continue the thought..." : "Dear..."}
                     value={text}
-                    onChange={(e) => setText(e.target.value)}
+                    onChange={(e) => {
+                        if (e.target.value.length <= MAX_CHARS) {
+                            setText(e.target.value);
+                        }
+                    }}
                     onFocus={() => { setIsFocused(true); if (onFocusChange) onFocusChange(true); }}
                     onBlur={() => { setIsFocused(false); if (onFocusChange) onFocusChange(false); }}
                     onPaste={handlePaste}
@@ -375,6 +462,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     spellCheck={false}
                     autoCorrect="off"
                     autoCapitalize="none"
+                    maxLength={MAX_CHARS}
                 />
 
                 <TurnstileWidget onVerify={(token) => setIsVerified(true)} />
@@ -419,7 +507,10 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                         )}
                     </div>
 
-                    <span className="helper-text">{text.length} chars</span>
+                    <span className={`char-count ${text.length > MAX_CHARS * 0.9 ? 'warning' : ''} ${text.length >= MAX_CHARS ? 'error' : ''}`}>
+                        {text.length} / {MAX_CHARS}
+                    </span>
+                    <span className="helper-text">{text.length === 0 ? 'Write what you think' : `${text.length} characters`}</span>
                     <button className="btn-action btn-danger" onClick={handleBurn}>
                         {status === 'BURNING' ? '🔥' : 'Burn'}
                     </button>
