@@ -413,10 +413,10 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             left: 0;
             top: 0;
             height: 100vh;
-            width: 400px;
+            width: 450px; /* Wider wrapper for offset */
             z-index: 5000;
-            /* Using a larger number to ensure complete concealment (290px) */
-            transform: translateX(-290px); 
+            /* Fully hide: 280px panel + 40px offset + buffer = 340px */
+            transform: translateX(-340px); 
             transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             display: flex;
             align-items: center;
@@ -442,8 +442,8 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             flex-direction: column;
             gap: 32px;
             position: absolute;
-            left: 0;
-            border-radius: 0 24px 24px 0;
+            left: 40px; /* Gap from the left screen edge */
+            border-radius: 24px; /* Full rounded corners now that it floats */
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             backdrop-filter: blur(20px);
             scrollbar-width: none;
@@ -453,7 +453,7 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
         /* Floating Toggle Button (Hanging outside) */
         .sidebar-toggle {
             position: absolute;
-            left: 290px; /* Much closer (only 10px gap from the 280px panel) */
+            left: 380px; /* Increased gap: 280px panel + 40px offset + 60px gap */
             top: 50%;
             transform: translateY(-50%);
             background: transparent !important;
