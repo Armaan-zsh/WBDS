@@ -453,7 +453,7 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
         /* Floating Toggle Button (Hanging outside) */
         .sidebar-toggle {
             position: absolute;
-            left: 380px; /* Increased gap: 280px panel + 40px offset + 60px gap */
+            left: 370px; /* 50px gap: 280px panel + 40px offset + 50px gap */
             top: 50%;
             transform: translateY(-50%);
             background: transparent !important;
