@@ -466,7 +466,7 @@ export default function Home() {
                 transition: 'opacity 0.8s ease-out',
                 opacity: showSplash ? 1 : 0
             }}>
-                <img src="/splash-logo.png" alt="WB SD" style={{ width: '120px', height: 'auto' }} />
+                <img src="/splash-logo.png?v=3" alt="WB SD" style={{ width: '180px', height: 'auto' }} />
             </div>
 
             {view !== 'chain' && currentTheme !== 'notepad' && currentTheme !== 'neovim' && <GalaxyBackground />}
