@@ -169,12 +169,17 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                         pointer-events: none; /* Let clicks pass through container */
                     }
                     .footer-links {
-                        background: transparent;
-                        border: none;
+                        background: transparent !important;
+                        border: none !important;
                         backdrop-filter: none;
                         padding: 0;
                         gap: 0; /* Remove gap, use margin instead */
                         pointer-events: auto; /* Enable links */
+                    }
+
+                    .footer-links:hover {
+                        background: transparent !important;
+                        border: none !important;
                     }
 
                     .footer-links a:not(:last-child),
