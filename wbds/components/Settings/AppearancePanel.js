@@ -103,14 +103,16 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
                 aria-label="Toggle Settings"
             >
                 {isOpen ? (
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="13 17 18 12 13 7"></polyline>
-                        <polyline points="6 17 11 12 6 7"></polyline>
-                    </svg>
-                ) : (
+                    /* Open State: Show Push Left (Close) Icon */
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="11 17 6 12 11 7"></polyline>
                         <polyline points="18 17 13 12 18 7"></polyline>
+                    </svg>
+                ) : (
+                    /* Closed State: Show Pull Right (Open) Icon */
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="13 17 18 12 13 7"></polyline>
+                        <polyline points="6 17 11 12 6 7"></polyline>
                     </svg>
                 )}
             </button>
@@ -411,10 +413,10 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             left: 0;
             top: 0;
             height: 100vh;
-            width: 320px; /* Base width */
+            width: 400px; /* More room for floating elements */
             z-index: 5000;
-            /* When CLOSED (-100%), move exactly enough to hide panel but leave toggle showing */
-            transform: translateX(-280px); 
+            /* Completely hide the 280px panel + border (282px) */
+            transform: translateX(-285px); 
             transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             display: flex;
             align-items: center;
@@ -423,12 +425,13 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
         }
         
         .panel-wrapper.open {
-            transform: translateX(0); /* Fully show */
+            transform: translateX(0);
             pointer-events: auto;
         }
 
         .panel-container {
             width: 280px;
+            box-sizing: border-box;
             padding: 32px 24px;
             background: var(--bg-surface);
             border: 1px solid var(--glass-border);
@@ -439,8 +442,8 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             flex-direction: column;
             gap: 32px;
             position: absolute;
-            left: 0; /* Align to left of wrapper */
-            border-radius: 0 24px 24px 0; /* Only right corners rounded */
+            left: 0;
+            border-radius: 0 24px 24px 0;
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             backdrop-filter: blur(20px);
             scrollbar-width: none;
@@ -450,7 +453,7 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
         /* Floating Toggle Button (Hanging outside) */
         .sidebar-toggle {
             position: absolute;
-            left: 360px; /* Shifted even further outside (280px panel + 80px gap) */
+            left: 310px; /* 30px gap from the 280px panel */
             top: 50%;
             transform: translateY(-50%);
             background: transparent !important;
