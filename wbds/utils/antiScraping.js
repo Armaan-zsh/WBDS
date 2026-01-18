@@ -1,20 +1,45 @@
 /**
  * antiScraping.js
- * Protects content from being copied, scraped, or extracted.
+ * Protects content from being copy-pasted, scraped, or extracted.
  */
+
+let styleElement = null;
+let listeners = [];
+
+function addListener(type, handler) {
+    if (typeof document !== 'undefined') {
+        document.addEventListener(type, handler);
+        listeners.push({ type, handler });
+    }
+}
+
+function removeListeners() {
+    if (typeof document !== 'undefined') {
+        listeners.forEach(({ type, handler }) => {
+            document.removeEventListener(type, handler);
+        });
+        listeners = [];
+    }
+}
 
 /**
  * Disables common copy methods and adds protection layers
+ * Returns a cleanup function
  */
 export function enableAntiScraping() {
-    // Disable right-click context menu
-    document.addEventListener('contextmenu', (e) => {
+    if (typeof document === 'undefined') return () => { };
+
+    // Prevent double-binding
+    removeListeners();
+
+    // 1. Disable Right Click
+    addListener('contextmenu', (e) => {
         e.preventDefault();
         return false;
     });
 
-    // Disable common keyboard shortcuts for copy/cut/paste/select all
-    document.addEventListener('keydown', (e) => {
+    // 2. Disable Keyboard Shortcuts
+    addListener('keydown', (e) => {
         // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U (DevTools shortcuts)
         if (
             e.key === 'F12' ||
@@ -26,159 +51,85 @@ export function enableAntiScraping() {
             return false;
         }
 
-        // Allow Ctrl+C/V in input fields, but prevent on body/content
+        // Allow Ctrl+C/V in input fields
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            return; // Allow normal copy/paste in inputs
+            return;
         }
 
-        // Prevent Ctrl+A (Select All), Ctrl+C (Copy), Ctrl+X (Cut)
+        // Prevent Ctrl+A, Ctrl+C, Ctrl+X
         if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'x'].includes(e.key.toLowerCase())) {
             e.preventDefault();
             return false;
         }
     });
 
-    // Disable text selection on non-input elements
-    document.addEventListener('selectstart', (e) => {
+    // 3. Disable Selection
+    addListener('selectstart', (e) => {
         if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
             e.preventDefault();
             return false;
         }
     });
 
-    // Disable drag
-    document.addEventListener('dragstart', (e) => {
+    // 4. Disable Drag
+    addListener('dragstart', (e) => {
         if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
             e.preventDefault();
             return false;
         }
     });
 
-    // Add watermark overlay on copy attempts (even if prevented)
-    document.addEventListener('copy', (e) => {
-        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-            e.preventDefault();
-            const watermark = '\n\n--- WBDS --- Anonymous Letters --- Do not copy ---\n';
-            e.clipboardData.setData('text/plain', watermark);
-            showCopyWarning();
-        }
-    });
+    // 5. Apply Styles
+    if (!document.getElementById('wbds-anti-scraping')) {
+        styleElement = document.createElement('style');
+        styleElement.id = 'wbds-anti-scraping';
+        styleElement.textContent = `
+            body, .letter-content, .letter-card, .modal-content {
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                -webkit-touch-callout: none;
+            }
 
-    // Blur content when DevTools is opened (basic detection)
-    let devtools = { open: false };
-    const element = new Image();
-    Object.defineProperty(element, 'id', {
-        get: function() {
-            devtools.open = true;
-            blurContent();
-            clearInterval(checkDevTools);
-        }
-    });
+            /* Allow selection in inputs and textareas */
+            input, textarea, .letter-input, .composer-card textarea {
+                -webkit-user-select: text !important;
+                -moz-user-select: text !important;
+                -ms-user-select: text !important;
+                user-select: text !important;
+            }
+            
+            /* Prevent image dragging */
+            img {
+                -webkit-user-drag: none;
+                user-drag: none;
+                pointer-events: none;
+            }
+        `;
+        document.head.appendChild(styleElement);
+    }
 
-    const checkDevTools = setInterval(() => {
-        devtools.open = false;
-        console.clear();
-        console.log(element);
-        console.clear();
-        if (!devtools.open) {
-            unblurContent();
-        }
-    }, 1000);
+    return disableAntiScraping;
 }
 
 /**
- * Apply CSS to prevent selection and copying
+ * Removes all protections (e.g., for Legal page)
  */
+export function disableAntiScraping() {
+    removeListeners();
+    if (typeof document !== 'undefined') {
+        const style = document.getElementById('wbds-anti-scraping');
+        if (style) {
+            style.remove();
+        }
+        // Force re-enable selection
+        document.body.style.userSelect = 'text';
+        document.body.style.webkitUserSelect = 'text';
+    }
+}
+
+// Keep explicit export for backward compatibility if needed, though mostly handled by enable
 export function applyAntiScrapingStyles() {
-    const style = document.createElement('style');
-    style.id = 'wbds-anti-scraping';
-    style.textContent = `
-        /* Disable text selection on content */
-        body, .letter-content, .letter-card, .modal-content {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-        }
-
-        /* Allow selection in inputs and textareas */
-        input, textarea, .letter-input, .composer-card textarea {
-            -webkit-user-select: text !important;
-            -moz-user-select: text !important;
-            -ms-user-select: text !important;
-            user-select: text !important;
-        }
-
-        /* Disable copy cursor */
-        body {
-            cursor: default !important;
-        }
-
-        /* Add invisible watermark layer */
-        .letter-content::after {
-            content: 'WBDS';
-            position: absolute;
-            opacity: 0.01;
-            pointer-events: none;
-            font-size: 1px;
-            color: transparent;
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-/**
- * Blur content when DevTools detected
- */
-function blurContent() {
-    document.body.style.filter = 'blur(5px)';
-    document.body.style.transition = 'filter 0.3s';
-}
-
-/**
- * Unblur content
- */
-function unblurContent() {
-    document.body.style.filter = 'none';
-}
-
-/**
- * Show warning when copy attempt detected
- */
-function showCopyWarning() {
-    const warning = document.createElement('div');
-    warning.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: rgba(255, 0, 0, 0.9);
-        color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
-        z-index: 999999;
-        font-weight: bold;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    `;
-    warning.textContent = 'Content is protected. Copying is not allowed.';
-    document.body.appendChild(warning);
-    setTimeout(() => warning.remove(), 3000);
-}
-
-/**
- * Obfuscate text content (makes scraping harder)
- */
-export function obfuscateText(element) {
-    if (!element) return;
-    
-    const text = element.textContent;
-    const obfuscated = text.split('').map(char => {
-        // Add zero-width spaces randomly (invisible but breaks scraping)
-        if (Math.random() > 0.95) {
-            return char + '\u200B'; // Zero-width space
-        }
-        return char;
-    }).join('');
-    
-    element.textContent = obfuscated;
+    // This is now handled inside enableAntiScraping, but keeping empty to prevent breakages if called elsewhere
 }
