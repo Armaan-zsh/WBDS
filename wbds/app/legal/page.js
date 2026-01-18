@@ -109,14 +109,13 @@ export default function LegalPage() {
 
             <style jsx>{`
                 .legal-page {
-                    min-height: 100vh;
-                    height: auto;
+                    height: 100dvh; /* Enforce viewport height */
                     width: 100vw;
                     background: #000000;
                     color: #f2f2f7;
                     display: block;
                     padding: 0;
-                    padding-bottom: 150px; /* Extra space for fixed footer */
+                    padding-bottom: 0;
                     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
                     position: fixed;
                     top: 0;

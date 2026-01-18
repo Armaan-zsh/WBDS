@@ -179,7 +179,7 @@ export default function ReportPage() {
 
             <style jsx>{`
                 .report-page {
-                    min-height: 100vh;
+                    height: 100dvh; /* Enforce viewport height for scroll */
                     width: 100vw;
                     background: #000000;
                     color: #fff;
@@ -187,7 +187,7 @@ export default function ReportPage() {
                     justify-content: center;
                     align-items: flex-start;
                     padding: 20px;
-                    padding-bottom: 150px; /* Extra space for fixed footer */
+                    padding-bottom: 100px;
                     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
                     position: fixed;
                     top: 0;

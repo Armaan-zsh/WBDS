@@ -3,7 +3,7 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
         <footer className="std-footer">
             <div className="footer-links">
                 <a href="/report">REPORT A BUG</a>
-                <button 
+                <button
                     className="footer-settings-btn"
                     onClick={onSettingsClick}
                 >
@@ -90,18 +90,18 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                 }
 
                 .footer-settings-btn {
-                    display: none; /* Hidden on desktop */
+                    display: none; /* GRID HIDE on Desktop */
                 }
 
                 @media (max-width: 768px) {
                     .footer-settings-btn {
-                        display: block; /* Show on mobile */
+                        display: block; /* Show ONLY on mobile */
                         opacity: ${isSettingsOpen ? 1 : 0.7};
                         color: ${isSettingsOpen ? 'var(--text-primary, #fff)' : 'var(--text-secondary, #8e8e93)'};
                     }
                 }
 
-                @media (max-width: 600px) {
+                @media (max-width: 768px) {
                     .std-footer {
                         position: fixed; /* anchor to bottom */
                         width: 100%;
@@ -109,7 +109,6 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                         left: 0;
                         margin: 0;
                         pointer-events: none; /* Let clicks pass through container */
-                        touch-action: none; /* Prevent scrolling on footer */
                     }
                     .footer-links {
                         background: transparent;

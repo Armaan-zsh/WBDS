@@ -733,6 +733,11 @@ export default function Home() {
               box-sizing: border-box;
           }
 
+          @media (max-width: 768px) {
+            .toggle-btn {
+              display: none !important; /* Hide toggle on mobile, use Footer Settings instead */
+            }
+          }
           @media (max-width: 480px) {
             .modal-card {
               padding: 24px 20px;
@@ -906,7 +911,7 @@ export default function Home() {
 
             {/* FOOTER */}
             {(view !== 'chain') && (
-                <StandardFooter 
+                <StandardFooter
                     onSettingsClick={() => setIsSidebarOpen(!isSidebarOpen)}
                     isSettingsOpen={isSidebarOpen}
                 />
