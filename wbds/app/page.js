@@ -469,7 +469,8 @@ export default function Home() {
                 <img src="/splash-logo.png?v=3" alt="WB SD" style={{ width: '180px', height: 'auto' }} />
             </div>
 
-            {view !== 'chain' && currentTheme !== 'notepad' && currentTheme !== 'neovim' && <GalaxyBackground />}
+            {/* Only show Galaxy in Void theme or Chain view */}
+            {(view === 'chain' || currentTheme === 'void' || currentTheme === 'midnight' || currentTheme === 'synthwave') && <GalaxyBackground />}
             <VoidClock />
             <style jsx>{`
          .app-layout {
@@ -602,8 +603,8 @@ export default function Home() {
               top: 0;
               background: ${view === 'chain' || view === 'personal' ? '#000000' : 'var(--bg-depth)'};
               width: 100%;
-              gap: 12px;
-              padding-top: 10px;
+              gap: 16px; /* Increased gap */
+              padding-top: 14px; /* Increased top padding */
               padding-bottom: 20px;
               flex-wrap: nowrap; /* Keep on one line */
               overflow-x: auto; /* Scroll if absolutely needed */
@@ -616,6 +617,13 @@ export default function Home() {
             }
             /* Hide scrollbar */
             .nav-header::-webkit-scrollbar { display: none; }
+            
+            /* Increase header font size for mobile */
+            .nav-header :global(a), .nav-header :global(button) {
+                font-size: 14px !important; /* Bigger than default 12px/10px */
+                letter-spacing: 1px;
+                font-weight: 600;
+            }
           }
 
           @media (max-width: 480px) {
