@@ -91,9 +91,10 @@ export default function SynthwaveRadio() {
         if (isPlaying) {
             audio.pause();
         } else {
-            // Initial Load
-            if (!audio.src) {
+            // Initial Load or if source changed
+            if (!audio.src || audio.src !== STATIONS[stationIndex].url) {
                 audio.src = STATIONS[stationIndex].url;
+                audio.load(); // Required by Firefox
             }
             try {
                 setIsLoading(true);
@@ -122,10 +123,11 @@ export default function SynthwaveRadio() {
             pointerEvents: 'auto', // Force interaction
             filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.5))'
         }}
-        className="synthwave-radio-wrapper"
+            className="synthwave-radio-wrapper"
         >
             {/* HIDDEN AUDIO ELEMENT */}
-            <audio ref={audioRef} preload="none" />
+            {/* Firefox Fix: Remove preload="none", add crossOrigin */}
+            <audio ref={audioRef} crossOrigin="anonymous" />
 
             {/* EXPANDED PLAYER */}
             {isExpanded && (
@@ -162,14 +164,14 @@ export default function SynthwaveRadio() {
                         </div>
                         <div style={{
                             width: '8px', height: '8px', borderRadius: '50%',
-                            background: isPlaying ? '#05ffa1' : (isLoading ? '#fcee0c' : '#555'),
+                            background: isPlaying ? '#05ffa1' : (isLoading ? '#fcee0c' : (error ? '#ff0000' : '#555')),
                             boxShadow: isPlaying ? '0 0 10px #05ffa1' : 'none',
                             animation: isLoading ? 'pulse 1s infinite' : 'none'
                         }}></div>
                     </div>
 
-                    <div style={{ fontSize: '10px', color: '#888', marginBottom: '16px' }}>
-                        {isLoading ? 'TUNING FREQUENCY...' : (isPlaying ? (STATIONS[stationIndex].url.includes('nightride') ? 'BROADCASTING LIVE' : 'SIGNAL LOCKED') : 'OFFLINE')}
+                    <div style={{ fontSize: '10px', color: error ? '#ff453a' : '#888', marginBottom: '16px' }}>
+                        {error ? 'CONNECTION LOST' : isLoading ? 'TUNING FREQUENCY...' : (isPlaying ? 'BROADCASTING LIVE' : 'OFFLINE')}
                     </div>
 
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>

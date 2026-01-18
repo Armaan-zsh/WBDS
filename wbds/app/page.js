@@ -814,7 +814,7 @@ export default function Home() {
                     <span
                         className={`nav-item ${view === 'best' ? 'active' : ''}`}
                         onClick={() => setView('best')}
-                    >BEST</span>
+                    >BWBDS</span>
 
                     <span
                         className={`nav-item ${view === 'chain' ? 'active' : ''}`}
