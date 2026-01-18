@@ -90,12 +90,12 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                 }
 
                 .footer-settings-btn {
-                    display: none; /* GRID HIDE on Desktop */
+                    display: none !important; /* STRICTLY HIDE on Desktop */
                 }
 
                 @media (max-width: 768px) {
                     .footer-settings-btn {
-                        display: block; /* Show ONLY on mobile */
+                        display: block !important; /* Show ONLY on mobile */
                         opacity: ${isSettingsOpen ? 1 : 0.7};
                         color: ${isSettingsOpen ? 'var(--text-primary, #fff)' : 'var(--text-secondary, #8e8e93)'};
                     }
@@ -111,11 +111,13 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                         pointer-events: none; /* Let clicks pass through container */
                     }
                     .footer-links {
-                        background: transparent;
-                        border: none;
-                        backdrop-filter: none;
-                        padding: 0;
-                        gap: 0; /* Remove gap, use margin instead */
+                        background: transparent !important; /* removed container background */
+                        border: none !important;
+                        backdrop-filter: none !important;
+                        -webkit-backdrop-filter: none !important;
+                        box-shadow: none !important;
+                        padding: 0 !important;
+                        gap: 0; 
                         pointer-events: auto; /* Enable links */
                     }
 
@@ -130,7 +132,7 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                     a, .footer-settings-btn {
                         font-family: var(--font-mono); /* Tech feel */
                         font-size: 10px;
-                        opacity: 0.4;
+                        opacity: 0.8; /* Increased opacity for legibility without background */
                         letter-spacing: 1px;
                         padding: 10px; /* Touch target */
                         display: flex;
@@ -139,10 +141,17 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                         line-height: 1;
                         margin: 0;
                         height: auto;
+                        text-shadow: 0 1px 4px rgba(0,0,0,0.8); /* Shadow for legibility */
                     }
 
                     .footer-settings-btn {
-                        opacity: ${isSettingsOpen ? 0.7 : 0.4};
+                        opacity: ${isSettingsOpen ? 1 : 0.8};
+                    }
+                }
+
+                @media (max-height: 500px) {
+                    .std-footer {
+                        display: none !important; /* Hide when keyboard is open */
                     }
                 }
             `}</style>

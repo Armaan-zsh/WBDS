@@ -707,37 +707,6 @@ export default function Home() {
               z-index: 10;
           }
 
-          /* Modal Styles */
-          .modal-overlay {
-              position: fixed;
-              top: 0;
-              left: 0;
-              width: 100%;
-              height: 100%;
-              background: rgba(0, 0, 0, 0.7);
-              backdrop-filter: blur(5px);
-              z-index: 200;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-          }
-          .modal-card {
-              background: var(--bg-surface);
-              border: 1px solid var(--glass-border);
-              padding: 30px;
-              border-radius: 20px;
-              width: 90%;
-              max-width: 400px;
-              text-align: center;
-              box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-              box-sizing: border-box;
-          }
-
-          @media (max-width: 768px) {
-            .toggle-btn {
-              display: none !important; /* Hide toggle on mobile, use Footer Settings instead */
-            }
-          }
           @media (max-width: 480px) {
             .modal-card {
               padding: 24px 20px;
@@ -791,6 +760,15 @@ export default function Home() {
           .shake-anim {
               animation: shake 0.3s ease-out;
           }
+          .toggle-btn {
+              display: flex !important; /* Force flex on desktop */
+          }
+
+          @media (max-width: 768px) {
+              .toggle-btn {
+                  display: none !important; /* Hide toggle on mobile */
+              }
+          }
        `}</style>
 
             {/* Delete Confirmation Modal */}
@@ -824,11 +802,12 @@ export default function Home() {
                 onSubmit={(reason) => submitReport(reportModalOpen, reason)}
             />
 
-            {/* Sidebar (Overlay) */}
-            {/* Sidebar / Settings */}
-            <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`} ref={sidebarRef}>
-                <AppearancePanel onClose={() => setIsSidebarOpen(false)} />
-            </div>
+            {/* Settings Sidebar */}
+            <AppearancePanel
+                isOpen={isSidebarOpen}
+                onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+                onClose={() => setIsSidebarOpen(false)}
+            />
 
             <div className="main-content">
                 {/* Header */}

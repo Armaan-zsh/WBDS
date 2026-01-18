@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { setAudioProfile, playTypeSound, toggleAmbience, setAmbienceProfile } from '../../utils/audioEngine';
 
-export default function AppearancePanel({ onClose }) {
+export default function AppearancePanel({ onClose, isOpen, onToggle }) {
     const [theme, setTheme] = useState('void');
     const [font, setFont] = useState('serif');
     const [audioProfile, setLocalAudioProfile] = useState('mechanical');
@@ -95,7 +95,26 @@ export default function AppearancePanel({ onClose }) {
     };
 
     return (
-        <>
+        <div className={`panel-wrapper ${isOpen ? 'open' : ''}`}>
+            {/* Hanging Toggle Button */}
+            <button
+                className="sidebar-toggle"
+                onClick={onToggle}
+                aria-label="Toggle Settings"
+            >
+                {isOpen ? (
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="13 17 18 12 13 7"></polyline>
+                        <polyline points="6 17 11 12 6 7"></polyline>
+                    </svg>
+                ) : (
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="11 17 6 12 11 7"></polyline>
+                        <polyline points="18 17 13 12 18 7"></polyline>
+                    </svg>
+                )}
+            </button>
+
             <div className="panel-container">
 
 
@@ -387,6 +406,27 @@ export default function AppearancePanel({ onClose }) {
             )}
 
             <style jsx>{`
+        .panel-wrapper {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 320px; /* Base width */
+            z-index: 5000;
+            /* When CLOSED (-100%), move exactly enough to hide panel but leave toggle showing */
+            transform: translateX(-280px); 
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+            overflow: visible;
+        }
+        
+        .panel-wrapper.open {
+            transform: translateX(0); /* Fully show */
+            pointer-events: auto;
+        }
+
         .panel-container {
             width: 280px;
             padding: 32px 24px;
@@ -398,36 +438,63 @@ export default function AppearancePanel({ onClose }) {
             display: flex;
             flex-direction: column;
             gap: 32px;
-            position: fixed;
-            left: 40px; 
-            top: 50%;
-            transform: translateY(-50%);
-            border-radius: 24px;
+            position: absolute;
+            left: 0; /* Align to left of wrapper */
+            border-radius: 0 24px 24px 0; /* Only right corners rounded */
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             backdrop-filter: blur(20px);
-            z-index: 2010;
             scrollbar-width: none;
+            pointer-events: auto;
         }
-        
-        .panel-container::-webkit-scrollbar {
-            display: none;
+
+        /* Hanging Toggle Button (Attached to RIGHT of panel-container) */
+        .sidebar-toggle {
+            position: absolute;
+            left: 280px; /* Stick exactly to the right edge of container */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 64px;
+            background: #ffffff; /* Use high contrast background */
+            color: #000000; /* Contrast text */
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-left: none;
+            border-radius: 0 16px 16px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 5001;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.4);
+        }
+
+        .sidebar-toggle:hover {
+            background: #f2f2f7;
+            width: 50px;
         }
 
         @media (max-width: 768px) {
+          .panel-wrapper {
+            transform: none !important;
+            width: 100%;
+            pointer-events: none;
+            display: ${isOpen ? 'flex' : 'none'};
+            justify-content: center;
+          }
+          .sidebar-toggle {
+            display: none;
+          }
           .panel-container {
-            width: 280px; /* Keep it compact */
-            height: auto;
-            max-height: 60vh; /* Don't cover entire screen */
+            position: fixed;
+            width: 90%;
+            max-width: 320px;
             left: 50%;
             top: 50%;
-            transform: translate(-50%, -50%); /* Centered floating card */
-            border-radius: 20px; /* Rounded corners back */
-            padding: 24px 20px;
-            gap: 20px;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6); /* increased shadow */
-            border: 1px solid var(--glass-border);
+            transform: translate(-50%, -50%);
+            border-radius: 20px;
+            max-height: 80vh;
           }
         }
 
@@ -576,6 +643,6 @@ export default function AppearancePanel({ onClose }) {
                 }
             }
          `}</style>
-        </>
+        </div>
     );
 }

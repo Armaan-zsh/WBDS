@@ -107,29 +107,35 @@ export default function LegalPage() {
                 <a href="/" className="back-link">« Return to Void</a>
             </div>
 
-            .legal-page {
-                min - height: 100vh;
-            width: 100vw;
-            background: #000000;
-            color: #f2f2f7;
-            display: block;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
-            position: relative; /* Scrolls properly */
-            z-index: 9999;
-            box-sizing: border-box;
+            <style jsx>{`
+                .legal-page {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100vw;
+                    height: 100dvh;
+                    background: #000000;
+                    color: #f2f2f7;
+                    display: block;
+                    padding: 0;
+                    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+                    z-index: 20000;
+                    overflow-y: auto; /* Internal scroll */
+                    -webkit-overflow-scrolling: touch;
+                    box-sizing: border-box;
+                    overscroll-behavior: none; /* Prevent chain scrolling */
                 }
 
-            .content-wrapper {
-                width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 80px 20px;
-            padding-bottom: 150px; /* Extra space for fixed footer */
-            display: flex;
-            flex-direction: column;
-            gap: 60px;
-            animation: fadeIn 0.8s ease;
+                .content-wrapper {
+                    width: 100%;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    padding: 80px 20px;
+                    padding-bottom: 200px; /* ample space for footer */
+                    display: flex;
+                    flex-direction: column;
+                    gap: 60px;
+                    animation: fadeIn 0.8s ease;
                 }
 
             @keyframes fadeIn {
@@ -138,14 +144,14 @@ export default function LegalPage() {
                 }
 
             .main-title {
-                font - size: 48px;
-            font-weight: 800;
-            color: #ffffff;
-            letter-spacing: -1px; /* Tighter for headlines */
-            margin-bottom: 10px;
-            text-align: center;
-            text-transform: uppercase;
-                }
+                font-size: 48px;
+                font-weight: 800;
+                color: #ffffff;
+                letter-spacing: -1px; /* Tighter for headlines */
+                margin-bottom: 10px;
+                text-align: center;
+                text-transform: uppercase;
+            }
 
             .legal-section {
                 display: flex;
@@ -154,29 +160,29 @@ export default function LegalPage() {
                 }
 
             .legal-section h2 {
-                font - weight: 700;
-            font-size: 20px;
-            color: #ffffff;
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-                }
+                font-weight: 700;
+                font-size: 20px;
+                color: #ffffff;
+                margin: 0;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
 
             .legal-content,
             .rules-content,
             .credits-content {
-                font - family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
-            font-size: 17px;
-            line-height: 1.6;
-            color: #a1a1a6;
-            font-weight: 400;
-                }
+                font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+                font-size: 17px;
+                line-height: 1.6;
+                color: #a1a1a6;
+                font-weight: 400;
+            }
 
             .legal-content p:last-child,
             .rules-content p:last-child,
             .credits-content p:last-child {
-                margin - bottom: 0;
-                }
+                margin-bottom: 0;
+            }
 
             .legal-content p strong,
             .rules-content p strong,
@@ -188,10 +194,10 @@ export default function LegalPage() {
             .legal-content p em,
             .rules-content p em,
             .credits-content p em {
-                font - style: italic;
-            color: #8e8e93;
-            opacity: 0.9;
-                }
+                font-style: italic;
+                color: #8e8e93;
+                opacity: 0.9;
+            }
 
             .divider {
                 width: 100%;
@@ -201,14 +207,14 @@ export default function LegalPage() {
                 }
 
             .copyright {
-                font - family: 'Courier Prime', 'Courier New', monospace;
-            font-size: 10px;
-            color: #555555;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-align: center;
-            opacity: 0.6;
-                }
+                font-family: 'Courier Prime', 'Courier New', monospace;
+                font-size: 10px;
+                color: #555555;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                text-align: center;
+                opacity: 0.6;
+            }
 
             .back-link {
                 display: block;
@@ -228,22 +234,22 @@ export default function LegalPage() {
                 }
 
             @media (max-width: 768px) {
-                    .legal - page {
-                padding: 40px 16px;
-            padding-bottom: 180px; /* Extra space for footer on mobile */
-                    }
+                .legal-page {
+                    padding: 40px 16px;
+                    padding-bottom: 180px; /* Extra space for footer on mobile */
+                }
 
             .main-title {
-                font - size: 36px;
-            letter-spacing: 4px;
-                    }
+                font-size: 36px;
+                letter-spacing: 4px;
+            }
 
             .legal-content,
             .rules-content,
             .credits-content {
-                font - size: 13px;
-            line-height: 1.7;
-                    }
+                font-size: 13px;
+                line-height: 1.7;
+            }
 
             .content-wrapper {
                 gap: 40px;
