@@ -6,6 +6,7 @@ import LetterComposer from '../components/Editor/LetterComposer';
 import LetterFeed from '../components/Feed/LetterFeed';
 import VoidNotification from '../components/Layout/VoidNotification';
 import LetterModal from '../components/Feed/LetterModal';
+import ReportModal from '../components/Feed/ReportModal';
 import AppearancePanel from '../components/Settings/AppearancePanel';
 import VoidClock from '../components/Layout/VoidClock';
 import GalaxyBackground from '../components/Layout/GalaxyBackground';
@@ -26,6 +27,7 @@ export default function Home() {
     const [letters, setLetters] = useState([]);
     const [notification, setNotification] = useState(null);
     const [selectedLetter, setSelectedLetter] = useState(null);
+    const [reportModalOpen, setReportModalOpen] = useState(null); // ID of letter being reported
     const [isDesktop, setIsDesktop] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
@@ -347,10 +349,11 @@ export default function Home() {
         }, 10);
     };
 
-    const handleReport = async (letterId) => {
-        const reason = prompt('Why are you reporting this letter?\n1. Contains personal information\n2. Harassment or hate speech\n3. Spam or abuse\n4. Illegal content\n\nEnter reason (1-4) or description:');
-        if (!reason) return;
+    const handleReport = (letterId) => {
+        setReportModalOpen(letterId);
+    };
 
+    const submitReport = async (letterId, reason) => {
         try {
             // Send report to backend (implement API endpoint)
             const res = await fetch('/api/letters/report', {
@@ -362,10 +365,10 @@ export default function Home() {
             if (res.ok) {
                 setNotification({ message: 'Report submitted. Thank you for keeping WBDS safe.', type: 'success' });
             } else {
-                setNotification({ message: 'Failed to submit report. Please try again.', type: 'error' });
+                throw new Error('Failed to report');
             }
         } catch (err) {
-            // Fallback: store locally
+            // Fallback: store locally if API fails or doesn't exist
             const reports = JSON.parse(localStorage.getItem('wbds_reports') || '[]');
             reports.push({ letterId, reason, timestamp: Date.now() });
             localStorage.setItem('wbds_reports', JSON.stringify(reports));
@@ -767,6 +770,12 @@ export default function Home() {
             )}
 
 
+            {/* Report Modal */}
+            <ReportModal
+                isOpen={!!reportModalOpen}
+                onClose={() => setReportModalOpen(null)}
+                onSubmit={(reason) => submitReport(reportModalOpen, reason)}
+            />
 
             {/* Sidebar (Overlay) */}
             <div className="sidebar" ref={sidebarRef}>

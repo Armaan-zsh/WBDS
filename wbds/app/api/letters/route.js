@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../lib/supabase-admin';
 import { headers } from 'next/headers';
+import { maskPrivateInfo } from '../../../utils/privacyShield';
 
 export const dynamic = 'force-dynamic'; // No caching
 
@@ -19,6 +20,10 @@ export async function POST(req) {
         if (!content || !content.trim()) {
             return NextResponse.json({ error: 'Content required' }, { status: 400 });
         }
+
+        // SERVER-SIDE PRIVACY ENFORCEMENT
+        // Even if client-side check is bypassed, we redact known PII here.
+        const safeContent = maskPrivateInfo(content);
 
         // 1. Get IP
         const headersList = headers();
@@ -107,7 +112,7 @@ export async function POST(req) {
             .from('letters')
             .insert([
                 {
-                    content: body.content,
+                    content: safeContent, // Use filtered content
                     ip_address: ip,
                     theme: body.theme || 'void',
                     location_lat: lat,

@@ -7,6 +7,8 @@ import { maskPrivateInfo, detectPotentialDox } from '../../utils/privacyShield';
 import { playTypeSound, playSendSound } from '../../utils/audioEngine';
 import TurnstileWidget from '../Security/TurnstileWidget';
 
+import PrivacyWarningModal from './PrivacyWarningModal';
+
 export default function LetterComposer({ onSend, onError, onFocusChange, replyTo }) {
     const [text, setText] = useState('');
     const [isFocused, setIsFocused] = useState(false);
@@ -15,6 +17,9 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
     const [unlockAt, setUnlockAt] = useState(null);
     const [isVerified, setIsVerified] = useState(false);
     const [doxWarning, setDoxWarning] = useState(null);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+    const [detectedRisks, setDetectedRisks] = useState({ risks: [], warnings: [] });
+
     const MAX_CHARS = 5000; // Maximum character limit
 
     // Vim State
@@ -42,19 +47,18 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         if (doxRisk.isRisky) {
             let warningMessage = 'Privacy Warning: ';
             if (doxRisk.risks && doxRisk.risks.length > 0) {
-                warningMessage += 'Detected sensitive information: ' + doxRisk.risks.join(', ') + '. ';
+                warningMessage += 'Detected: ' + doxRisk.risks.join(', ') + '. ';
             }
             if (doxRisk.warnings && doxRisk.warnings.length > 0) {
-                warningMessage += 'You mentioned personal details. ';
+                warningMessage += 'Potential personal details. ';
             }
-            warningMessage += 'Are you sure this is completely anonymous?';
             setDoxWarning(warningMessage);
         } else {
             setDoxWarning(null);
         }
     }, [text]);
 
-    const handleSend = () => {
+    const handlePreSend = () => {
         if (!text.trim()) return;
 
         // 0. Check character limit
@@ -81,19 +85,17 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         // 3. Check Doxxing Risk - Enhanced warning
         const doxRisk = detectPotentialDox(text);
         if (doxRisk.isRisky) {
-            let warningMsg = 'Privacy Warning:\n\n';
-            if (doxRisk.risks && doxRisk.risks.length > 0) {
-                warningMsg += '🚨 CRITICAL: Detected sensitive information: ' + doxRisk.risks.join(', ') + '\n\n';
-            }
-            if (doxRisk.warnings && doxRisk.warnings.length > 0) {
-                warningMsg += '⚠️ You mentioned personal details that could identify you.\n\n';
-            }
-            warningMsg += 'This will be permanently stored and visible to others.\n';
-            warningMsg += 'Are you absolutely sure this is anonymous and safe to share?';
-            
-            const confirm = window.confirm(warningMsg);
-            if (!confirm) return;
+            setDetectedRisks({ risks: doxRisk.risks || [], warnings: doxRisk.warnings || [] });
+            setShowPrivacyModal(true);
+            return;
         }
+
+        // No risk? Just send.
+        processSend();
+    };
+
+    const processSend = () => {
+        setShowPrivacyModal(false);
 
         // 4. Final sanitization
         const safeText = maskPrivateInfo(text);
@@ -151,9 +153,9 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                 if (e.key === ':' || cmdBuffer.startsWith(':')) {
                     if (e.key === 'Enter') {
                         // EXECUTE
-                        if (cmdBuffer === ':w') handleSend();
+                        if (cmdBuffer === ':w') handlePreSend();
                         if (cmdBuffer === ':q') handleBurn();
-                        if (cmdBuffer === ':wq') { handleSend(); }
+                        if (cmdBuffer === ':wq') { handlePreSend(); }
                         setCmdBuffer('');
                         setVimMode('NORMAL');
                     } else if (e.key === 'Backspace') {
@@ -467,6 +469,14 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
 
                 <TurnstileWidget onVerify={(token) => setIsVerified(true)} />
 
+                <PrivacyWarningModal
+                    isOpen={showPrivacyModal}
+                    onClose={() => setShowPrivacyModal(false)}
+                    onConfirm={processSend}
+                    risks={detectedRisks.risks}
+                    warnings={detectedRisks.warnings}
+                />
+
                 <div className="controls">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
                         <button
@@ -516,7 +526,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     </button>
                     <button
                         className={`btn-action ${!isVerified ? 'disabled' : ''}`}
-                        onClick={handleSend}
+                        onClick={handlePreSend}
                         disabled={!isVerified}
                         style={{
                             opacity: isVerified ? 1 : 0.5,

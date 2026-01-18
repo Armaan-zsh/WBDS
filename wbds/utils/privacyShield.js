@@ -47,15 +47,23 @@ export function maskPrivateInfo(text) {
     processed = processed.replace(ipRegex, REDACTED_LABEL);
 
     // 6. GPS Coordinates (Latitude/Longitude)
-    // Matches: 40.7128, -74.0060 or 40°42'46.08"N, 74°00'21.6"W
-    const gpsRegex = /-?\d{1,3}\.?\d*[°]?\s*[NS]?,?\s*-?\d{1,3}\.?\d*[°]?\s*[EW]?/gi;
-    processed = processed.replace(gpsRegex, REDACTED_LABEL);
+    // Matches: 40.7128, -74.0060 or 40°42'46.08"N, 74°00'21.6"W or 40.7 N, 74.0 W
+    const gpsPatterns = [
+        /-?\d{1,3}\.\d+,\s*-?\d{1,3}\.\d+/g, // Decimal pairs
+        /\d{1,3}°\s*\d{1,2}'\s*\d{1,2}(\.\d+)?"\s*[NS],\s*\d{1,3}°\s*\d{1,2}'\s*\d{1,2}(\.\d+)?"\s*[EW]/gi, // DMS
+        /\b(?:\d{1,2}°\s*)?[NS]\s*(?:\d{1,3}°\s*)?[EW]\b/gi // Simple Cardinal directions context (risky but safer to redact)
+    ];
+    gpsPatterns.forEach(pattern => {
+        processed = processed.replace(pattern, REDACTED_LABEL);
+    });
 
     // 7. Street Addresses (Enhanced patterns)
     const addressPatterns = [
         /(flat|house|apartment|apt|plot|room|unit|suite)\s*(?:no|number|#)?\.?\s*\d+/gi,
-        /\d+\s+[a-zA-Z]+(?:\s+(?:street|st|avenue|ave|road|rd|drive|dr|lane|ln|boulevard|blvd|way|circle|cir))\.?/gi,
+        /\d+\s+[a-zA-Z]+(?:\s+(?:street|st|avenue|ave|road|rd|drive|dr|lane|ln|boulevard|blvd|way|circle|cir|court|ct|plaza|plz|terrace|ter|place|pl|square|sq|loop|lp|trail|trl|parkway|pkwy))\.?/gi,
         /\b\d{5}(?:-\d{4})?\s+[a-zA-Z]+/gi, // ZIP + City
+        // Int'l address formats often have number then street or street then number
+        /(?:no\.|number|#)\s?\d+\s+[a-zA-Z\s,]+/gi,
     ];
     addressPatterns.forEach(pattern => {
         processed = processed.replace(pattern, REDACTED_LABEL);
