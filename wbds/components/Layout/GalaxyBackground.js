@@ -392,8 +392,12 @@ export default function GalaxyBackground() {
         };
     }, [currentTheme, isPremium]);
 
-    // RENDER: Premium 3D Canvas or Legacy 2D Canvas
+    // RENDER: Premium 3D Canvas or Legacy 2Dcanvas
     if (isPremium) {
+        // Simple responsive check for camera distance
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+        const camZ = isMobile ? 9 : 5; // Move camera back on mobile to shrink objects
+
         return (
             <div
                 style={{
@@ -403,7 +407,7 @@ export default function GalaxyBackground() {
             >
                 <Canvas
                     key={currentTheme} // Force re-mount on theme change
-                    camera={{ position: [0, 0, 5], fov: 75 }}
+                    camera={{ position: [0, 0, camZ], fov: 75 }}
                     gl={{ alpha: false, antialias: true, powerPreference: 'high-performance', failIfMajorPerformanceCaveat: true }}
                     onCreated={({ gl }) => {
                         gl.domElement.addEventListener('webglcontextlost', (e) => {
@@ -413,7 +417,7 @@ export default function GalaxyBackground() {
                     }}
                 >
                     <color attach="background" args={[currentTheme === 'synthwave' ? '#05000a' : '#000000']} />
-                    <PerspectiveCamera makeDefault position={[0, 0, 5]} />
+                    <PerspectiveCamera makeDefault position={[0, 0, camZ]} />
                     <ambientLight intensity={0.5} />
 
                     {currentTheme === 'void' && <EventHorizon />}

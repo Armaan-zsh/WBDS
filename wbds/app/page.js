@@ -42,20 +42,24 @@ export default function Home() {
     const [isWriting, setIsWriting] = useState(false);
 
     const [replyTo, setReplyTo] = useState(null); // Track parent letter
-    const [currentTheme, setCurrentTheme] = useState('void'); // Track theme for conditional rendering
+    const [currentTheme, setCurrentTheme] = useState('paper'); // Track theme for conditional rendering
 
     // Watch for Theme Changes (to unmount Galaxy when needed)
     useEffect(() => {
         // Initial set
         if (typeof document !== 'undefined') {
-            setCurrentTheme(document.documentElement.getAttribute('data-theme') || 'void');
+            const saved = localStorage.getItem('wbds_theme');
+            // If saved exists, use it. If not, default to 'paper'.
+            // Note: We check if attribute is already set by script in head to avoid flicker
+            const htmlTheme = document.documentElement.getAttribute('data-theme');
+            setCurrentTheme(htmlTheme || saved || 'paper');
         }
 
         // Observer
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
-                    setCurrentTheme(document.documentElement.getAttribute('data-theme') || 'void');
+                    setCurrentTheme(document.documentElement.getAttribute('data-theme') || 'paper');
                 }
             });
         });
@@ -556,16 +560,25 @@ export default function Home() {
 
           @media (max-width: 768px) {
             .nav-header {
-              gap: 24px;
-              padding-bottom: 16px;
-              flex-wrap: wrap;
+              gap: 12px;
+              padding-bottom: 20px;
+              flex-wrap: nowrap; /* Keep on one line */
+              overflow-x: auto; /* Scroll if absolutely needed */
+              -webkit-overflow-scrolling: touch;
+              justify-content: flex-start; /* Align left if scrolling */
+              padding-left: 16px; 
+              padding-right: 16px;
+              width: 100%;
             }
+            /* Hide scrollbar */
+            .nav-header::-webkit-scrollbar { display: none; }
           }
 
           @media (max-width: 480px) {
             .nav-header {
-              gap: 16px;
-              padding-bottom: 12px;
+              gap: 8px;
+              padding-bottom: 30px; /* More space for the giant void */
+              justify-content: center; /* Try center first */
             }
           }
 
@@ -585,19 +598,12 @@ export default function Home() {
              align-items: center;
              justify-content: center;
              touch-action: manipulation;
+             white-space: nowrap; /* Prevent text wrap */
           }
 
           @media (max-width: 768px) {
             .nav-item {
-              font-size: 12px;
-              letter-spacing: 2px;
-              padding: 6px 10px;
-            }
-          }
-
-          @media (max-width: 480px) {
-            .nav-item {
-              font-size: 11px;
+              font-size: 10px; /* Smaller font */
               letter-spacing: 1px;
               padding: 6px 8px;
             }
@@ -786,16 +792,15 @@ export default function Home() {
             />
 
             {/* Sidebar (Overlay) */}
+            {/* Sidebar (Overlay) */}
             <div className="sidebar" ref={sidebarRef}>
-                {isDesktop && <AppearancePanel />}
+                <AppearancePanel />
             </div>
 
-            {/* Sidebar Toggle */}
-            {isDesktop && (
-                <button className="toggle-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)} ref={toggleBtnRef}>
-                    {isSidebarOpen ? '«' : '»'}
-                </button>
-            )}
+            {/* Sidebar Toggle - Visible on Mobile too */}
+            <button className="toggle-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)} ref={toggleBtnRef}>
+                {isSidebarOpen ? '«' : '»'}
+            </button>
 
             <div className="main-content">
                 {/* Header */}

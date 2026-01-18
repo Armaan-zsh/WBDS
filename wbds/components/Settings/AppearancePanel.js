@@ -17,7 +17,7 @@ export default function AppearancePanel() {
 
     useEffect(() => {
         // Load preference
-        const savedTheme = localStorage.getItem('wbds_theme') || 'void';
+        const savedTheme = localStorage.getItem('wbds_theme') || 'paper';
         const savedFont = localStorage.getItem('wbds_font') || 'serif';
         const savedAudio = localStorage.getItem('wbds_audio_profile') || 'mechanical';
         const savedAmbience = localStorage.getItem('wbds_ambience') === 'true';
