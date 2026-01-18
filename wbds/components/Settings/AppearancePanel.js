@@ -450,12 +450,12 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
         /* Floating Toggle Button (Hanging outside) */
         .sidebar-toggle {
             position: absolute;
-            left: 300px; /* Outside the 280px panel */
+            left: 360px; /* Shifted even further outside (280px panel + 80px gap) */
             top: 50%;
             transform: translateY(-50%);
-            background: transparent;
-            border: none;
-            color: #ff71ce; /* Neon Pink as in screenshot */
+            background: transparent !important;
+            border: none !important;
+            color: #ff71ce; /* Neon Pink */
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -463,7 +463,8 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             pointer-events: auto;
             transition: all 0.2s ease;
             z-index: 5001;
-            padding: 10px;
+            padding: 0;
+            outline: none;
         }
 
         .sidebar-toggle:hover {
