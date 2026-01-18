@@ -10,6 +10,7 @@ import ReportModal from '../components/Feed/ReportModal';
 import AppearancePanel from '../components/Settings/AppearancePanel';
 import VoidClock from '../components/Layout/VoidClock';
 import GalaxyBackground from '../components/Layout/GalaxyBackground';
+import StandardFooter from '../components/Layout/StandardFooter';
 import dynamic from 'next/dynamic';
 
 const Link = dynamic(() => import('next/link'), { ssr: false }); // Example fallback if needed, but we need GlobalGraph
@@ -866,6 +867,11 @@ export default function Home() {
                 isOwner={selectedLetter && myLetterIds.has(selectedLetter.id)}
                 onReply={handleReply}
             />
+
+
+            {/* FOOTER */}
+            {(view !== 'chain') && <StandardFooter />}
+
         </div>
     );
 }

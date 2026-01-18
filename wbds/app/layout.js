@@ -19,10 +19,10 @@ export default function RootLayout({ children }) {
             </head>
             <body>
                 <AntiScrapingWrapper>
-                    <main className="viewport">
-                        {children}
-                    </main>
-                    <SynthwaveRadio />
+                <main className="viewport">
+                    {children}
+                </main>
+                <SynthwaveRadio />
                 </AntiScrapingWrapper>
             </body>
         </html>
