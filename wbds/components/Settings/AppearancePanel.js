@@ -447,32 +447,28 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             pointer-events: auto;
         }
 
-        /* Hanging Toggle Button (Attached to RIGHT of panel-container) */
+        /* Floating Toggle Button (Hanging outside) */
         .sidebar-toggle {
             position: absolute;
-            left: 280px; /* Stick exactly to the right edge of container */
+            left: 300px; /* Outside the 280px panel */
             top: 50%;
             transform: translateY(-50%);
-            width: 44px;
-            height: 64px;
-            background: #ffffff; /* Use high contrast background */
-            color: #000000; /* Contrast text */
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            border-left: none;
-            border-radius: 0 16px 16px 0;
+            background: transparent;
+            border: none;
+            color: #ff71ce; /* Neon Pink as in screenshot */
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             pointer-events: auto;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.2s ease;
             z-index: 5001;
-            box-shadow: 5px 0 15px rgba(0,0,0,0.4);
+            padding: 10px;
         }
 
         .sidebar-toggle:hover {
-            background: #f2f2f7;
-            width: 50px;
+            transform: translateY(-50%) scale(1.2);
+            color: #fff;
         }
 
         @media (max-width: 768px) {
