@@ -36,3 +36,30 @@ export async function GET() {
         return NextResponse.json({ error: 'Failed to fetch top letters' }, { status: 500 });
     }
 }
+
+// DELETE endpoint to clear all letters from BEST section (letters with likes > 0)
+export async function DELETE() {
+    if (!supabaseAdmin) {
+        return NextResponse.json({ error: 'Server Config Error' }, { status: 500 });
+    }
+
+    try {
+        // Delete all letters that have likes (these appear in BEST section)
+        const { data, error } = await supabaseAdmin
+            .from('letters')
+            .delete()
+            .gt('likes', 0)
+            .select();
+
+        if (error) throw error;
+
+        return NextResponse.json({ 
+            success: true, 
+            deleted: data?.length || 0,
+            message: `Deleted ${data?.length || 0} letter(s) from BEST section`
+        });
+    } catch (error) {
+        console.error('Delete BEST Error:', error);
+        return NextResponse.json({ error: 'Failed to delete letters' }, { status: 500 });
+    }
+}
