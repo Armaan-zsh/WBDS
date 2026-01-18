@@ -614,16 +614,23 @@ export default function Home() {
              opacity: 1;
           }
           
-          .nav-item.active::after {
+          .nav-item::after {
              content: '';
              position: absolute;
-             bottom: -8px;
+             bottom: 1px; /* Much closer to text */
              left: 50%;
-             transform: translateX(-50%);
+             transform: translateX(-50%) scale(0);
              width: 4px;
              height: 4px;
              background: var(--text-primary);
              border-radius: 50%;
+             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy pop */
+             opacity: 0;
+          }
+
+          .nav-item.active::after {
+             transform: translateX(-50%) scale(1);
+             opacity: 1;
           }
 
           .write-mode {

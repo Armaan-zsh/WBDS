@@ -16,13 +16,24 @@ export default function ReportPage() {
     const [status, setStatus] = useState('idle'); // idle, submitting, success, error
     const [metaData, setMetaData] = useState({});
 
+    const [isRateLimited, setIsRateLimited] = useState(false);
+
     useEffect(() => {
         // Collect automated info on mount
         setMetaData({
             userAgent: navigator.userAgent,
             screenSize: `${window.innerWidth}x${window.innerHeight}`,
-            currentUrl: window.location.href // Captures referrer/origin implicitly
+            currentUrl: window.location.href
         });
+
+        // Check Rate Limit (10 days = 864000000 ms)
+        const lastReport = localStorage.getItem('wbds_last_report');
+        if (lastReport) {
+            const timeDiff = Date.now() - parseInt(lastReport);
+            if (timeDiff < 864000000) {
+                setIsRateLimited(true);
+            }
+        }
     }, []);
 
     const handleChange = (e) => {
@@ -34,6 +45,7 @@ export default function ReportPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (isRateLimited) return;
         setStatus('submitting');
 
         try {
@@ -47,6 +59,8 @@ export default function ReportPage() {
             });
 
             if (res.ok) {
+                // Set Rate Limit
+                localStorage.setItem('wbds_last_report', Date.now().toString());
                 setStatus('success');
                 setTimeout(() => {
                     router.push('/');
@@ -68,7 +82,15 @@ export default function ReportPage() {
                     <p>Help us improve the void. Found a bug? Have a suggestion?</p>
                 </div>
 
-                {status === 'success' ? (
+                {isRateLimited ? (
+                    <div className="limit-message">
+                        <h2>Transmission Cooldown</h2>
+                        <p>You can only send one report every 10 days to prevent frequency jamming.</p>
+                        <Link href="/">
+                            <button className="btn-back">Return to Void</button>
+                        </Link>
+                    </div>
+                ) : status === 'success' ? (
                     <div className="success-message">
                         <h2>Signal Received.</h2>
                         <p>Your report has been logged. Thank you for your contribution.</p>
@@ -344,6 +366,30 @@ export default function ReportPage() {
                         opacity: 1; 
                         transform: translateY(0) scale(1); 
                     }
+                }
+
+                .limit-message {
+                    text-align: center;
+                    padding: 40px 0;
+                    animation: fadeIn 0.4s ease;
+                }
+                .limit-message h2 {
+                    color: #ff9f0a; /* iOS Orange */
+                    margin-bottom: 16px;
+                    font-size: 22px;
+                }
+                .limit-message p {
+                    color: #8e8e93;
+                    margin-bottom: 30px;
+                    line-height: 1.5;
+                }
+                .btn-back {
+                    background: rgba(255,255,255,0.1);
+                    color: #fff;
+                    margin: 0 auto;
+                }
+                .btn-back:hover {
+                    background: rgba(255,255,255,0.2);
                 }
 
                 @keyframes fadeIn {
