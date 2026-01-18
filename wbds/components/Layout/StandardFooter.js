@@ -54,18 +54,27 @@ export default function StandardFooter() {
 
                 @media (max-width: 600px) {
                     .std-footer {
-                        bottom: 10px;
+                        position: fixed; /* anchor to bottom */
+                        width: 100%;
+                        bottom: 20px;
+                        left: 0;
+                        margin: 0;
+                        pointer-events: none; /* Let clicks pass through container */
                     }
                     .footer-links {
-                        padding: 4px 12px; /* Very compact */
-                        gap: 12px;
-                        background: rgba(10, 10, 10, 0.5); /* Slightly more opaque for legibility */
-                        border-radius: 12px;
+                        background: transparent;
+                        border: none;
+                        backdrop-filter: none;
+                        padding: 0;
+                        gap: 24px;
+                        pointer-events: auto; /* Enable links */
                     }
                     a {
-                        font-size: 9px; /* Tiny */
-                        letter-spacing: 0.5px;
-                        opacity: 0.5;
+                        font-family: var(--font-mono); /* Tech feel */
+                        font-size: 10px;
+                        opacity: 0.4;
+                        letter-spacing: 1px;
+                        padding: 10px; /* Touch target */
                     }
                 }
             `}</style>

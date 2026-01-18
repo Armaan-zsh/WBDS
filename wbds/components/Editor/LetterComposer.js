@@ -312,9 +312,9 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
 
         @media (max-width: 768px) {
           .letter-input {
-            font-size: 18px;
-            min-height: 150px;
-            max-height: 50vh;
+            font-size: 16px; /* Prevent IOS zoom */
+            min-height: 100px; /* Smaller starting height */
+            max-height: 40vh; /* Don't take more than 40% of screen */
           }
         }
         
@@ -542,7 +542,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     <span className={`char-count ${text.length > MAX_CHARS * 0.9 ? 'warning' : ''} ${text.length >= MAX_CHARS ? 'error' : ''}`}>
                         {text.length} / {MAX_CHARS}
                     </span>
-                    <span className="helper-text">{text.length === 0 ? 'Write what you think' : `${text.length} characters`}</span>
+                    <span className="helper-text">{text.length === 0 ? 'Write what you think' : ''}</span>
                     <button className="btn-action btn-danger" onClick={handleBurn}>
                         {status === 'BURNING' ? '🔥' : 'Burn'}
                     </button>
