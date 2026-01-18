@@ -469,6 +469,7 @@ export default function Home() {
             {/* Only show Galaxy in Void theme or Chain view */}
             {(view === 'chain' || currentTheme === 'void' || currentTheme === 'midnight' || currentTheme === 'synthwave') && <GalaxyBackground />}
             <VoidClock />
+
             <style jsx>{`
          .app-layout {
             display: flex;
@@ -513,7 +514,7 @@ export default function Home() {
              margin: 0;
              padding: 60px 20px;
              position: relative;
-             height: 100vh;
+             height: 100vh; /* Fallback */
              height: 100dvh; /* Sync with app-layout - dynamic viewport */
              overflow-y: auto;
              -webkit-overflow-scrolling: touch;
@@ -599,66 +600,38 @@ export default function Home() {
             }
           }
 
-          @media (max-width: 480px) {
-            .nav-header {
-              gap: 8px;
-              padding-bottom: 30px; /* More space for the giant void */
-              justify-content: center; /* Try center first */
-            }
-          }
-
           .nav-item {
-             font-size: 14px;
-             font-weight: 700;
-             letter-spacing: 3px;
-             text-transform: uppercase;
-             opacity: 0.6; /* Increased for visibility */
+             color: var(--text-secondary);
+             font-size: 13px;
+             font-weight: 500;
+             letter-spacing: 2px;
              cursor: pointer;
-             transition: all 0.3s ease;
+             transition: all 0.2s ease;
+             padding: 8px 16px;
+             border-radius: 20px;
+             text-transform: uppercase;
              position: relative;
-             color: var(--text-primary);
-             padding: 8px 12px;
-             min-height: 44px;
-             display: flex;
-             align-items: center;
-             justify-content: center;
-             touch-action: manipulation;
-             white-space: nowrap; /* Prevent text wrap */
+             white-space: nowrap; /* Prevent wrapping */
           }
 
-          @media (max-width: 768px) {
-            .nav-item {
-              font-size: 11px !important; /* Smaller to fit all items */
-              letter-spacing: 0.8px;
-              padding: 6px 6px; /* Reduced padding to fit */
-              min-height: 36px; /* Smaller touch target */
-              flex: 0 1 auto; /* Allow items to shrink if needed */
-            }
-          }
-          
-          @media (hover: hover) {
-            .nav-item:hover {
-              opacity: 1;
-              transform: scale(1.1);
-            }
-          }
-
-          .nav-item.active {
-             opacity: 1;
-          }
-          
+          /* Active State Dot (Apple-style) */
           .nav-item::after {
              content: '';
              position: absolute;
-             bottom: 1px; /* Much closer to text */
+             bottom: -4px; /* Slightly below text */
              left: 50%;
              transform: translateX(-50%) scale(0);
              width: 4px;
              height: 4px;
-             background: var(--text-primary);
              border-radius: 50%;
-             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy pop */
+             background-color: var(--text-primary);
+             transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
              opacity: 0;
+          }
+
+          .nav-item.active {
+             color: var(--text-primary);
+             font-weight: 600;
           }
 
           .nav-item.active::after {
@@ -666,151 +639,57 @@ export default function Home() {
              opacity: 1;
           }
 
+          .nav-item:hover {
+             color: var(--text-primary);
+          }
+
           .write-mode {
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-              flex: 1;
-              padding-bottom: 100px; /* Center visually */
-              position: relative;
-              width: 100%;
-              box-sizing: border-box;
-          }
-
-          @media (max-width: 768px) {
-            .write-mode {
-              padding-bottom: 20px; /* Reduced padding */
-              justify-content: flex-start;
-              padding-top: 10px; /* Reduced top padding */
-              min-height: auto; /* Don't force full height */
-            }
-          }
-
-          .globe-background {
-             position: absolute;
-             top: 50%;
-             left: 50%;
-             transform: translate(-50%, -50%);
-             width: 100vw;
-             height: 100vh;
-             z-index: 0;
-             opacity: 0.4;
-             pointer-events: none; /* Let clicks pass through */
-             overflow: hidden;
+             flex: 1;
              display: flex;
+             flex-direction: column;
+             justify-content: center; /* Vertically center the composer */
              align-items: center;
-             justify-content: center;
+             width: 100%;
           }
 
-       .composer-wrapper {
-              position: relative;
-              z-index: 10;
+          .composer-wrapper {
+             width: 100%;
+             max-width: 600px;
+             margin: 0 auto;
+             animation: scaleIn 0.4s var(--ease-ios);
           }
 
-          @media (max-width: 480px) {
-            .modal-card {
-              padding: 24px 20px;
-              border-radius: 16px;
-              width: 95%;
+          @keyframes scaleIn {
+             from { transform: scale(0.98); opacity: 0; }
+             to { transform: scale(1); opacity: 1; }
+          }
+          
+          .animate-enter {
+             animation: fadeIn 0.5s ease-out forwards;
+          }
+          
+          @keyframes fadeIn {
+             from { opacity: 0; transform: translateY(10px); }
+             to { opacity: 1; transform: translateY(0); }
+          }
+          
+          /* Footer Area spacer */
+          .footer-spacer {
+             height: 60px;
+          }
+
+          /* Modal Shake Animation */
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
             }
-          }
-          .modal-card h3 {
-              margin: 0 0 10px 0;
-              font-size: 20px;
-              color: var(--text-primary);
-          }
-          .modal-card p {
-              margin: 0 0 24px 0;
-              color: var(--text-secondary);
-              font-size: 14px;
-              line-height: 1.5;
-          }
-          .modal-actions {
-              display: flex;
-              gap: 12px;
-              justify-content: center;
-          }
-          .modal-actions button {
-              padding: 12px 24px;
-              border-radius: 50px;
-              font-weight: 600;
-              cursor: pointer;
-              transition: transform 0.1s;
-              border: none;
-          }
-          .modal-actions button:active { transform: scale(0.95); }
-          .btn-cancel {
-              background: transparent;
-              border: 1px solid var(--glass-border);
-              color: var(--text-primary);
-          }
-          .btn-burn {
-              background: rgba(255, 69, 58, 0.1);
-              color: #ff453a;
-              border: 1px solid rgba(255, 69, 58, 0.2);
-          }
-          .btn-burn:hover {
-              background: rgba(255, 69, 58, 0.2);
-          }
-          @keyframes shake {
-              0%, 100% { transform: translateX(0); }
-              25% { transform: translateX(-5px); }
-              75% { transform: translateX(5px); }
-          }
-          .shake-anim {
-              animation: shake 0.3s ease-out;
-          }
-          .toggle-btn {
-              display: flex !important; /* Force flex on desktop */
-          }
-
-          @media (max-width: 768px) {
-              .toggle-btn {
-                  display: none !important; /* Hide toggle on mobile */
-              }
-          }
-       `}</style>
-
-            {/* Delete Confirmation Modal */}
-            {deleteTargetId && (
-                <div className="modal-overlay">
-                    <div className="modal-card shake-anim">
-                        <h3>Burn this letter?</h3>
-                        <p>This action cannot be undone. The fragment will be lost to the void forever.</p>
-                        <div className="modal-actions">
-                            <button className="btn-cancel" onClick={() => setDeleteTargetId(null)}>Keep</button>
-                            <button className="btn-burn" onClick={confirmDelete}>Burn Forever</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Global Notification */}
-            {notification && (
-                <VoidNotification
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => setNotification(null)}
-                />
-            )}
-
-
-            {/* Report Modal */}
-            <ReportModal
-                isOpen={!!reportModalOpen}
-                onClose={() => setReportModalOpen(null)}
-                onSubmit={(reason) => submitReport(reportModalOpen, reason)}
-            />
-
-            {/* Settings Sidebar */}
-            <AppearancePanel
-                isOpen={isSidebarOpen}
-                onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-                onClose={() => setIsSidebarOpen(false)}
-            />
+            .shake-anim {
+                animation: shake 0.3s ease-out;
+            }
+            `}</style>
 
             <div className="main-content">
-                {/* Header */}
                 {/* Header */}
                 <div className="nav-header">
                     <span
@@ -844,10 +723,7 @@ export default function Home() {
                     <div className="write-mode animate-enter">
                         <div className="composer-wrapper">
                             <LetterComposer
-                                onSend={handleSaveLetter}
-                                onError={(msg) => setNotification({ message: msg, type: 'error' })}
-                                onFocusChange={setIsWriting}
-                                replyTo={replyTo}
+                                onSent={() => setView('read')}
                             />
                         </div>
                     </div>
@@ -869,15 +745,23 @@ export default function Home() {
                     </div>
                 )}
 
-            </div>
+                {/* VIEW: CHAIN (Global Graph) - Rendered at Root */}
+                {(view === 'chain' || view === 'personal') && (
+                    <GlobalGraph
+                        letters={view === 'personal' ? letters.filter(l => myLetterIds.has(l.id)) : letters}
+                        onNodeClick={setSelectedLetter}
+                    />
+                )}
 
-            {/* VIEW: CHAIN (Global Graph) - Rendered at Root */}
-            {(view === 'chain' || view === 'personal') && (
-                <GlobalGraph
-                    letters={view === 'personal' ? letters.filter(l => myLetterIds.has(l.id)) : letters}
-                    onNodeClick={setSelectedLetter}
-                />
-            )}
+                {/* FOOTER */}
+                {(view !== 'chain') && (
+                    <StandardFooter
+                        onSettingsClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        isSettingsOpen={isSidebarOpen}
+                    />
+                )}
+                <div className="footer-spacer"></div>
+            </div>
 
             {/* SHARED MODAL */}
             <LetterModal
@@ -887,15 +771,42 @@ export default function Home() {
                 onReply={handleReply}
             />
 
+            {/* Delete Confirmation Modal */}
+            {deleteTargetId && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="modal-card shake-anim bg-[#111] border border-white/10 rounded-2xl p-6 max-w-sm w-full text-center">
+                        <h3 className="text-xl font-bold text-white mb-2">Burn this letter?</h3>
+                        <p className="text-sm text-gray-400 mb-6">This action cannot be undone. The fragment will be lost to the void forever.</p>
+                        <div className="flex gap-4 justify-center">
+                            <button className="px-6 py-3 rounded-full border border-white/20 text-white hover:bg-white/10 transition" onClick={() => setDeleteTargetId(null)}>Keep</button>
+                            <button className="px-6 py-3 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition" onClick={confirmDelete}>Burn Forever</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
-            {/* FOOTER */}
-            {(view !== 'chain') && (
-                <StandardFooter
-                    onSettingsClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                    isSettingsOpen={isSidebarOpen}
+            {/* Global Notification */}
+            {notification && (
+                <VoidNotification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
                 />
             )}
 
+            {/* Report Modal */}
+            <ReportModal
+                isOpen={!!reportModalOpen}
+                onClose={() => setReportModalOpen(null)}
+                onSubmit={(reason) => submitReport(reportModalOpen, reason)}
+            />
+
+            {/* Settings Sidebar */}
+            <AppearancePanel
+                isOpen={isSidebarOpen}
+                onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+                onClose={() => setIsSidebarOpen(false)}
+            />
         </div>
     );
 }

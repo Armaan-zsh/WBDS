@@ -1,3 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* === CRITICAL FIX: STOP MOBILE WOBBLE === */
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  /* Stops left/right movement */
+  overscroll-behavior: none;
+  /* Stops "rubber banding" bounce effect */
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  /* Ensures absolute children position correctly */
+}
+
+/* Fix for mobile viewports with URL bars */
+body {
+  min-height: 100dvh;
+  background: black;
+  color: white;
+}
+
 :root {
   /* DEFAULTS (THE VOID) */
   --bg-depth: #000000;
@@ -40,10 +67,10 @@
   --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(0, 0, 0, 0.08);
   --glass-blur: blur(24px) saturate(140%);
-  
+
   /* Subtle paper texture */
-  background-image: 
-    radial-gradient(circle at 2px 2px, rgba(0,0,0,0.015) 1px, transparent 0);
+  background-image:
+    radial-gradient(circle at 2px 2px, rgba(0, 0, 0, 0.015) 1px, transparent 0);
   background-size: 40px 40px;
 }
 
@@ -65,9 +92,9 @@
   --glass-bg: rgba(17, 24, 39, 0.85);
   --glass-border: rgba(148, 163, 184, 0.15);
   --glass-blur: blur(20px) saturate(180%);
-  
+
   /* Subtle starfield effect */
-  background-image: 
+  background-image:
     radial-gradient(2px 2px at 20% 30%, rgba(148, 163, 184, 0.3), transparent),
     radial-gradient(1px 1px at 50% 70%, rgba(148, 163, 184, 0.2), transparent);
   background-size: 200% 200%;
@@ -91,9 +118,9 @@
   --glass-bg: rgba(45, 26, 26, 0.85);
   --glass-border: rgba(249, 168, 212, 0.2);
   --glass-blur: blur(22px) saturate(160%);
-  
+
   /* Subtle gradient overlay */
-  background-image: 
+  background-image:
     radial-gradient(circle at top left, rgba(236, 72, 153, 0.08), transparent 60%);
 }
 
@@ -115,9 +142,9 @@
   --glass-bg: rgba(0, 20, 0, 0.9);
   --glass-border: rgba(0, 255, 65, 0.3);
   --glass-blur: blur(16px) saturate(200%);
-  
+
   /* Matrix-style grid */
-  background-image: 
+  background-image:
     linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
@@ -141,9 +168,9 @@
   --glass-bg: rgba(61, 42, 69, 0.8);
   --glass-border: rgba(255, 140, 105, 0.25);
   --glass-blur: blur(24px) saturate(170%);
-  
+
   /* Sunset gradient overlay */
-  background-image: 
+  background-image:
     linear-gradient(135deg, rgba(255, 140, 105, 0.1) 0%, rgba(193, 158, 224, 0.1) 100%);
 }
 
@@ -165,9 +192,9 @@
   --glass-bg: rgba(26, 11, 46, 0.85);
   --glass-border: rgba(255, 113, 206, 0.3);
   --glass-blur: blur(24px) saturate(180%);
-  
+
   /* Synthwave grid pattern */
-  background-image: 
+  background-image:
     linear-gradient(rgba(1, 205, 254, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(1, 205, 254, 0.05) 1px, transparent 1px);
   background-size: 40px 40px;
@@ -192,9 +219,9 @@
   --glass-bg: rgba(30, 58, 42, 0.85);
   --glass-border: rgba(129, 201, 149, 0.2);
   --glass-blur: blur(22px) saturate(160%);
-  
+
   /* Subtle leaf pattern */
-  background-image: 
+  background-image:
     radial-gradient(circle at 30% 50%, rgba(129, 201, 149, 0.05), transparent 50%);
 }
 
@@ -216,9 +243,9 @@
   --glass-bg: rgba(53, 42, 37, 0.85);
   --glass-border: rgba(184, 150, 127, 0.2);
   --glass-blur: blur(20px) saturate(150%);
-  
+
   /* Coffee bean texture */
-  background-image: 
+  background-image:
     radial-gradient(circle at 25% 25%, rgba(139, 115, 85, 0.08), transparent 50%);
 }
 
@@ -240,9 +267,9 @@
   --glass-bg: rgba(59, 66, 82, 0.85);
   --glass-border: rgba(129, 161, 193, 0.2);
   --glass-blur: blur(22px) saturate(140%);
-  
+
   /* Subtle frost effect */
-  background-image: 
+  background-image:
     linear-gradient(45deg, rgba(129, 161, 193, 0.03) 25%, transparent 25%);
   background-size: 30px 30px;
 }
@@ -265,9 +292,9 @@
   --glass-bg: rgba(68, 71, 90, 0.85);
   --glass-border: rgba(189, 147, 249, 0.25);
   --glass-blur: blur(20px) saturate(160%);
-  
+
   /* Gothic subtle pattern */
-  background-image: 
+  background-image:
     radial-gradient(circle at 50% 50%, rgba(189, 147, 249, 0.05), transparent 70%);
 }
 
@@ -289,9 +316,9 @@
   --glass-bg: rgba(7, 54, 66, 0.85);
   --glass-border: rgba(42, 161, 152, 0.2);
   --glass-blur: blur(20px) saturate(140%);
-  
+
   /* Subtle teal accent */
-  background-image: 
+  background-image:
     linear-gradient(180deg, rgba(42, 161, 152, 0.03) 0%, transparent 100%);
 }
 
@@ -313,9 +340,9 @@
   --glass-bg: rgba(10, 10, 10, 0.9);
   --glass-border: rgba(252, 238, 12, 0.4);
   --glass-blur: blur(16px) saturate(200%);
-  
+
   /* Cyberpunk grid */
-  background-image: 
+  background-image:
     linear-gradient(rgba(252, 238, 12, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(252, 238, 12, 0.03) 1px, transparent 1px);
   background-size: 60px 60px;
@@ -340,9 +367,9 @@
   --glass-bg: rgba(36, 27, 47, 0.85);
   --glass-border: rgba(255, 113, 206, 0.3);
   --glass-blur: blur(24px) saturate(180%);
-  
+
   /* Retro grid */
-  background-image: 
+  background-image:
     linear-gradient(rgba(1, 205, 254, 0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(1, 205, 254, 0.04) 1px, transparent 1px);
   background-size: 50px 50px;
@@ -366,9 +393,9 @@
   --glass-bg: rgba(44, 46, 49, 0.95);
   --glass-border: rgba(226, 183, 20, 0.25);
   --glass-blur: blur(20px) saturate(150%);
-  
+
   /* Subtle gold accents */
-  background-image: 
+  background-image:
     radial-gradient(circle at 80% 20%, rgba(226, 183, 20, 0.05), transparent 50%);
 }
 
@@ -390,9 +417,9 @@
   --glass-bg: rgba(43, 43, 43, 0.95);
   --glass-border: rgba(246, 110, 13, 0.3);
   --glass-blur: blur(20px) saturate(160%);
-  
+
   /* Carbon fiber texture */
-  background-image: 
+  background-image:
     repeating-linear-gradient(0deg, rgba(246, 110, 13, 0.03) 0px, transparent 2px),
     repeating-linear-gradient(90deg, rgba(246, 110, 13, 0.03) 0px, transparent 2px);
   background-size: 20px 20px;
@@ -416,9 +443,9 @@
   --glass-bg: rgba(46, 52, 62, 0.95);
   --glass-border: rgba(244, 76, 127, 0.25);
   --glass-blur: blur(22px) saturate(170%);
-  
+
   /* Subtle retro pattern */
-  background-image: 
+  background-image:
     radial-gradient(circle at 30% 70%, rgba(244, 76, 127, 0.06), transparent 50%);
 }
 
@@ -440,9 +467,9 @@
   --glass-bg: rgba(45, 20, 22, 0.95);
   --glass-border: rgba(255, 87, 66, 0.35);
   --glass-blur: blur(24px) saturate(180%);
-  
+
   /* Fire glow effect */
-  background-image: 
+  background-image:
     radial-gradient(ellipse at bottom, rgba(255, 58, 50, 0.1), transparent 70%);
 }
 
@@ -484,9 +511,9 @@
   --glass-bg: rgba(60, 56, 54, 0.95);
   --glass-border: rgba(235, 219, 178, 0.15);
   --glass-blur: blur(20px) saturate(140%);
-  
+
   /* Subtle vintage texture */
-  background-image: 
+  background-image:
     repeating-linear-gradient(45deg, rgba(168, 153, 132, 0.02) 0px, transparent 2px);
 }
 
@@ -629,7 +656,8 @@ body {
 .viewport {
   width: 100vw;
   height: 100vh;
-  height: 100dvh; /* Use dynamic viewport height for mobile */
+  height: 100dvh;
+  /* Use dynamic viewport height for mobile */
   /* dynamic viewport units handled in component */
   display: flex;
   flex-direction: column;
@@ -640,8 +668,10 @@ body {
 /* Mobile keyboard handling */
 @media (max-width: 768px) {
   .viewport {
-    height: 100dvh; /* Dynamic viewport height adjusts when keyboard opens */
-    min-height: -webkit-fill-available; /* iOS Safari fix */
+    height: 100dvh;
+    /* Dynamic viewport height adjusts when keyboard opens */
+    min-height: -webkit-fill-available;
+    /* iOS Safari fix */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -840,8 +870,10 @@ body {
 
 /* Mobile Breakpoints */
 @media (max-width: 768px) {
+
   /* Base responsive adjustments */
-  html, body {
+  html,
+  body {
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
   }
@@ -855,13 +887,15 @@ body {
   .btn-action {
     padding: 16px 28px;
     font-size: 16px;
-    min-height: 48px; /* Minimum touch target size */
+    min-height: 48px;
+    /* Minimum touch target size */
     min-width: 48px;
   }
 
   /* Input fields - mobile optimized */
   .void-input {
-    font-size: 18px; /* Prevents zoom on iOS */
+    font-size: 18px;
+    /* Prevents zoom on iOS */
     line-height: 1.5;
     padding: 12px;
   }
@@ -869,7 +903,8 @@ body {
   /* Viewport adjustments */
   .viewport {
     min-height: 100vh;
-    min-height: -webkit-fill-available; /* iOS fix */
+    min-height: -webkit-fill-available;
+    /* iOS fix */
   }
 }
 
@@ -895,13 +930,15 @@ body {
 
 /* Touch device optimizations */
 @media (hover: none) and (pointer: coarse) {
+
   /* Remove hover effects on touch devices */
   .btn-action:hover {
     transform: none;
   }
-  
+
   /* Larger tap targets */
-  button, a {
+  button,
+  a {
     min-height: 44px;
     min-width: 44px;
   }

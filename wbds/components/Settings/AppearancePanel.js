@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { setAudioProfile, playTypeSound, toggleAmbience, setAmbienceProfile } from '../../utils/audioEngine';
+import { useState, useEffect } from 'react';
+import { setAudioProfile, playTypeSound, toggleAmbience, setAmbienceProfile, radioControl, radioEvents } from '../../utils/audioEngine';
 
 export default function AppearancePanel({ onClose, isOpen, onToggle }) {
     const [theme, setTheme] = useState('void');
@@ -14,6 +14,59 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
     const [restoreInput, setRestoreInput] = useState('');
     const [copyInput, setCopyInput] = useState('');
     const [copyButtonLabel, setCopyButtonLabel] = useState('Copy');
+    const [fontSize, setFontSize] = useState('medium');
+
+    // Radio State for Mobile
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [currentTrack, setCurrentTrack] = useState(null);
+
+    // Sync Settings & Audio
+    useEffect(() => {
+        // Theme & Font
+        if (typeof window !== 'undefined') {
+            const savedTheme = localStorage.getItem('wbds_theme') || 'void';
+            const savedFont = localStorage.getItem('wbds_font') || 'sans';
+            setTheme(savedTheme);
+            setFontSize(savedFont);
+
+            // Initial Radio State Request
+            radioControl.requestState();
+        }
+
+        // Listen for Radio Updates
+        const onRadioUpdate = (e) => {
+            const state = e.detail;
+            setIsPlaying(state.isPlaying);
+            // STATIONS object structure assumed { name: '...', url: '...' }
+            // Mapping it to { title: name } for display
+            setCurrentTrack(state.station ? { title: state.station.name } : null);
+        };
+
+        if (radioEvents) {
+            radioEvents.addEventListener('RADIO_STATE_UPDATE', onRadioUpdate);
+        }
+
+        return () => {
+            if (radioEvents) {
+                radioEvents.removeEventListener('RADIO_STATE_UPDATE', onRadioUpdate);
+            }
+        };
+
+    }, []);
+
+    const toggleRadio = () => {
+        radioControl.toggle();
+        // No optimistic update here; wait for event to ensure it actually happened
+    };
+
+    const handleThemeChange = (newTheme) => {
+        setTheme(newTheme);
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('wbds_theme', newTheme);
+
+        // Dispatch event so other components know
+        window.dispatchEvent(new Event('storage'));
+    };
 
     useEffect(() => {
         // Load preference
@@ -131,6 +184,7 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
                             >
                                 ✕
                             </button>
+
                         </div>
                     </div>
                 </div>
@@ -580,6 +634,76 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             }
             p {
                 color: var(--text-secondary);
+                .setting-group {
+                    margin-bottom: 30px;
+                }
+
+                .group-label {
+                    display: block;
+                    font-size: 10px;
+                    color: #666;
+                    margin-bottom: 12px;
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                }
+
+                /* === RADIO CONTROLS === */
+                .radio-controller {
+                    background: #111;
+                    padding: 15px;
+                    border-radius: 12px;
+                    border: 1px solid #222;
+                }
+
+                .track-display {
+                    color: #00ff9d;
+                    font-family: 'Courier New', monospace;
+                    font-size: 11px;
+                    margin-bottom: 12px;
+                    text-align: center;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+
+                .radio-buttons {
+                    display: flex;
+                    gap: 10px;
+                }
+
+                .radio-ctrl-btn {
+                    flex: 1;
+                    padding: 10px;
+                    background: #222;
+                    border: none;
+                    color: #888;
+                    font-size: 10px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    font-weight: bold;
+                    letter-spacing: 1px;
+                }
+
+                .radio-ctrl-btn:hover {
+                    background: #333;
+                    color: #fff;
+                }
+
+                .radio-ctrl-btn.active {
+                    background: #00ff9d;
+                    color: #000;
+                    box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+                }
+
+                /* Mobile/Desktop Logic for Radio */
+                @media (min-width: 769px) {
+                    .mobile-only-radio {
+                        display: none; /* Hide on Desktop */
+                    }
+                }color: var(--text-primary);
                 font-size: 12px;
                 margin-bottom: 16px;
             }

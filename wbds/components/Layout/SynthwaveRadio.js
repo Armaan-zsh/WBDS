@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { radioEvents, radioControl } from '../../utils/audioEngine';
 
 export default function SynthwaveRadio() {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -61,7 +62,44 @@ export default function SynthwaveRadio() {
             audio.removeEventListener('playing', onPlaying);
             audio.removeEventListener('error', onError);
         };
-    }, [volume, stationIndex, isPlaying]);
+        // Broadcast State Changes
+        radioControl.emitState({
+            isPlaying,
+            isLoading,
+            station: STATIONS[stationIndex],
+            volume
+        });
+
+        // Remote Control Listeners
+        const handleRemoteToggle = () => togglePlay();
+        const handleRemoteNext = () => changeStation((stationIndex + 1) % STATIONS.length);
+        const handleRequestState = () => radioControl.emitState({
+            isPlaying,
+            isLoading,
+            station: STATIONS[stationIndex],
+            volume
+        });
+
+        if (radioEvents) {
+            radioEvents.addEventListener('RADIO_TOGGLE', handleRemoteToggle);
+            radioEvents.addEventListener('RADIO_NEXT', handleRemoteNext);
+            radioEvents.addEventListener('RADIO_REQUEST_STATE', handleRequestState);
+        }
+
+        return () => {
+            audio.removeEventListener('play', onPlay);
+            audio.removeEventListener('pause', onPause);
+            audio.removeEventListener('waiting', onWaiting);
+            audio.removeEventListener('playing', onPlaying);
+            audio.removeEventListener('error', onError);
+
+            if (radioEvents) {
+                radioEvents.removeEventListener('RADIO_TOGGLE', handleRemoteToggle);
+                radioEvents.removeEventListener('RADIO_NEXT', handleRemoteNext);
+                radioEvents.removeEventListener('RADIO_REQUEST_STATE', handleRequestState);
+            }
+        };
+    }, [volume, stationIndex, isPlaying, isLoading]); // Added isLoading to dependency to sync proper state
 
     const changeStation = async (index) => {
         setStationIndex(index);
@@ -277,24 +315,14 @@ export default function SynthwaveRadio() {
                   width: 260px;
                 }
 
+                /* CRITICAL: HIDE ON MOBILE (We show it in Settings instead) */
                 @media (max-width: 768px) {
-                  .synthwave-radio-wrapper {
-                    bottom: 80px !important; /* Raised above footer */
-                    right: 12px !important;
-                    z-index: 90 !important; /* Lower than modal/overlay but high enough */
-                  }
-                  .radio-expanded-player {
-                    width: 240px;
-                    padding: 14px;
-                    bottom: 60px; /* Ensure expanding up doesn't clip */
-                  }
+                    .synthwave-radio-wrapper {
+                        display: none !important;
+                    }
                 }
 
                 @media (max-width: 480px) {
-                  .synthwave-radio-wrapper {
-                    bottom: 90px !important; /* Clear the footer completely */
-                    right: 12px !important;
-                  }
                   .radio-expanded-player {
                     width: calc(100vw - 32px);
                     max-width: 280px;

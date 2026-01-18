@@ -309,3 +309,24 @@ export const toggleAmbience = (shouldPlay) => {
     }
 };
 
+// --- RADIO CONTROL BUS (Remote Control for SynthwaveRadio) ---
+export const radioEvents = typeof window !== 'undefined' ? new EventTarget() : null;
+
+export const radioControl = {
+    play: () => radioEvents?.dispatchEvent(new Event('RADIO_PLAY')),
+    pause: () => radioEvents?.dispatchEvent(new Event('RADIO_PAUSE')),
+    toggle: () => radioEvents?.dispatchEvent(new Event('RADIO_TOGGLE')),
+    next: () => radioEvents?.dispatchEvent(new Event('RADIO_NEXT')),
+    prev: () => radioEvents?.dispatchEvent(new Event('RADIO_PREV')),
+
+    // Sync Mechanism: Components ask for state, Radio answers
+    requestState: () => radioEvents?.dispatchEvent(new Event('RADIO_REQUEST_STATE')),
+
+    // Radio sends this when state changes
+    emitState: (state) => {
+        if (!radioEvents) return;
+        const e = new CustomEvent('RADIO_STATE_UPDATE', { detail: state });
+        radioEvents.dispatchEvent(e);
+    }
+};
+
