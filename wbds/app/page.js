@@ -33,7 +33,6 @@ export default function Home() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const sidebarRef = useRef(null);
-    const toggleBtnRef = useRef(null);
 
     const [view, setView] = useState('write'); // 'write', 'read', 'best'
     const [likedLetters, setLikedLetters] = useState(new Set()); // Local liked state
@@ -196,9 +195,7 @@ export default function Home() {
         const handleClickOutside = (event) => {
             if (isSidebarOpen &&
                 sidebarRef.current &&
-                !sidebarRef.current.contains(event.target) &&
-                toggleBtnRef.current &&
-                !toggleBtnRef.current.contains(event.target)
+                !sidebarRef.current.contains(event.target)
             ) {
                 setIsSidebarOpen(false);
             }
@@ -505,46 +502,6 @@ export default function Home() {
             }
           }
           
-          .toggle-btn {
-             position: fixed;
-             left: ${isDesktop && isSidebarOpen ? '400px' : '40px'};
-             top: 50%;
-             transform: translateY(-50%); 
-             z-index: 2050; /* Higher than sidebar to allow closing */
-             background: transparent;
-             border: none;
-             color: var(--text-secondary);
-             width: auto;
-             height: auto;
-             min-width: 44px;
-             min-height: 44px;
-             padding: 10px;
-             display: flex;
-             align-items: center;
-             justify-content: center;
-             cursor: pointer;
-             transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-             font-size: 32px;
-             opacity: 0.6;
-          }
-
-          @media (max-width: 768px) {
-            .toggle-btn {
-              left: 20px !important;
-              top: 20px !important;
-              transform: none !important;
-              font-size: 28px;
-              opacity: 0.8;
-            }
-          }
-          
-          @media (hover: hover) {
-            .toggle-btn:hover {
-              opacity: 1;
-              transform: translateY(-50%) translateX(4px);
-              color: var(--text-primary);
-            }
-          }
 
           .main-content {
              flex: 1;
@@ -556,7 +513,8 @@ export default function Home() {
              margin: 0;
              padding: 60px 20px;
              position: relative;
-             height: 100dvh; /* Sync with app-layout */
+             height: 100vh;
+             height: 100dvh; /* Sync with app-layout - dynamic viewport */
              overflow-y: auto;
              -webkit-overflow-scrolling: touch;
              scrollbar-width: none;
@@ -567,6 +525,14 @@ export default function Home() {
             .main-content {
               padding: 0 12px; /* Sticky header handles top spacing */
               padding-top: 0;
+              /* Fix viewport height when keyboard opens */
+              height: 100vh;
+              height: 100dvh; /* Dynamic viewport height */
+              max-height: 100vh;
+              max-height: 100dvh;
+              /* Ensure content can scroll when keyboard is open */
+              overflow-y: auto;
+              -webkit-overflow-scrolling: touch;
             }
           }
 
@@ -592,6 +558,7 @@ export default function Home() {
              text-align: center;
              display: flex;
              justify-content: center;
+             align-items: center; /* Center items vertically */
              gap: 60px; /* Big gap */
              z-index: 50;
              position: relative;
@@ -600,29 +567,35 @@ export default function Home() {
           @media (max-width: 768px) {
             .nav-header {
               position: sticky; /* Keep visible */
+              position: -webkit-sticky; /* Safari support */
               top: 0;
+              top: env(safe-area-inset-top, 0); /* Account for notch */
               background: ${view === 'chain' || view === 'personal' ? '#000000' : 'var(--bg-depth)'};
               width: 100%;
-              gap: 16px; /* Increased gap */
-              padding-top: 14px; /* Increased top padding */
-              padding-bottom: 20px;
+              gap: 8px; /* Reduced gap to fit all items */
+              padding-top: max(10px, env(safe-area-inset-top, 10px)); /* Reduced padding */
+              padding-bottom: 10px; /* Reduced bottom padding */
               flex-wrap: nowrap; /* Keep on one line */
-              overflow-x: auto; /* Scroll if absolutely needed */
+              overflow-x: visible; /* No scrolling - items should fit */
               -webkit-overflow-scrolling: touch;
-              justify-content: center; 
-              padding-left: 16px; 
-              padding-right: 16px;
+              justify-content: space-around; /* Distribute evenly */
+              align-items: center; /* Center items vertically */
+              padding-left: max(8px, env(safe-area-inset-left, 8px)); /* Reduced safe area */
+              padding-right: max(8px, env(safe-area-inset-right, 8px)); /* Reduced safe area */
               z-index: 100;
               transition: background 0.3s ease;
+              backdrop-filter: blur(10px);
+              -webkit-backdrop-filter: blur(10px);
+              /* Ensure header stays visible when keyboard opens */
             }
             /* Hide scrollbar */
             .nav-header::-webkit-scrollbar { display: none; }
             
-            /* Increase header font size for mobile */
+            /* Header font size for mobile - balanced size */
             .nav-header :global(a), .nav-header :global(button) {
-                font-size: 14px !important; /* Bigger than default 12px/10px */
+                font-size: 12px !important; /* Slightly smaller */
                 letter-spacing: 1px;
-                font-weight: 600;
+                font-weight: 700;
             }
           }
 
@@ -655,9 +628,11 @@ export default function Home() {
 
           @media (max-width: 768px) {
             .nav-item {
-              font-size: 10px; /* Smaller font */
-              letter-spacing: 1px;
-              padding: 6px 8px;
+              font-size: 11px !important; /* Smaller to fit all items */
+              letter-spacing: 0.8px;
+              padding: 6px 6px; /* Reduced padding to fit */
+              min-height: 36px; /* Smaller touch target */
+              flex: 0 1 auto; /* Allow items to shrink if needed */
             }
           }
           
@@ -704,9 +679,10 @@ export default function Home() {
 
           @media (max-width: 768px) {
             .write-mode {
-              padding-bottom: 40px;
+              padding-bottom: 20px; /* Reduced padding */
               justify-content: flex-start;
-              padding-top: 20px;
+              padding-top: 10px; /* Reduced top padding */
+              min-height: auto; /* Don't force full height */
             }
           }
 
@@ -849,11 +825,6 @@ export default function Home() {
                 <AppearancePanel />
             </div>
 
-            {/* Sidebar Toggle - Visible on Mobile too */}
-            <button className="toggle-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)} ref={toggleBtnRef}>
-                {isSidebarOpen ? '«' : '»'}
-            </button>
-
             <div className="main-content">
                 {/* Header */}
                 {/* Header */}
@@ -934,7 +905,12 @@ export default function Home() {
 
 
             {/* FOOTER */}
-            {(view !== 'chain') && <StandardFooter />}
+            {(view !== 'chain') && (
+                <StandardFooter 
+                    onSettingsClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    isSettingsOpen={isSidebarOpen}
+                />
+            )}
 
         </div>
     );

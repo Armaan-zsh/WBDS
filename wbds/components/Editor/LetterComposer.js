@@ -250,7 +250,8 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         @media (max-width: 768px) {
           .composer-container {
             max-width: 100%;
-            padding: 0 12px;
+            padding: 0 8px; /* Reduced padding */
+            margin-top: 0; /* Remove extra margin */
           }
         }
 
@@ -274,15 +275,17 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
 
         @media (max-width: 768px) {
           .composer-card {
-            padding: 20px;
+            padding: 16px; /* Reduced padding for smaller card */
             border-radius: 16px;
+            margin: 0; /* Remove any margin */
           }
         }
 
         @media (max-width: 480px) {
           .composer-card {
-            padding: 16px;
+            padding: 12px; /* Even smaller padding on very small screens */
             border-radius: 12px;
+            margin: 0;
           }
         }
 
@@ -313,8 +316,17 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         @media (max-width: 768px) {
           .letter-input {
             font-size: 16px; /* Prevent IOS zoom */
-            min-height: 100px; /* Smaller starting height */
-            max-height: 40vh; /* Don't take more than 40% of screen */
+            min-height: 80px; /* Smaller starting height */
+            max-height: 35vh; /* Don't take more than 35% of screen */
+            padding: 8px !important; /* Reduced padding */
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .letter-input {
+            min-height: 60px; /* Even smaller on very small screens */
+            max-height: 30vh; /* Less vertical space */
+            font-size: 15px;
           }
         }
         

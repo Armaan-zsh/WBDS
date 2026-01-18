@@ -5,7 +5,7 @@ import AntiScrapingWrapper from '../components/Security/AntiScrapingWrapper';
 export const metadata = {
     title: 'WBDS',
     description: 'Write it. Don\'t send it. Let it go.',
-    viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0', // Prevent zooming to feel native
+    viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, interactive-widget=resizes-content', // Prevent zooming and handle keyboard properly
 };
 
 export default function RootLayout({ children }) {

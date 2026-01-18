@@ -109,18 +109,21 @@ export default function LegalPage() {
 
             <style jsx>{`
                 .legal-page {
-                    height: 100vh;
+                    min-height: 100vh;
+                    height: auto;
                     width: 100vw;
                     background: #000000;
                     color: #f2f2f7;
                     display: block;
                     padding: 0;
+                    padding-bottom: 150px; /* Extra space for fixed footer */
                     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
                     position: fixed;
                     top: 0;
                     left: 0;
                     z-index: 9999;
                     overflow-y: auto;
+                    overflow-x: hidden;
                     -webkit-overflow-scrolling: touch;
                 }
 
@@ -129,6 +132,7 @@ export default function LegalPage() {
                     max-width: 800px;
                     margin: 0 auto;
                     padding: 80px 20px;
+                    padding-bottom: 150px; /* Extra space for fixed footer */
                     display: flex;
                     flex-direction: column;
                     gap: 60px;
@@ -233,6 +237,7 @@ export default function LegalPage() {
                 @media (max-width: 768px) {
                     .legal-page {
                         padding: 40px 16px;
+                        padding-bottom: 180px; /* Extra space for footer on mobile */
                     }
 
                     .main-title {
@@ -249,6 +254,7 @@ export default function LegalPage() {
 
                     .content-wrapper {
                         gap: 40px;
+                        padding-bottom: 180px; /* Extra space for footer on mobile */
                     }
                 }
             `}</style>

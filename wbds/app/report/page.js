@@ -185,14 +185,17 @@ export default function ReportPage() {
                     color: #fff;
                     display: flex;
                     justify-content: center;
-                    align-items: center;
+                    align-items: flex-start;
                     padding: 20px;
+                    padding-bottom: 150px; /* Extra space for fixed footer */
                     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
                     position: fixed;
                     top: 0;
                     left: 0;
                     z-index: 9999;
                     overflow-y: auto;
+                    overflow-x: hidden;
+                    -webkit-overflow-scrolling: touch;
                     -webkit-font-smoothing: antialiased;
                 }
 
@@ -248,6 +251,9 @@ export default function ReportPage() {
                         padding: 24px; 
                         border-radius: 24px;
                         max-width: 100%;
+                    }
+                    .report-page {
+                        padding-bottom: 180px; /* Extra space for footer on mobile */
                     }
                 }
 

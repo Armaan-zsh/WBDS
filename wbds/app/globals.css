@@ -629,11 +629,22 @@ body {
 .viewport {
   width: 100vw;
   height: 100vh;
+  height: 100dvh; /* Use dynamic viewport height for mobile */
   /* dynamic viewport units handled in component */
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
+}
+
+/* Mobile keyboard handling */
+@media (max-width: 768px) {
+  .viewport {
+    height: 100dvh; /* Dynamic viewport height adjusts when keyboard opens */
+    min-height: -webkit-fill-available; /* iOS Safari fix */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* 2. Glass Cards */

@@ -1,8 +1,14 @@
-export default function StandardFooter() {
+export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
     return (
         <footer className="std-footer">
             <div className="footer-links">
                 <a href="/report">REPORT A BUG</a>
+                <button 
+                    className="footer-settings-btn"
+                    onClick={onSettingsClick}
+                >
+                    SETTINGS
+                </button>
                 <a href="/legal">LEGAL</a>
             </div>
             <style jsx>{`
@@ -14,8 +20,9 @@ export default function StandardFooter() {
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    z-index: 100;
+                    z-index: 10000; /* High z-index to stay above content */
                     pointer-events: none; /* Let clicks pass through empty areas */
+                    touch-action: none; /* Prevent scrolling on footer */
                 }
 
                 .footer-links {
@@ -25,10 +32,27 @@ export default function StandardFooter() {
                     padding: 6px 18px;
                     border-radius: 20px;
                     display: flex;
-                    gap: 20px;
+                    gap: 0; /* Remove gap, use margin instead for even spacing */
+                    align-items: center; /* Center items vertically */
+                    justify-content: center; /* Center items horizontally */
                     border: 1px solid rgba(255, 255, 255, 0.03);
                     pointer-events: auto; /* Re-enable clicks on links */
                     transition: all 0.3s ease;
+                }
+
+                .footer-links a:not(:last-child),
+                .footer-links .footer-settings-btn {
+                    margin-right: 18px; /* Even spacing between items */
+                }
+
+                .footer-links a:last-child {
+                    margin-right: 0;
+                }
+
+                .footer-links > * {
+                    display: flex;
+                    align-items: center;
+                    height: 100%;
                 }
 
                 .footer-links:hover {
@@ -36,7 +60,7 @@ export default function StandardFooter() {
                      border-color: rgba(255, 255, 255, 0.08);
                 }
 
-                a {
+                a, .footer-settings-btn {
                     color: var(--text-secondary, #8e8e93);
                     text-decoration: none;
                     font-size: 10px;
@@ -46,10 +70,35 @@ export default function StandardFooter() {
                     transition: color 0.2s ease;
                     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
                     opacity: 0.7;
+                    padding: 0;
+                    margin: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    line-height: 1;
+                    height: auto;
                 }
 
-                a:hover {
+                .footer-settings-btn {
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                }
+
+                a:hover, .footer-settings-btn:hover {
                     color: var(--text-primary, #fff);
+                }
+
+                .footer-settings-btn {
+                    display: none; /* Hidden on desktop */
+                }
+
+                @media (max-width: 768px) {
+                    .footer-settings-btn {
+                        display: block; /* Show on mobile */
+                        opacity: ${isSettingsOpen ? 1 : 0.7};
+                        color: ${isSettingsOpen ? 'var(--text-primary, #fff)' : 'var(--text-secondary, #8e8e93)'};
+                    }
                 }
 
                 @media (max-width: 600px) {
@@ -60,21 +109,41 @@ export default function StandardFooter() {
                         left: 0;
                         margin: 0;
                         pointer-events: none; /* Let clicks pass through container */
+                        touch-action: none; /* Prevent scrolling on footer */
                     }
                     .footer-links {
                         background: transparent;
                         border: none;
                         backdrop-filter: none;
                         padding: 0;
-                        gap: 24px;
+                        gap: 0; /* Remove gap, use margin instead */
                         pointer-events: auto; /* Enable links */
                     }
-                    a {
+
+                    .footer-links a:not(:last-child),
+                    .footer-links .footer-settings-btn {
+                        margin-right: 18px; /* Even spacing on mobile */
+                    }
+
+                    .footer-links a:last-child {
+                        margin-right: 0;
+                    }
+                    a, .footer-settings-btn {
                         font-family: var(--font-mono); /* Tech feel */
                         font-size: 10px;
                         opacity: 0.4;
                         letter-spacing: 1px;
                         padding: 10px; /* Touch target */
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        line-height: 1;
+                        margin: 0;
+                        height: auto;
+                    }
+
+                    .footer-settings-btn {
+                        opacity: ${isSettingsOpen ? 0.7 : 0.4};
                     }
                 }
             `}</style>
