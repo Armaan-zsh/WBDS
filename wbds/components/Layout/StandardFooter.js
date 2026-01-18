@@ -2,6 +2,7 @@ export default function StandardFooter() {
     return (
         <footer className="std-footer">
             <div className="footer-links">
+                <a href="/report">REPORT A BUG</a>
                 <a href="/legal">LEGAL</a>
             </div>
             <style jsx>{`
