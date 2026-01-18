@@ -164,23 +164,23 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                         setVimMode('NORMAL');
                         return;
                     }
-                    
+
                     if (e.key === 'Backspace') {
                         e.preventDefault();
                         setCmdBuffer(prev => prev.slice(0, -1));
                         return;
                     }
-                    
+
                     // Firefox fix: Better key detection
                     if (e.key === ':') {
                         e.preventDefault();
                         setCmdBuffer(':');
                         return;
                     }
-                    
+
                     // Firefox fix: Check for printable characters more reliably
-                    if (cmdBuffer.startsWith(':') && e.key.length === 1 && 
-                        !e.ctrlKey && !e.metaKey && !e.altKey && 
+                    if (cmdBuffer.startsWith(':') && e.key.length === 1 &&
+                        !e.ctrlKey && !e.metaKey && !e.altKey &&
                         e.key !== 'Enter' && e.key !== 'Backspace' && e.key !== 'Escape') {
                         e.preventDefault();
                         setCmdBuffer(prev => prev + e.key);
@@ -658,6 +658,17 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     pointer-events: none !important;
                     height: 0;
                     overflow: hidden;
+                }
+
+                @media (max-width: 768px) {
+                    /* Restore controls for mobile users who can't use Vim bindings */
+                    :global([data-theme='neovim']) .controls {
+                        opacity: 1 !important;
+                        pointer-events: auto !important;
+                        height: auto !important;
+                        overflow: visible !important;
+                        padding-top: 10px;
+                    }
                 }
 
                 /* Status Bar inside the Card */

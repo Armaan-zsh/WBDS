@@ -43,6 +43,15 @@ export default function Home() {
 
     const [replyTo, setReplyTo] = useState(null); // Track parent letter
     const [currentTheme, setCurrentTheme] = useState('paper'); // Track theme for conditional rendering
+    const [showSplash, setShowSplash] = useState(true); // Splash screen state
+
+    // Splash Screen Timer
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowSplash(false);
+        }, 2200); // 2.2 seconds (slightly over 2s for smoothness)
+        return () => clearTimeout(timer);
+    }, []);
 
     // Watch for Theme Changes (to unmount Galaxy when needed)
     useEffect(() => {
@@ -441,6 +450,25 @@ export default function Home() {
 
     return (
         <div className="app-layout">
+            {/* SPLASH SCREEN */}
+            <div className={`splash-screen ${!showSplash ? 'fade-out' : ''}`} style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                background: '#000000',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 99999,
+                pointerEvents: showSplash ? 'auto' : 'none',
+                transition: 'opacity 0.8s ease-out',
+                opacity: showSplash ? 1 : 0
+            }}>
+                <img src="/splash-logo.png" alt="WB SD" style={{ width: '120px', height: 'auto' }} />
+            </div>
+
             {view !== 'chain' && currentTheme !== 'notepad' && currentTheme !== 'neovim' && <GalaxyBackground />}
             <VoidClock />
             <style jsx>{`
@@ -536,8 +564,8 @@ export default function Home() {
 
           @media (max-width: 768px) {
             .main-content {
-              padding: 20px 12px;
-              padding-top: 80px;
+              padding: 0 12px; /* Sticky header handles top spacing */
+              padding-top: 0;
             }
           }
 
@@ -570,15 +598,21 @@ export default function Home() {
 
           @media (max-width: 768px) {
             .nav-header {
+              position: sticky; /* Keep visible */
+              top: 0;
+              background: ${view === 'chain' || view === 'personal' ? '#000000' : 'var(--bg-depth)'};
+              width: 100%;
               gap: 12px;
+              padding-top: 10px;
               padding-bottom: 20px;
               flex-wrap: nowrap; /* Keep on one line */
               overflow-x: auto; /* Scroll if absolutely needed */
               -webkit-overflow-scrolling: touch;
-              justify-content: flex-start; /* Align left if scrolling */
+              justify-content: center; 
               padding-left: 16px; 
               padding-right: 16px;
-              width: 100%;
+              z-index: 100;
+              transition: background 0.3s ease;
             }
             /* Hide scrollbar */
             .nav-header::-webkit-scrollbar { display: none; }
