@@ -136,12 +136,14 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         if (isVim) {
             if (vimMode === 'INSERT') {
                 if (e.key === 'Escape') {
+                    e.preventDefault();
                     setVimMode('NORMAL');
                     return;
                 }
             } else {
                 // NORMAL MODE
-                e.preventDefault(); // Block typing
+                e.preventDefault(); // Block ANY typing in Normal mode
+                e.stopPropagation(); // Stop bubbling
 
                 if (e.key === 'i') {
                     setVimMode('INSERT');
@@ -151,19 +153,39 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
 
                 // Command Buffer Logic
                 if (e.key === ':' || cmdBuffer.startsWith(':')) {
+                    // Firefox fix: Handle Enter key properly
                     if (e.key === 'Enter') {
+                        e.preventDefault();
                         // EXECUTE
                         if (cmdBuffer === ':w') handlePreSend();
                         if (cmdBuffer === ':q') handleBurn();
                         if (cmdBuffer === ':wq') { handlePreSend(); }
                         setCmdBuffer('');
                         setVimMode('NORMAL');
-                    } else if (e.key === 'Backspace') {
-                        setCmdBuffer(prev => prev.slice(0, -1));
-                    } else if (e.key.length === 1) {
-                        setCmdBuffer(prev => prev + e.key);
+                        return;
                     }
-                    return;
+                    
+                    if (e.key === 'Backspace') {
+                        e.preventDefault();
+                        setCmdBuffer(prev => prev.slice(0, -1));
+                        return;
+                    }
+                    
+                    // Firefox fix: Better key detection
+                    if (e.key === ':') {
+                        e.preventDefault();
+                        setCmdBuffer(':');
+                        return;
+                    }
+                    
+                    // Firefox fix: Check for printable characters more reliably
+                    if (cmdBuffer.startsWith(':') && e.key.length === 1 && 
+                        !e.ctrlKey && !e.metaKey && !e.altKey && 
+                        e.key !== 'Enter' && e.key !== 'Backspace' && e.key !== 'Escape') {
+                        e.preventDefault();
+                        setCmdBuffer(prev => prev + e.key);
+                        return;
+                    }
                 }
             }
         }

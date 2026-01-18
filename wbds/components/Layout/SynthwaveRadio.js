@@ -93,10 +93,19 @@ export default function SynthwaveRadio() {
         } else {
             if (!audio.src || audio.src !== STATIONS[stationIndex].url) {
                 audio.src = STATIONS[stationIndex].url;
+                // Firefox requires load() after setting src
+                audio.load();
             }
             try {
                 setIsLoading(true);
                 setError(false);
+                // Firefox fix: ensure audio is loaded before play
+                if (audio.readyState < 2) {
+                    await new Promise((resolve) => {
+                        audio.addEventListener('canplay', resolve, { once: true });
+                        audio.load();
+                    });
+                }
                 await audio.play();
             } catch (err) {
                 if (err.name !== 'AbortError') {
@@ -124,8 +133,25 @@ export default function SynthwaveRadio() {
             className="synthwave-radio-wrapper"
         >
             {/* HIDDEN AUDIO ELEMENT */}
-            {/* Firefox Fix: Remove preload="none", add crossOrigin */}
-            <audio ref={audioRef} crossOrigin="anonymous" />
+            {/* Firefox Fix: Remove crossOrigin to avoid CORS issues */}
+            <audio
+                ref={audioRef}
+                preload="auto"
+                onError={(e) => {
+                    const err = e.target.error;
+                    console.error("Audio Tag Error:", err);
+                    let msg = 'CONNECTION ERR';
+                    if (err) {
+                        if (err.code === 1) msg = 'ABORTED';
+                        if (err.code === 2) msg = 'NETWORK ERR';
+                        if (err.code === 3) msg = 'DECODE ERR';
+                        if (err.code === 4) msg = 'SRC NOT SUPPORTED';
+                    }
+                    setError(msg);
+                    setIsLoading(false);
+                    setIsPlaying(false);
+                }}
+            />
 
             {/* EXPANDED PLAYER */}
             {/* Firefox Debug: Removed explicit load(), displaying error message */}
