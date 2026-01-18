@@ -57,11 +57,15 @@ export default function StandardFooter() {
                         bottom: 10px;
                     }
                     .footer-links {
-                        padding: 6px 16px;
-                        gap: 16px;
+                        padding: 4px 12px; /* Very compact */
+                        gap: 12px;
+                        background: rgba(10, 10, 10, 0.5); /* Slightly more opaque for legibility */
+                        border-radius: 12px;
                     }
                     a {
-                        font-size: 10px;
+                        font-size: 9px; /* Tiny */
+                        letter-spacing: 0.5px;
+                        opacity: 0.5;
                     }
                 }
             `}</style>

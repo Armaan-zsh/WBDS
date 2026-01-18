@@ -122,7 +122,7 @@ export default function SynthwaveRadio() {
             position: 'fixed',
             bottom: '40px', // Raised to avoid bottom sheet/nav overlap
             right: '24px',  // Moved slightly inward
-            zIndex: 2147483647,  // Maximum Z (32-bit int)
+            zIndex: 1000,  // High but not overlapping modals (which are usually 9999 or similar)
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'flex-end',
@@ -279,22 +279,24 @@ export default function SynthwaveRadio() {
 
                 @media (max-width: 768px) {
                   .synthwave-radio-wrapper {
-                    bottom: 20px !important;
-                    right: 16px !important;
+                    bottom: 80px !important; /* Raised above footer */
+                    right: 12px !important;
+                    z-index: 90 !important; /* Lower than modal/overlay but high enough */
                   }
                   .radio-expanded-player {
                     width: 240px;
                     padding: 14px;
+                    bottom: 60px; /* Ensure expanding up doesn't clip */
                   }
                 }
 
                 @media (max-width: 480px) {
                   .synthwave-radio-wrapper {
-                    bottom: 16px !important;
+                    bottom: 90px !important; /* Clear the footer completely */
                     right: 12px !important;
                   }
                   .radio-expanded-player {
-                    width: calc(100vw - 48px);
+                    width: calc(100vw - 32px);
                     max-width: 280px;
                     padding: 12px;
                   }

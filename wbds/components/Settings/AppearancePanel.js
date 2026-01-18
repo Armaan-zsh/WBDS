@@ -101,8 +101,19 @@ export default function AppearancePanel() {
 
                 <div>
                     <div>
-                        <div style={{ paddingBottom: '20px', fontSize: '18px', fontWeight: 'bold', letterSpacing: '0px' }}>
+                        <div style={{ paddingBottom: '20px', fontSize: '18px', fontWeight: 'bold', letterSpacing: '0px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             Settings
+                            {/* Mobile Close Button */}
+                            <button
+                                className="mobile-close-btn"
+                                onClick={() => {
+                                    // Dispatch event or callback if possible, but for now we rely on the toggle button or adding a prop. 
+                                    // Since we can't easily pass props down without refactoring page.js heavily, we will rely on the toggle button being visible.
+                                    document.querySelector('.toggle-btn')?.click();
+                                }}
+                            >
+                                ✕
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -398,7 +409,7 @@ export default function AppearancePanel() {
             border-radius: 24px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             backdrop-filter: blur(20px);
-            z-index: 50;
+            z-index: 2010;
             scrollbar-width: none;
         }
         
@@ -408,17 +419,19 @@ export default function AppearancePanel() {
 
         @media (max-width: 768px) {
           .panel-container {
-            width: 100%;
-            height: 100vh;
-            max-height: 100vh;
-            left: 0;
-            top: 0;
-            transform: none;
-            border-radius: 0;
+            width: 280px; /* Keep it compact */
+            height: auto;
+            max-height: 60vh; /* Don't cover entire screen */
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%); /* Centered floating card */
+            border-radius: 20px; /* Rounded corners back */
             padding: 24px 20px;
-            gap: 24px;
+            gap: 20px;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6); /* increased shadow */
+            border: 1px solid var(--glass-border);
           }
         }
 
@@ -545,6 +558,26 @@ export default function AppearancePanel() {
                 background: var(--text-primary);
                 color: #000000; /* Force black text for maximum contrast on white button */
                 font-weight: 800; /* Extra bold for readability */
+            }
+
+            .mobile-close-btn {
+                display: none;
+                background: transparent;
+                border: 1px solid var(--glass-border);
+                color: var(--text-primary);
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+            }
+
+            @media (max-width: 768px) {
+                .mobile-close-btn {
+                    display: flex;
+                }
             }
          `}</style>
         </>

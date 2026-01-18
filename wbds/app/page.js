@@ -460,10 +460,20 @@ export default function Home() {
              position: absolute;
              left: 0;
              top: 0;
-             z-index: 10;
+             z-index: 2000; /* High enough to cover content and radio */
              opacity: ${isDesktop && isSidebarOpen ? 1 : 0};
              pointer-events: ${isDesktop && isSidebarOpen ? 'auto' : 'none'};
              transition: opacity 0.3s ease;
+          }
+          /* On mobile, remove the desktop restriction for opacity */
+          @media (max-width: 768px) {
+            .sidebar {
+                opacity: ${isSidebarOpen ? 1 : 0};
+                pointer-events: ${isSidebarOpen ? 'auto' : 'none'};
+                position: fixed; /* Fix to viewport on mobile */
+                width: 100%;
+                height: 100%;
+            }
           }
           
           .toggle-btn {
@@ -471,7 +481,7 @@ export default function Home() {
              left: ${isDesktop && isSidebarOpen ? '400px' : '40px'};
              top: 50%;
              transform: translateY(-50%); 
-             z-index: 100;
+             z-index: 2050; /* Higher than sidebar to allow closing */
              background: transparent;
              border: none;
              color: var(--text-secondary);
@@ -517,7 +527,7 @@ export default function Home() {
              margin: 0;
              padding: 60px 20px;
              position: relative;
-             height: 100vh;
+             height: 100dvh; /* Sync with app-layout */
              overflow-y: auto;
              -webkit-overflow-scrolling: touch;
              scrollbar-width: none;
