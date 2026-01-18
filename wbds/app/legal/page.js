@@ -107,156 +107,150 @@ export default function LegalPage() {
                 <a href="/" className="back-link">« Return to Void</a>
             </div>
 
-            <style jsx>{`
-                .legal-page {
-                    height: 100dvh; /* Enforce viewport height */
-                    width: 100vw;
-                    background: #000000;
-                    color: #f2f2f7;
-                    display: block;
-                    padding: 0;
-                    padding-bottom: 0;
-                    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    z-index: 9999;
-                    overflow-y: auto;
-                    overflow-x: hidden;
-                    -webkit-overflow-scrolling: touch;
+            .legal-page {
+                min - height: 100vh;
+            width: 100vw;
+            background: #000000;
+            color: #f2f2f7;
+            display: block;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+            position: relative; /* Scrolls properly */
+            z-index: 9999;
+            box-sizing: border-box;
                 }
 
-                .content-wrapper {
-                    width: 100%;
-                    max-width: 800px;
-                    margin: 0 auto;
-                    padding: 80px 20px;
-                    padding-bottom: 150px; /* Extra space for fixed footer */
-                    display: flex;
-                    flex-direction: column;
-                    gap: 60px;
-                    animation: fadeIn 0.8s ease;
+            .content-wrapper {
+                width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 80px 20px;
+            padding-bottom: 150px; /* Extra space for fixed footer */
+            display: flex;
+            flex-direction: column;
+            gap: 60px;
+            animation: fadeIn 0.8s ease;
                 }
 
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
+            @keyframes fadeIn {
+                from {opacity: 0; transform: translateY(20px); }
+            to {opacity: 1; transform: translateY(0); }
                 }
 
-                .main-title {
-                    font-size: 48px;
-                    font-weight: 800;
-                    color: #ffffff;
-                    letter-spacing: -1px; /* Tighter for headlines */
-                    margin-bottom: 10px;
-                    text-align: center;
-                    text-transform: uppercase;
+            .main-title {
+                font - size: 48px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -1px; /* Tighter for headlines */
+            margin-bottom: 10px;
+            text-align: center;
+            text-transform: uppercase;
                 }
 
-                .legal-section {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 20px;
+            .legal-section {
+                display: flex;
+            flex-direction: column;
+            gap: 20px;
                 }
 
-                .legal-section h2 {
-                    font-weight: 700;
-                    font-size: 20px;
-                    color: #ffffff;
-                    margin: 0;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
+            .legal-section h2 {
+                font - weight: 700;
+            font-size: 20px;
+            color: #ffffff;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
                 }
 
-                .legal-content,
-                .rules-content,
-                .credits-content {
-                    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
-                    font-size: 17px;
-                    line-height: 1.6;
-                    color: #a1a1a6;
-                    font-weight: 400;
+            .legal-content,
+            .rules-content,
+            .credits-content {
+                font - family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+            font-size: 17px;
+            line-height: 1.6;
+            color: #a1a1a6;
+            font-weight: 400;
                 }
 
-                .legal-content p:last-child,
-                .rules-content p:last-child,
-                .credits-content p:last-child {
-                    margin-bottom: 0;
+            .legal-content p:last-child,
+            .rules-content p:last-child,
+            .credits-content p:last-child {
+                margin - bottom: 0;
                 }
 
-                .legal-content p strong,
-                .rules-content p strong,
-                .credits-content p strong {
-                    color: #ffffff;
-                    font-weight: 700;
+            .legal-content p strong,
+            .rules-content p strong,
+            .credits-content p strong {
+                color: #ffffff;
+            font-weight: 700;
                 }
 
-                .legal-content p em,
-                .rules-content p em,
-                .credits-content p em {
-                    font-style: italic;
-                    color: #8e8e93;
-                    opacity: 0.9;
+            .legal-content p em,
+            .rules-content p em,
+            .credits-content p em {
+                font - style: italic;
+            color: #8e8e93;
+            opacity: 0.9;
                 }
 
-                .divider {
-                    width: 100%;
-                    height: 1px;
-                    background: rgba(255, 255, 255, 0.1);
-                    margin: 30px 0;
+            .divider {
+                width: 100%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 30px 0;
                 }
 
-                .copyright {
-                    font-family: 'Courier Prime', 'Courier New', monospace;
-                    font-size: 10px;
-                    color: #555555;
-                    text-transform: uppercase;
-                    letter-spacing: 2px;
-                    text-align: center;
-                    opacity: 0.6;
+            .copyright {
+                font - family: 'Courier Prime', 'Courier New', monospace;
+            font-size: 10px;
+            color: #555555;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+            opacity: 0.6;
                 }
 
-                .back-link {
-                    display: block;
-                    text-align: center;
-                    color: #888888;
-                    text-decoration: none;
-                    margin-top: 40px;
-                    font-family: 'Courier Prime', 'Courier New', monospace;
-                    font-size: 14px;
-                    letter-spacing: 2px;
-                    transition: color 0.2s;
-                    padding-bottom: 40px;
-                }
-                
-                .back-link:hover {
-                    color: #ffffff;
+            .back-link {
+                display: block;
+            text-align: center;
+            color: #888888;
+            text-decoration: none;
+            margin-top: 40px;
+            font-family: 'Courier Prime', 'Courier New', monospace;
+            font-size: 14px;
+            letter-spacing: 2px;
+            transition: color 0.2s;
+            padding-bottom: 40px;
                 }
 
-                @media (max-width: 768px) {
-                    .legal-page {
-                        padding: 40px 16px;
-                        padding-bottom: 180px; /* Extra space for footer on mobile */
+            .back-link:hover {
+                color: #ffffff;
+                }
+
+            @media (max-width: 768px) {
+                    .legal - page {
+                padding: 40px 16px;
+            padding-bottom: 180px; /* Extra space for footer on mobile */
                     }
 
-                    .main-title {
-                        font-size: 36px;
-                        letter-spacing: 4px;
+            .main-title {
+                font - size: 36px;
+            letter-spacing: 4px;
                     }
 
-                    .legal-content,
-                    .rules-content,
-                    .credits-content {
-                        font-size: 13px;
-                        line-height: 1.7;
+            .legal-content,
+            .rules-content,
+            .credits-content {
+                font - size: 13px;
+            line-height: 1.7;
                     }
 
-                    .content-wrapper {
-                        gap: 40px;
-                        padding-bottom: 180px; /* Extra space for footer on mobile */
+            .content-wrapper {
+                gap: 40px;
+            padding-bottom: 180px; /* Extra space for footer on mobile */
                     }
                 }
             `}</style>
-        </div>
+        </div >
     );
 }

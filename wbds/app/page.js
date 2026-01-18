@@ -825,9 +825,9 @@ export default function Home() {
             />
 
             {/* Sidebar (Overlay) */}
-            {/* Sidebar (Overlay) */}
-            <div className="sidebar" ref={sidebarRef}>
-                <AppearancePanel />
+            {/* Sidebar / Settings */}
+            <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`} ref={sidebarRef}>
+                <AppearancePanel onClose={() => setIsSidebarOpen(false)} />
             </div>
 
             <div className="main-content">

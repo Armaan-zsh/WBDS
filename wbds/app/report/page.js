@@ -179,7 +179,7 @@ export default function ReportPage() {
 
             <style jsx>{`
                 .report-page {
-                    height: 100dvh; /* Enforce viewport height for scroll */
+                    min-height: 100vh;
                     width: 100vw;
                     background: #000000;
                     color: #fff;
@@ -187,16 +187,11 @@ export default function ReportPage() {
                     justify-content: center;
                     align-items: flex-start;
                     padding: 20px;
-                    padding-bottom: 100px;
+                    padding-bottom: 200px; /* ample space for footer */
                     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-                    position: fixed;
-                    top: 0;
-                    left: 0;
+                    position: relative; /* Scrolls properly */
                     z-index: 9999;
-                    overflow-y: auto;
-                    overflow-x: hidden;
-                    -webkit-overflow-scrolling: touch;
-                    -webkit-font-smoothing: antialiased;
+                    box-sizing: border-box;
                 }
 
                 .report-container {

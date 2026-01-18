@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { setAudioProfile, playTypeSound, toggleAmbience, setAmbienceProfile } from '../../utils/audioEngine';
 
-export default function AppearancePanel() {
+export default function AppearancePanel({ onClose }) {
     const [theme, setTheme] = useState('void');
     const [font, setFont] = useState('serif');
     const [audioProfile, setLocalAudioProfile] = useState('mechanical');
@@ -106,11 +106,7 @@ export default function AppearancePanel() {
                             {/* Mobile Close Button */}
                             <button
                                 className="mobile-close-btn"
-                                onClick={() => {
-                                    // Dispatch event or callback if possible, but for now we rely on the toggle button or adding a prop. 
-                                    // Since we can't easily pass props down without refactoring page.js heavily, we will rely on the toggle button being visible.
-                                    document.querySelector('.toggle-btn')?.click();
-                                }}
+                                onClick={onClose}
                             >
                                 ✕
                             </button>
