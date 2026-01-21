@@ -344,6 +344,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
 
         .controls {
           display: flex;
+          align-items: center;
           justify-content: flex-end;
           gap: 12px;
           padding-top: 20px;
@@ -353,7 +354,6 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
           pointer-events: ${text.length > 0 ? 'auto' : 'none'};
           margin-top: 10px;
           border-top: 1px solid var(--glass-border);
-          flex-wrap: wrap;
         }
 
         @media (max-width: 480px) {
@@ -366,26 +366,55 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         .helper-text {
             font-size: 13px;
             color: var(--text-secondary);
-            margin-right: auto;
-            align-self: center;
             opacity: 0.6;
         }
 
+        .btn-action {
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s var(--ease-ios);
+            background: var(--text-primary);
+            color: var(--bg-depth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 100px;
+            height: 48px;
+        }
+
+        .btn-action.btn-danger {
+            background: rgba(255, 69, 58, 0.15);
+            color: #ff453a;
+            border: 1px solid rgba(255, 69, 58, 0.2);
+        }
+
+        .btn-action:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+        }
+
+        .btn-action.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
         .char-count {
-            font-size: 12px;
+            font-size: 11px;
+            font-family: var(--font-mono, monospace);
             color: var(--text-secondary);
-            opacity: 0.7;
-            margin-right: 8px;
+            opacity: 0.5;
+            letter-spacing: 0.1em;
+            padding: 6px 14px;
+            align-self: center;
         }
 
-        .char-count.warning {
-            color: #ff9f00;
-        }
-
-        .char-count.error {
-            color: var(--accent-danger);
-            font-weight: bold;
-        }
+        .char-count.warning { color: var(--accent-gold); opacity: 1; }
+        .char-count.error { color: var(--accent-danger); opacity: 1; font-weight: bold; }
 
         .dox-warning {
             background: rgba(255, 69, 58, 0.1);
@@ -566,6 +595,12 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                                 {tag}
                             </button>
                         ))}
+
+                        {text.length > 0 && (
+                            <div className={`char-count ${text.length > MAX_CHARS * 0.9 ? 'warning' : ''} ${text.length >= MAX_CHARS ? 'error' : ''}`}>
+                                {text.length} / {MAX_CHARS}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -609,10 +644,10 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                         )}
                     </div>
 
-                    <span className={`char-count ${text.length > MAX_CHARS * 0.9 ? 'warning' : ''} ${text.length >= MAX_CHARS ? 'error' : ''}`}>
-                        {text.length} / {MAX_CHARS}
-                    </span>
-                    <span className="helper-text">{text.length === 0 ? 'Write what you think' : ''}</span>
+                    <div className="helper-text" style={{ flexGrow: 1 }}>
+                        {text.length === 0 ? 'Write what you think' : ''}
+                    </div>
+
                     <button className="btn-action btn-danger" onClick={handleBurn}>
                         {status === 'BURNING' ? '🔥' : 'Burn'}
                     </button>
@@ -620,10 +655,6 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                         className={`btn-action ${!isVerified ? 'disabled' : ''}`}
                         onClick={handlePreSend}
                         disabled={!isVerified}
-                        style={{
-                            opacity: isVerified ? 1 : 0.5,
-                            cursor: isVerified ? 'pointer' : 'not-allowed'
-                        }}
                     >
                         {status === 'SENDING' ? 'Sent' : 'Send'}
                     </button>
