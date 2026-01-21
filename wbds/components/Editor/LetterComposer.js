@@ -21,7 +21,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
     const [showPrivacyModal, setShowPrivacyModal] = useState(false);
     const [detectedRisks, setDetectedRisks] = useState({ risks: [], warnings: [] });
 
-    const MAX_CHARS = 5000; // Maximum character limit
+    const MAX_CHARS = 7777; // Maximum character limit
 
     // Vim State
     const [vimMode, setVimMode] = useState('INSERT'); // INSERT or NORMAL
