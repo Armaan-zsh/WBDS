@@ -11,6 +11,7 @@ import PrivacyWarningModal from './PrivacyWarningModal';
 
 export default function LetterComposer({ onSend, onError, onFocusChange, replyTo }) {
     const [text, setText] = useState('');
+    const [tags, setTags] = useState([]); // [NEW] Emotional Tags
     const [isFocused, setIsFocused] = useState(false);
     const [errorShake, setErrorShake] = useState(false);
     const [status, setStatus] = useState('IDLE'); // IDLE, SENDING, BURNING
@@ -104,8 +105,9 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
 
         setStatus('SENDING');
         setTimeout(() => {
-            onSend(safeText, unlockAt, replyTo?.id);
+            onSend(safeText, unlockAt, replyTo?.id, tags); // [NEW] Pass tags
             setText('');
+            setTags([]); // Reset tags
             setUnlockAt(null);
             setDoxWarning(null);
             setStatus('IDLE');
@@ -510,6 +512,61 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     risks={detectedRisks.risks}
                     warnings={detectedRisks.warnings}
                 />
+
+                {/* EMOTIONAL TAGS SELECTOR */}
+                <div className="tags-section">
+                    <div className="tags-container">
+                        {['#Love', '#Hope', '#Regret', '#Anger', '#Grief', '#Joy', '#Fear', '#Void'].map(tag => (
+                            <button
+                                key={tag}
+                                className={`tag-pill ${tags.includes(tag) ? 'selected' : ''}`}
+                                onClick={() => {
+                                    if (tags.includes(tag)) {
+                                        setTags(tags.filter(t => t !== tag));
+                                    } else {
+                                        if (tags.length < 5) setTags([...tags, tag]);
+                                        else triggerShake();
+                                    }
+                                }}
+                            >
+                                {tag}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                <style jsx>{`
+                    .tags-section {
+                        margin-top: 16px;
+                        padding-top: 12px;
+                        border-top: 1px solid var(--glass-border);
+                    }
+                    .tags-container {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 8px;
+                    }
+                    .tag-pill {
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid var(--glass-border);
+                        color: var(--text-secondary);
+                        padding: 6px 14px;
+                        border-radius: 20px;
+                        font-size: 12px;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        font-family: var(--font-current);
+                    }
+                    .tag-pill:hover {
+                        background: rgba(255, 255, 255, 0.1);
+                        color: var(--text-primary);
+                    }
+                    .tag-pill.selected {
+                        background: var(--text-primary);
+                        color: var(--bg-depth);
+                        border-color: var(--text-primary);
+                        font-weight: 600;
+                    }
+                `}</style>
 
                 <div className="controls">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>

@@ -1,7 +1,16 @@
 'use client';
 import ReactMarkdown from 'react-markdown';
 
+import { useState } from 'react';
+
 export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onLike, likedLetters, onReport }) {
+    const [activeTag, setActiveTag] = useState(null);
+    const TAGS = ['#Love', '#Hope', '#Regret', '#Anger', '#Grief', '#Joy', '#Fear', '#Void'];
+
+    const displayedLetters = activeTag
+        ? letters.filter(l => l.tags && l.tags.includes(activeTag))
+        : letters;
+
     if (!letters || letters.length === 0) {
         return (
             <div className="empty-state">
@@ -28,6 +37,41 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
           box-sizing: border-box;
           padding-left: 16px;
           padding-right: 16px;
+        }
+
+        /* FILTER BAR */
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            scrollbar-width: none; /* Hide scrollbar Firefox */
+            -webkit-overflow-scrolling: touch;
+        }
+        .filter-bar::-webkit-scrollbar { display: none; }
+
+        .filter-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-current);
+        }
+        .filter-pill:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+        .filter-pill.active {
+            background: var(--text-primary);
+            color: var(--bg-depth);
+            border-color: var(--text-primary);
+            font-weight: 600;
         }
 
         @media (max-width: 768px) {
@@ -77,6 +121,30 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
            border: 1px solid var(--glass-border);
            width: 100%;
            box-sizing: border-box;
+           display: flex;
+           flex-direction: column;
+        }
+
+        .content-text {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .card-tag {
+            font-size: 11px;
+            color: var(--text-secondary);
+            background: rgba(255,255,255,0.03);
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            opacity: 0.7;
         }
 
         @media (max-width: 768px) {
@@ -342,7 +410,26 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
         }
       `}</style>
 
-            {letters.map((letter) => (
+            {/* FILTER BAR */}
+            <div className="filter-bar">
+                <button
+                    className={`filter-pill ${activeTag === null ? 'active' : ''}`}
+                    onClick={() => setActiveTag(null)}
+                >
+                    All
+                </button>
+                {TAGS.map(tag => (
+                    <button
+                        key={tag}
+                        className={`filter-pill ${activeTag === tag ? 'active' : ''}`}
+                        onClick={() => setActiveTag(tag === activeTag ? null : tag)}
+                    >
+                        {tag}
+                    </button>
+                ))}
+            </div>
+
+            {displayedLetters.map((letter) => (
                 <div key={letter.id} className="letter-card" onClick={() => onOpen && onOpen(letter)}>
                     {/* Report button - visible for all letters except own */}
                     {onReport && (!myLetterIds || !myLetterIds.has(letter.id)) && (
@@ -373,7 +460,18 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
                                 </span>
                             </div>
                         ) : (
-                            <ReactMarkdown>{letter.content}</ReactMarkdown>
+                            <>
+                                <div className="content-text">
+                                    <ReactMarkdown>{letter.content}</ReactMarkdown>
+                                </div>
+                                {letter.tags && letter.tags.length > 0 && (
+                                    <div className="card-tags">
+                                        {letter.tags.map(tag => (
+                                            <span key={tag} className="card-tag">{tag}</span>
+                                        ))}
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                     <div className="letter-meta">

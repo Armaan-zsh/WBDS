@@ -15,7 +15,7 @@ export async function POST(req) {
 
     try {
         const body = await req.json();
-        const { content, theme, font, unlockAt } = body;
+        const { content, theme, font, unlockAt, tags } = body; // [NEW] tags
 
         if (!content || !content.trim()) {
             return NextResponse.json({ error: 'Content required' }, { status: 400 });
@@ -117,7 +117,8 @@ export async function POST(req) {
                     theme: body.theme || 'void',
                     location_lat: lat,
                     location_lng: lng,
-                    unlock_at: body.unlockAt || null // Handle Time Capsule
+                    unlock_at: body.unlockAt || null, // Handle Time Capsule
+                    tags: tags || [] // [NEW] Insert tags
                 }
             ])
             .select() // Return the inserted data

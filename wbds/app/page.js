@@ -317,7 +317,7 @@ export default function Home() {
         setNotification({ message, type: 'error' });
     };
 
-    const handleLetterSent = async (text, unlockAt) => {
+    const handleLetterSent = async (text, unlockAt, parentId = null, tags = []) => {
         // Basic Spam Prevention (Cooldown)
         const lastSent = localStorage.getItem('wbds_last_sent');
         if (lastSent && Date.now() - parseInt(lastSent) < 30000) { // 30s cooldown
@@ -332,7 +332,8 @@ export default function Home() {
                 body: JSON.stringify({
                     content: text,
                     theme: 'default',
-                    unlockAt: unlockAt ? unlockAt.toISOString() : null
+                    unlockAt: unlockAt ? unlockAt.toISOString() : null,
+                    tags: tags // [NEW] Pass tags to API
                 })
             });
 
