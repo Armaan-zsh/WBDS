@@ -20,6 +20,9 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
     const [doxWarning, setDoxWarning] = useState(null);
     const [showPrivacyModal, setShowPrivacyModal] = useState(false);
     const [detectedRisks, setDetectedRisks] = useState({ risks: [], warnings: [] });
+    const [recipientType, setRecipientType] = useState('unknown'); // [NEW] Purpose Protection
+    const [showGuidanceModal, setShowGuidanceModal] = useState(false); // [NEW] Purpose Protection
+    const [isCrisisDetected, setIsCrisisDetected] = useState(false); // [NEW] Crisis Lifeline
 
     const MAX_CHARS = 7777; // Maximum character limit
 
@@ -95,23 +98,40 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         processSend();
     };
 
-    const processSend = () => {
+    const processSend = async (forced = false) => {
         setShowPrivacyModal(false);
+        setShowGuidanceModal(false);
 
         // 4. Final sanitization
         const safeText = maskPrivateInfo(text);
 
         playSendSound(); // WHOOSH
-
         setStatus('SENDING');
-        setTimeout(() => {
-            onSend(safeText, unlockAt, replyTo?.id, tags); // [NEW] Pass tags
+
+        try {
+            // [MODIFIED] Using internal onSend and handling response
+            const response = await onSend(safeText, unlockAt, replyTo?.id, tags, recipientType, forced);
+
+            if (response?.crisis_detected) {
+                setIsCrisisDetected(true);
+            }
+
+            if (response?.guidance_needed && !forced) {
+                setStatus('IDLE');
+                setShowGuidanceModal(true);
+                return;
+            }
+
             setText('');
-            setTags([]); // Reset tags
+            setTags([]);
+            setRecipientType('unknown');
             setUnlockAt(null);
             setDoxWarning(null);
             setStatus('IDLE');
-        }, 1500);
+        } catch (err) {
+            setStatus('IDLE');
+            if (onError) onError(err.message || "The void is unstable. Try again.");
+        }
     };
 
     const handleBurn = () => {
@@ -529,6 +549,70 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             font-weight: 600;
         }
         /* TAGS END */
+
+        /* RECIPIENT SELECTOR */
+        .recipient-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .recipient-select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-family: var(--font-current);
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .recipient-select:focus {
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+        }
+
+        /* GUIDANCE MODAL */
+        .guidance-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .guidance-card {
+            background: #111;
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 450px;
+            text-align: center;
+        }
+        .guidance-card h3 { font-size: 24px; margin-bottom: 16px; color: var(--text-primary); }
+        .guidance-card p { font-size: 16px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; }
+        .guidance-actions { display: flex; gap: 12px; justify-content: center; }
+
+        /* CRISIS BANNER */
+        .crisis-banner {
+            background: rgba(255, 69, 58, 0.1);
+            border: 1px solid var(--accent-danger);
+            color: var(--text-primary);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+        .crisis-banner a { color: #ff453a; font-weight: bold; text-decoration: underline; }
       `}</style>
 
             <div className="composer-card">
@@ -537,6 +621,21 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                         <span>↳ Threading with Fragment #{replyTo.id.toString().substring(0, 6)}...</span>
                     </div>
                 )}
+
+                {/* RECIPIENT SELECTOR */}
+                <div className="recipient-section">
+                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)', opacity: 0.6 }}>To:</span>
+                    <select
+                        className="recipient-select"
+                        value={recipientType}
+                        onChange={(e) => setRecipientType(e.target.value)}
+                    >
+                        <option value="unknown">Someone unnamed...</option>
+                        <option value="specific">A specific person...</option>
+                        <option value="universe">The universe...</option>
+                        <option value="self">My future/past self...</option>
+                    </select>
+                </div>
 
                 {doxWarning && (
                     <div className="dox-warning">
@@ -653,12 +752,44 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     </button>
                     <button
                         className={`btn-action ${!isVerified ? 'disabled' : ''}`}
-                        onClick={handlePreSend}
+                        onClick={() => processSend(false)}
                         disabled={!isVerified}
                     >
                         {status === 'SENDING' ? 'Sent' : 'Send'}
                     </button>
                 </div>
+
+                {/* GUIDANCE MODAL */}
+                {showGuidanceModal && (
+                    <div className="guidance-overlay">
+                        <div className="guidance-card">
+                            <h3>Is this a letter?</h3>
+                            <p>WBDS is a space for unsent letters and personal release. Your words feel more like a story or a public post.</p>
+                            <div className="guidance-actions">
+                                <button className="btn-action btn-danger" onClick={() => setShowGuidanceModal(false)}>Edit</button>
+                                <button className="btn-action" onClick={() => processSend(true)}>It IS a letter</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* CRISIS LIFELINE */}
+                {isCrisisDetected && (
+                    <div className="crisis-banner">
+                        <p>The void hears you, but the world still needs you.</p>
+                        <p style={{ fontSize: '14px', marginTop: '8px' }}>
+                            You are not alone. Please consider reaching out: <br />
+                            <strong>National Suicide Prevention Lifeline: 988</strong> or <a href="https://findahelpline.com" target="_blank">Find a local helpline</a>
+                        </p>
+                        <button
+                            className="tag-pill"
+                            style={{ marginTop: '16px', background: 'rgba(255,255,255,0.1)' }}
+                            onClick={() => setIsCrisisDetected(false)}
+                        >
+                            Close
+                        </button>
+                    </div>
+                )}
 
                 <div className="vim-status-bar">
                     {cmdBuffer ? (

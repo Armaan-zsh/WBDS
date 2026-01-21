@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
+export default function StandardFooter({ onSettingsClick, isSettingsOpen, letterCount }) {
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
     useEffect(() => {
@@ -55,6 +55,11 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
 
     return (
         <footer className="std-footer">
+            <div className="void-pulse">
+                <span className="pulse-dot"></span>
+                {letterCount?.toLocaleString() || '...'} thoughts released to the void
+            </div>
+
             <div className="footer-links">
                 <a href="/report">REPORT A BUG</a>
                 <button
@@ -72,12 +77,44 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen }) {
                     left: 0;
                     width: 100%;
                     display: flex;
+                    flex-direction: column;
                     justify-content: center;
                     align-items: center;
+                    gap: 12px;
                     z-index: 10000;
-                    pointer-events: none; /* Let clicks pass through empty areas */
-                    touch-action: none; /* Prevent scrolling on footer */
-                    transition: opacity 0.2s ease; /* Smooth fade out if state changes */
+                    pointer-events: none;
+                    touch-action: none;
+                    transition: opacity 0.2s ease;
+                }
+
+                .void-pulse {
+                    font-size: 10px;
+                    color: var(--text-secondary);
+                    font-family: var(--font-mono, monospace);
+                    text-transform: uppercase;
+                    letter-spacing: 0.1em;
+                    opacity: 0.5;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: rgba(10, 10, 10, 0.2);
+                    padding: 4px 12px;
+                    border-radius: 20px;
+                    pointer-events: auto;
+                }
+
+                .pulse-dot {
+                    width: 4px;
+                    height: 4px;
+                    background: var(--accent-gold, #ffd700);
+                    border-radius: 50%;
+                    box-shadow: 0 0 8px var(--accent-gold);
+                    animation: blink 2s infinite;
+                }
+
+                @keyframes blink {
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.4; transform: scale(1.1); }
                 }
 
                 .footer-links {

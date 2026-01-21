@@ -40,6 +40,7 @@ export default function Home() {
     const [myLetterIds, setMyLetterIds] = useState(new Set());
     const [deleteTargetId, setDeleteTargetId] = useState(null);
     const [isWriting, setIsWriting] = useState(false);
+    const [totalCount, setTotalCount] = useState(0); // [NEW] Global Pulse
 
     const [replyTo, setReplyTo] = useState(null); // Track parent letter
     const [currentTheme, setCurrentTheme] = useState('paper'); // Track theme for conditional rendering
@@ -246,6 +247,10 @@ export default function Home() {
         const fetchLetters = async () => {
             let data, error;
 
+            // Fetch Total Count for Pulse (Run once on load)
+            const { count } = await supabase.from('letters').select('*', { count: 'exact', head: true });
+            if (count) setTotalCount(count);
+
             if (view === 'best') {
                 try {
                     const res = await fetch('/api/letters/best');
@@ -295,6 +300,10 @@ export default function Home() {
                 setLetters(current => {
                     // Deduplicate
                     if (current.some(l => l.id === newLetter.id)) return current;
+
+                    // Update Total Count [NEW]
+                    setTotalCount(prev => prev + 1);
+
                     // Safety Valve: Cap at 100 items to prevent memory overflow during viral spikes
                     const updated = [newLetter, ...current];
                     if (updated.length > 100) {
@@ -319,10 +328,10 @@ export default function Home() {
         setNotification({ message, type: 'error' });
     };
 
-    const handleLetterSent = async (text, unlockAt, parentId = null, tags = []) => {
+    const handleLetterSent = async (text, unlockAt, parentId = null, tags = [], recipientType = 'unknown', forced = false) => {
         // Basic Spam Prevention (Cooldown)
         const lastSent = localStorage.getItem('wbds_last_sent');
-        if (lastSent && Date.now() - parseInt(lastSent) < 30000) { // 30s cooldown
+        if (lastSent && Date.now() - parseInt(lastSent) < 10000) { // Reduced to 10s for testing/growth
             handleError("You're writing too fast. Take a deep breath.");
             return;
         }
@@ -333,18 +342,24 @@ export default function Home() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     content: text,
-                    theme: 'default',
+                    theme: currentTheme || 'default',
                     unlockAt: unlockAt ? unlockAt.toISOString() : null,
-                    tags: tags // [NEW] Pass tags to API
+                    tags: tags,
+                    recipient_type: recipientType,
+                    forced: forced
                 })
             });
 
             const data = await res.json();
 
             if (!res.ok) {
-                // Rate limit or other error
                 handleError(data.error || "The Void rejected your letter.");
-                return;
+                return data;
+            }
+
+            // [SOUL LAYER] If it's a story and not forced, return for guidance modal
+            if (data.guidance_needed && !forced) {
+                return data;
             }
 
             const id = data.letter.id;
@@ -352,15 +367,17 @@ export default function Home() {
             // Mark as owned (Local Persistence)
             setMyLetterIds(prev => new Set(prev).add(id));
             localStorage.setItem('wbds_last_sent', Date.now());
+
+            // Switch to Read View
+            setTimeout(() => {
+                setView('read');
+            }, 100);
+
+            return data;
         } catch (err) {
             handleError("Connection lost. The Void is unreachable.");
-            return;
+            return { error: true };
         }
-
-        // Switch to Read View
-        setTimeout(() => {
-            setView('read');
-        }, 10);
     };
 
     const handleReport = (letterId) => {
@@ -807,6 +824,7 @@ export default function Home() {
                     <StandardFooter
                         onSettingsClick={() => setIsSidebarOpen(!isSidebarOpen)}
                         isSettingsOpen={isSidebarOpen}
+                        letterCount={totalCount}
                     />
                 )}
                 <div className="footer-spacer"></div>

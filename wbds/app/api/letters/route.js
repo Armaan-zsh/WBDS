@@ -2,8 +2,37 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../lib/supabase-admin';
 import { headers } from 'next/headers';
 import { maskPrivateInfo } from '../../../utils/privacyShield';
+import { z } from 'zod';
 
-export const dynamic = 'force-dynamic'; // No caching
+export const dynamic = 'force-dynamic';
+
+// 1. Technical Fortress: Zod Schema
+const LetterSchema = z.object({
+    content: z.string().min(1, "Content is required").max(7777, "Content too long"),
+    theme: z.string().default('void'),
+    font: z.string().optional(),
+    unlockAt: z.string().optional().nullable(),
+    tags: z.array(z.string()).max(5, "Max 5 tags allowed").default([]),
+    recipient_type: z.enum(['specific', 'universe', 'self', 'unknown']).default('unknown'),
+}).strict();
+
+// 2. Purpose Protection: Letter-ness Check
+const isLikelyLetter = (text) => {
+    const hasAddress = /dear|hi|hello|to my|to the person|if you're reading this/i.test(text);
+    const hasClosure = /love|sorry|miss you|sincerely|yours|thank you|goodbye/i.test(text);
+    const wordCount = text.trim().split(/\s+/).length;
+
+    // If it's very short, we don't strictly require address/closure
+    if (wordCount < 10) return true;
+
+    return hasAddress || hasClosure;
+};
+
+// 3. Crisis Detection
+const hasCrisisKeywords = (text) => {
+    const keywords = /\b(suicide|kill myself|end it all|can't go on|want to die|self harm)\b/i;
+    return keywords.test(text);
+};
 
 export async function POST(req) {
     if (!supabaseAdmin) {
@@ -14,15 +43,24 @@ export async function POST(req) {
     }
 
     try {
-        const body = await req.json();
-        const { content, theme, font, unlockAt, tags } = body; // [NEW] tags
+        const json = await req.json();
 
-        if (!content || !content.trim()) {
-            return NextResponse.json({ error: 'Content required' }, { status: 400 });
+        // Validate with Zod
+        const result = LetterSchema.safeParse(json);
+        if (!result.success) {
+            return NextResponse.json({
+                error: 'Validation failed',
+                details: result.error.format()
+            }, { status: 400 });
         }
 
+        const { content, theme, unlockAt, tags, recipient_type } = result.data;
+
+        // Purpose Check
+        const isLetter = isLikelyLetter(content);
+        const isCrisis = hasCrisisKeywords(content);
+
         // SERVER-SIDE PRIVACY ENFORCEMENT
-        // Even if client-side check is bypassed, we redact known PII here.
         const safeContent = maskPrivateInfo(content);
 
         // 1. Get IP
@@ -30,81 +68,53 @@ export async function POST(req) {
         const forwardedFor = headersList.get('x-forwarded-for');
         const ip = forwardedFor ? forwardedFor.split(',')[0] : '127.0.0.1';
 
-        // 2. Check Limit (Skip for Localhost)
+        // 2. Rate Limiting (Simple hashed check)
         let isDev = ip === '127.0.0.1' || ip === '::1';
-
-        // Only enforce limit in production or non-local
         if (!isDev) {
-            const { data: limitData, error: limitError } = await supabaseAdmin
+            const { data: limitData } = await supabaseAdmin
                 .from('rate_limits')
                 .select('*')
                 .eq('ip', ip)
                 .single();
 
-            let currentCount = 0;
-            let lastReset = new Date(0); // Epoch
-
-            if (limitData) {
-                currentCount = limitData.count;
-                lastReset = new Date(limitData.last_reset);
-            }
-
-            // Check if 24 hours passed
+            let currentCount = limitData ? limitData.count : 0;
+            let lastReset = limitData ? new Date(limitData.last_reset) : new Date(0);
             const now = new Date();
-            const oneDay = 24 * 60 * 60 * 1000;
 
-            if ((now - lastReset) > oneDay) {
-                // New Day, Reset
+            if ((now - lastReset) > (24 * 60 * 60 * 1000)) {
                 currentCount = 0;
-                // Upsert will handle updating timestamp
             }
 
-            if (currentCount >= 3) {
+            if (currentCount >= 7) { // Increased for "Archive Growth" phase
                 return NextResponse.json(
-                    { error: 'Daily limit reached (3 letters/day). Come back tomorrow.' },
+                    { error: 'Daily limit reached. The void needs rest.' },
                     { status: 429 }
                 );
             }
 
-            // 3. Increment Limit
-            const { error: upsertError } = await supabaseAdmin
-                .from('rate_limits')
-                .upsert({
-                    ip,
-                    count: currentCount + 1,
-                    last_reset: currentCount === 0 ? new Date().toISOString() : lastReset.toISOString()
-                });
-
-            if (upsertError) {
-                console.error('Rate limit error:', upsertError);
-            }
+            await supabaseAdmin.from('rate_limits').upsert({
+                ip,
+                count: currentCount + 1,
+                last_reset: currentCount === 0 ? now.toISOString() : lastReset.toISOString()
+            });
         }
 
-        // 3. Get Location (IP Geolocation)
-        let lat = null;
-        let lng = null;
-
-        try {
-            // Skips localhost
-            if (ip && ip !== '127.0.0.1' && ip !== '::1') {
-                const geoPromise = fetch(`http://ip-api.com/json/${ip}`);
-                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Geo Timeout')), 1000));
-
-                const geoRes = await Promise.race([geoPromise, timeoutPromise]);
+        // 3. Location
+        let lat = null, lng = null;
+        if (ip && !isDev) {
+            try {
+                const geoRes = await fetch(`http://ip-api.com/json/${ip}`, { signal: AbortSignal.timeout(1000) });
                 const geoData = await geoRes.json();
-
                 if (geoData.status === 'success') {
                     lat = geoData.lat;
                     lng = geoData.lon;
                 }
-            } else {
-                // Dev mode: Random location so you can see the globe work!
-                lat = (Math.random() * 160) - 80; // -80 to 80
-                lng = (Math.random() * 360) - 180; // -180 to 180
+            } catch (e) {
+                console.warn('Geo Lookup Failed');
             }
-        } catch (e) {
-            // Geo failed, silently continue
-            console.warn('Geo Lookup Failed (Continuing without location):', e.message);
+        } else {
+            lat = (Math.random() * 160) - 80;
+            lng = (Math.random() * 360) - 180;
         }
 
         // 4. Insert Letter
@@ -112,28 +122,34 @@ export async function POST(req) {
             .from('letters')
             .insert([
                 {
-                    content: safeContent, // Use filtered content
+                    content: safeContent,
                     ip_address: ip,
-                    theme: body.theme || 'void',
+                    theme,
                     location_lat: lat,
                     location_lng: lng,
-                    unlock_at: body.unlockAt || null, // Handle Time Capsule
-                    tags: tags || [] // [NEW] Insert tags
+                    unlock_at: unlockAt,
+                    tags,
+                    recipient_type, // [NEW]
+                    is_purpose_match: isLetter, // [NEW] Track but don't block yet
+                    has_crisis_flag: isCrisis // [NEW] Track for UI response
                 }
             ])
-            .select() // Return the inserted data
+            .select()
             .single();
 
-        if (insertError) {
-            throw insertError;
-        }
+        if (insertError) throw insertError;
 
-        return NextResponse.json({ success: true, letter });
+        return NextResponse.json({
+            success: true,
+            letter,
+            guidance_needed: !isLetter,
+            crisis_detected: isCrisis
+        });
 
     } catch (error) {
-        console.error('API Error:', error.message, error.details || '');
+        console.error('API Error:', error.message);
         return NextResponse.json(
-            { error: error.message || 'Failed to send letter' },
+            { error: 'Failed to process letter' },
             { status: 500 }
         );
     }
