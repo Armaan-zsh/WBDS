@@ -168,9 +168,10 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
         }
         
         .delete-btn:hover {
-            background: var(--accent-danger);
+            background: rgba(255, 255, 255, 0.2);
             color: white;
             transform: scale(1.1);
+            border-color: rgba(255, 255, 255, 0.5);
         }
 
         .report-btn {
