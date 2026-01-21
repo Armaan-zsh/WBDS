@@ -506,27 +506,6 @@ body {
   --glass-bg: rgba(0, 0, 0, 0.5);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-blur: blur(25px) saturate(160%);
-
-  /* Background Handling */
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
-}
-
-/* Desktop Custom Background */
-@media (min-width: 769px) {
-  [data-theme='custom'] {
-    background-image: var(--custom-bg-desktop, none);
-  }
-}
-
-/* Mobile Custom Background */
-@media (max-width: 768px) {
-  [data-theme='custom'] {
-    background-image: var(--custom-bg-mobile, none);
-    background-attachment: scroll; /* Better for mobile performance */
-  }
 }
 
 /* THEME: NOTEPAD (Windows 95) */

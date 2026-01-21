@@ -12,6 +12,7 @@ import VoidClock from '../components/Layout/VoidClock';
 import GalaxyBackground from '../components/Layout/GalaxyBackground';
 import StandardFooter from '../components/Layout/StandardFooter';
 import VoidWhisper from '../components/Layout/VoidWhisper';
+import CustomWallpaper from '../components/Layout/CustomWallpaper';
 import dynamic from 'next/dynamic';
 
 const Link = dynamic(() => import('next/link'), { ssr: false }); // Example fallback if needed, but we need GlobalGraph
@@ -522,6 +523,9 @@ export default function Home() {
 
             {/* Only show Galaxy in Void theme or Chain view */}
             {(view === 'chain' || currentTheme === 'void' || currentTheme === 'midnight' || currentTheme === 'synthwave') && <GalaxyBackground />}
+
+            <CustomWallpaper theme={currentTheme} />
+
             <VoidClock />
 
             <style jsx>{`
@@ -534,7 +538,7 @@ export default function Home() {
 
           /* Sidebar is now an overlay/ghost element that doesn't push content */
           :global(body) {
-            background-color: ${view === 'chain' || view === 'personal' ? '#000000 !important' : 'var(--bg-depth) !important'};
+            background-color: ${(view === 'chain' || view === 'personal') ? '#000000 !important' : (currentTheme === 'custom' ? 'transparent !important' : 'var(--bg-depth) !important')};
           }
           
           .sidebar {

@@ -47,11 +47,9 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
 
                 if (savedCustomDesktop) {
                     setCustomBgDesktop(savedCustomDesktop);
-                    if (savedTheme === 'custom') document.documentElement.style.setProperty('--custom-bg-desktop', `url(${savedCustomDesktop})`);
                 }
                 if (savedCustomMobile) {
                     setCustomBgMobile(savedCustomMobile);
-                    if (savedTheme === 'custom') document.documentElement.style.setProperty('--custom-bg-mobile', `url(${savedCustomMobile})`);
                 }
 
                 document.documentElement.setAttribute('data-theme', savedTheme);
@@ -90,15 +88,7 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
         localStorage.setItem('wbds_theme', t);
 
         if (t === 'custom') {
-            // Ensure we have current images in state apply
-            const d = customBgDesktop || await getImage('wbds_custom_bg_desktop');
-            const m = customBgMobile || await getImage('wbds_custom_bg_mobile');
-
-            if (d) document.documentElement.style.setProperty('--custom-bg-desktop', `url(${d})`);
-            if (m) document.documentElement.style.setProperty('--custom-bg-mobile', `url(${m})`);
-        } else {
-            document.documentElement.style.removeProperty('--custom-bg-desktop');
-            document.documentElement.style.removeProperty('--custom-bg-mobile');
+            window.dispatchEvent(new Event('custom-bg-update'));
         }
         window.dispatchEvent(new Event('storage'));
     };
@@ -150,12 +140,12 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             if (type === 'desktop') {
                 setCustomBgDesktop(base64);
                 await saveImage('wbds_custom_bg_desktop', base64);
-                if (theme === 'custom') document.documentElement.style.setProperty('--custom-bg-desktop', `url(${base64})`);
             } else {
                 setCustomBgMobile(base64);
                 await saveImage('wbds_custom_bg_mobile', base64);
-                if (theme === 'custom') document.documentElement.style.setProperty('--custom-bg-mobile', `url(${base64})`);
             }
+            // Trigger refresh in CustomWallpaper component
+            window.dispatchEvent(new Event('custom-bg-update'));
         };
         reader.readAsDataURL(file);
     };
