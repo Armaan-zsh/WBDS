@@ -466,6 +466,40 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         .vim-cmd {
             color: var(--text-primary);
         }
+
+        /* TAGS START */
+        .tags-section {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--glass-border);
+        }
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .tag-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-current);
+        }
+        .tag-pill:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+        .tag-pill.selected {
+            background: var(--text-primary);
+            color: var(--bg-depth);
+            border-color: var(--text-primary);
+            font-weight: 600;
+        }
+        /* TAGS END */
       `}</style>
 
             <div className="composer-card">
@@ -534,39 +568,6 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                         ))}
                     </div>
                 </div>
-                <style jsx>{`
-                    .tags-section {
-                        margin-top: 16px;
-                        padding-top: 12px;
-                        border-top: 1px solid var(--glass-border);
-                    }
-                    .tags-container {
-                        display: flex;
-                        flex-wrap: wrap;
-                        gap: 8px;
-                    }
-                    .tag-pill {
-                        background: rgba(255, 255, 255, 0.05);
-                        border: 1px solid var(--glass-border);
-                        color: var(--text-secondary);
-                        padding: 6px 14px;
-                        border-radius: 20px;
-                        font-size: 12px;
-                        cursor: pointer;
-                        transition: all 0.2s ease;
-                        font-family: var(--font-current);
-                    }
-                    .tag-pill:hover {
-                        background: rgba(255, 255, 255, 0.1);
-                        color: var(--text-primary);
-                    }
-                    .tag-pill.selected {
-                        background: var(--text-primary);
-                        color: var(--bg-depth);
-                        border-color: var(--text-primary);
-                        font-weight: 600;
-                    }
-                `}</style>
 
                 <div className="controls">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
