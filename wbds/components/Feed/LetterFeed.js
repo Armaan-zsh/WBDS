@@ -128,50 +128,38 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
         
         .delete-btn {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(4px);
-            color: var(--text-secondary);
-            border: 1px solid rgba(255, 69, 58, 0.3);
-            width: 32px;
-            height: 32px;
-            min-width: 32px;
-            min-height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            top: 24px;
+            right: 24px;
+            background: transparent;
+            border: none;
+            color: #444; /* Very subtle default */
+            padding: 0;
+            width: 24px;
+            height: 24px;
             opacity: 0;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s ease;
             cursor: pointer;
             z-index: 10;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
         @media (max-width: 768px) {
           .delete-btn {
-            opacity: 0.6;
-            width: 36px;
-            height: 36px;
-            min-width: 36px;
-            min-height: 36px;
-            top: 12px;
-            right: 12px;
+            opacity: 0.3; /* visible on mobile */
+            top: 16px;
+            right: 16px;
           }
         }
         
         @media (hover: hover) {
           .letter-card:hover .delete-btn {
-            opacity: 1;
+            opacity: 0.2; /* faint hint */
           }
         }
         
         .delete-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            transform: scale(1.1);
-            border-color: rgba(255, 255, 255, 0.5);
+            opacity: 1 !important;
+            color: #888; /* Just slightly brighter, not red */
+            transform: scale(1.1); /* light pop */
         }
 
         .report-btn {
