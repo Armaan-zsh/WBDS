@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { setAudioProfile, playTypeSound, toggleAmbience, setAmbienceProfile, radioControl, radioEvents } from '../../utils/audioEngine';
+import { saveImage, getImage } from '../../utils/db';
 
 export default function AppearancePanel({ onClose, isOpen, onToggle }) {
     const [theme, setTheme] = useState('void');
@@ -24,41 +25,47 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
 
     // Sync Settings & Audio
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const savedTheme = localStorage.getItem('wbds_theme') || 'void';
-            const savedFont = localStorage.getItem('wbds_font') || 'serif';
-            const savedAudio = localStorage.getItem('wbds_audio_profile') || 'mechanical';
-            const savedAmbience = localStorage.getItem('wbds_ambience') === 'true';
-            const savedAmbienceProfile = localStorage.getItem('wbds_ambience_profile') || 'space';
-            const savedCustomDesktop = localStorage.getItem('wbds_custom_bg_desktop');
-            const savedCustomMobile = localStorage.getItem('wbds_custom_bg_mobile');
+        const loadInitial = async () => {
+            if (typeof window !== 'undefined') {
+                const savedTheme = localStorage.getItem('wbds_theme') || 'void';
+                const savedFont = localStorage.getItem('wbds_font') || 'serif';
+                const savedAudio = localStorage.getItem('wbds_audio_profile') || 'mechanical';
+                const savedAmbience = localStorage.getItem('wbds_ambience') === 'true';
+                const savedAmbienceProfile = localStorage.getItem('wbds_ambience_profile') || 'space';
 
-            setTheme(savedTheme);
-            setFont(savedFont);
-            setLocalAudioProfile(savedAudio);
-            setAudioProfile(savedAudio);
-            setCurrentAmbience(savedAmbienceProfile);
-            setAmbienceProfile(savedAmbienceProfile);
-            setIsAmbienceOn(savedAmbience);
+                setTheme(savedTheme);
+                setFont(savedFont);
+                setLocalAudioProfile(savedAudio);
+                setAudioProfile(savedAudio);
+                setCurrentAmbience(savedAmbienceProfile);
+                setAmbienceProfile(savedAmbienceProfile);
+                setIsAmbienceOn(savedAmbience);
 
-            if (savedCustomDesktop) {
-                setCustomBgDesktop(savedCustomDesktop);
-                if (savedTheme === 'custom') document.documentElement.style.setProperty('--custom-bg-desktop', `url(${savedCustomDesktop})`);
+                // Load from IndexedDB (supporting 10MB images)
+                const savedCustomDesktop = await getImage('wbds_custom_bg_desktop');
+                const savedCustomMobile = await getImage('wbds_custom_bg_mobile');
+
+                if (savedCustomDesktop) {
+                    setCustomBgDesktop(savedCustomDesktop);
+                    if (savedTheme === 'custom') document.documentElement.style.setProperty('--custom-bg-desktop', `url(${savedCustomDesktop})`);
+                }
+                if (savedCustomMobile) {
+                    setCustomBgMobile(savedCustomMobile);
+                    if (savedTheme === 'custom') document.documentElement.style.setProperty('--custom-bg-mobile', `url(${savedCustomMobile})`);
+                }
+
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                document.documentElement.setAttribute('data-font', savedFont);
+
+                if (savedAmbience) {
+                    setTimeout(() => toggleAmbience(true), 1000);
+                }
+
+                radioControl.requestState();
             }
-            if (savedCustomMobile) {
-                setCustomBgMobile(savedCustomMobile);
-                if (savedTheme === 'custom') document.documentElement.style.setProperty('--custom-bg-mobile', `url(${savedCustomMobile})`);
-            }
+        };
 
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            document.documentElement.setAttribute('data-font', savedFont);
-
-            if (savedAmbience) {
-                setTimeout(() => toggleAmbience(true), 1000);
-            }
-
-            radioControl.requestState();
-        }
+        loadInitial();
 
         const onRadioUpdate = (e) => {
             const state = e.detail;
@@ -77,14 +84,18 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
         };
     }, []);
 
-    const applyTheme = (t) => {
+    const applyTheme = async (t) => {
         setTheme(t);
         document.documentElement.setAttribute('data-theme', t);
         localStorage.setItem('wbds_theme', t);
 
         if (t === 'custom') {
-            if (customBgDesktop) document.documentElement.style.setProperty('--custom-bg-desktop', `url(${customBgDesktop})`);
-            if (customBgMobile) document.documentElement.style.setProperty('--custom-bg-mobile', `url(${customBgMobile})`);
+            // Ensure we have current images in state apply
+            const d = customBgDesktop || await getImage('wbds_custom_bg_desktop');
+            const m = customBgMobile || await getImage('wbds_custom_bg_mobile');
+
+            if (d) document.documentElement.style.setProperty('--custom-bg-desktop', `url(${d})`);
+            if (m) document.documentElement.style.setProperty('--custom-bg-mobile', `url(${m})`);
         } else {
             document.documentElement.style.removeProperty('--custom-bg-desktop');
             document.documentElement.style.removeProperty('--custom-bg-mobile');
@@ -127,21 +138,22 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
         const file = e.target.files[0];
         if (!file) return;
 
-        if (file.size > 3 * 1024 * 1024) {
-            alert("Image too large. Please use a smaller file (max 3MB) to ensure it saves correctly in the void.");
+        // Increased to 10MB! Supported by IndexedDB without slowing down.
+        if (file.size > 10 * 1024 * 1024) {
+            alert("Image too large. Even for the void, 10MB is the limit for stability.");
             return;
         }
 
         const reader = new FileReader();
-        reader.onloadend = () => {
+        reader.onloadend = async () => {
             const base64 = reader.result;
             if (type === 'desktop') {
                 setCustomBgDesktop(base64);
-                localStorage.setItem('wbds_custom_bg_desktop', base64);
+                await saveImage('wbds_custom_bg_desktop', base64);
                 if (theme === 'custom') document.documentElement.style.setProperty('--custom-bg-desktop', `url(${base64})`);
             } else {
                 setCustomBgMobile(base64);
-                localStorage.setItem('wbds_custom_bg_mobile', base64);
+                await saveImage('wbds_custom_bg_mobile', base64);
                 if (theme === 'custom') document.documentElement.style.setProperty('--custom-bg-mobile', `url(${base64})`);
             }
         };
