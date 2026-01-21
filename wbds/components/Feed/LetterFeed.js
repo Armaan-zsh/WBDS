@@ -130,9 +130,10 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
             position: absolute;
             top: 15px;
             right: 15px;
-            background: rgba(255, 0, 0, 0.1);
-            color: var(--accent-danger);
-            border: 1px solid var(--accent-danger);
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(4px);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 69, 58, 0.3);
             width: 32px;
             height: 32px;
             min-width: 32px;
@@ -142,11 +143,10 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
             align-items: center;
             justify-content: center;
             opacity: 0;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
-            font-size: 18px;
-            line-height: 1;
             z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
         @media (max-width: 768px) {
@@ -368,7 +368,12 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
                             className="delete-btn"
                             onClick={(e) => { e.stopPropagation(); onDelete(letter.id); }}
                             title="Delete your letter"
-                        >×</button>
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
                     )}
                     <div className={`letter-content ${letter.is_locked ? 'locked-content' : ''}`}>
                         {letter.is_locked ? (
