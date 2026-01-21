@@ -494,27 +494,39 @@ body {
 }
 
 /* THEME: NEOVIM (Gruvbox) - Enhanced Classic */
-[data-theme='neovim'] {
-  --bg-depth: #282828;
-  /* Gruvbox dark0 */
-  --bg-surface: #3c3836;
-  /* Gruvbox dark1 */
-  --text-primary: #ebdbb2;
-  /* Gruvbox light1 */
-  --text-secondary: #a89984;
-  /* Gruvbox gray */
-  --accent-danger: #cc241d;
-  /* Gruvbox red */
-  --accent-success: #98971a;
-  /* Gruvbox green */
+/* THEME: CUSTOM (User Uploaded) */
+[data-theme='custom'] {
+  --bg-depth: #000000;
+  --bg-surface: rgba(0, 0, 0, 0.4);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --accent-danger: #ff453a;
+  --accent-success: #30d158;
 
-  --glass-bg: rgba(60, 56, 54, 0.95);
-  --glass-border: rgba(235, 219, 178, 0.15);
-  --glass-blur: blur(20px) saturate(140%);
+  --glass-bg: rgba(0, 0, 0, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(25px) saturate(160%);
 
-  /* Subtle vintage texture */
-  background-image:
-    repeating-linear-gradient(45deg, rgba(168, 153, 132, 0.02) 0px, transparent 2px);
+  /* Background Handling */
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* Desktop Custom Background */
+@media (min-width: 769px) {
+  [data-theme='custom'] {
+    background-image: var(--custom-bg-desktop, none);
+  }
+}
+
+/* Mobile Custom Background */
+@media (max-width: 768px) {
+  [data-theme='custom'] {
+    background-image: var(--custom-bg-mobile, none);
+    background-attachment: scroll; /* Better for mobile performance */
+  }
 }
 
 /* THEME: NOTEPAD (Windows 95) */

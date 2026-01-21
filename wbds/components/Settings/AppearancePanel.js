@@ -15,6 +15,8 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
     const [copyInput, setCopyInput] = useState('');
     const [copyButtonLabel, setCopyButtonLabel] = useState('Copy');
     const [fontSize, setFontSize] = useState('medium');
+    const [customBgDesktop, setCustomBgDesktop] = useState(null);
+    const [customBgMobile, setCustomBgMobile] = useState(null);
 
     // Radio State for Mobile
     const [isPlaying, setIsPlaying] = useState(false);
@@ -22,23 +24,45 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
 
     // Sync Settings & Audio
     useEffect(() => {
-        // Theme & Font
         if (typeof window !== 'undefined') {
             const savedTheme = localStorage.getItem('wbds_theme') || 'void';
-            const savedFont = localStorage.getItem('wbds_font') || 'sans';
-            setTheme(savedTheme);
-            setFontSize(savedFont);
+            const savedFont = localStorage.getItem('wbds_font') || 'serif';
+            const savedAudio = localStorage.getItem('wbds_audio_profile') || 'mechanical';
+            const savedAmbience = localStorage.getItem('wbds_ambience') === 'true';
+            const savedAmbienceProfile = localStorage.getItem('wbds_ambience_profile') || 'space';
+            const savedCustomDesktop = localStorage.getItem('wbds_custom_bg_desktop');
+            const savedCustomMobile = localStorage.getItem('wbds_custom_bg_mobile');
 
-            // Initial Radio State Request
+            setTheme(savedTheme);
+            setFont(savedFont);
+            setLocalAudioProfile(savedAudio);
+            setAudioProfile(savedAudio);
+            setCurrentAmbience(savedAmbienceProfile);
+            setAmbienceProfile(savedAmbienceProfile);
+            setIsAmbienceOn(savedAmbience);
+
+            if (savedCustomDesktop) {
+                setCustomBgDesktop(savedCustomDesktop);
+                if (savedTheme === 'custom') document.documentElement.style.setProperty('--custom-bg-desktop', `url(${savedCustomDesktop})`);
+            }
+            if (savedCustomMobile) {
+                setCustomBgMobile(savedCustomMobile);
+                if (savedTheme === 'custom') document.documentElement.style.setProperty('--custom-bg-mobile', `url(${savedCustomMobile})`);
+            }
+
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.documentElement.setAttribute('data-font', savedFont);
+
+            if (savedAmbience) {
+                setTimeout(() => toggleAmbience(true), 1000);
+            }
+
             radioControl.requestState();
         }
 
-        // Listen for Radio Updates
         const onRadioUpdate = (e) => {
             const state = e.detail;
             setIsPlaying(state.isPlaying);
-            // STATIONS object structure assumed { name: '...', url: '...' }
-            // Mapping it to { title: name } for display
             setCurrentTrack(state.station ? { title: state.station.name } : null);
         };
 
@@ -51,52 +75,21 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
                 radioEvents.removeEventListener('RADIO_STATE_UPDATE', onRadioUpdate);
             }
         };
-
-    }, []);
-
-    const toggleRadio = () => {
-        radioControl.toggle();
-        // No optimistic update here; wait for event to ensure it actually happened
-    };
-
-    const handleThemeChange = (newTheme) => {
-        setTheme(newTheme);
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('wbds_theme', newTheme);
-
-        // Dispatch event so other components know
-        window.dispatchEvent(new Event('storage'));
-    };
-
-    useEffect(() => {
-        // Load preference
-        const savedTheme = localStorage.getItem('wbds_theme') || 'paper';
-        const savedFont = localStorage.getItem('wbds_font') || 'serif';
-        const savedAudio = localStorage.getItem('wbds_audio_profile') || 'mechanical';
-        const savedAmbience = localStorage.getItem('wbds_ambience') === 'true';
-        const savedAmbienceProfile = localStorage.getItem('wbds_ambience_profile') || 'space';
-
-        applyTheme(savedTheme);
-        applyFont(savedFont);
-
-        // Init Audio State
-        setLocalAudioProfile(savedAudio);
-        setAudioProfile(savedAudio);
-
-        // Init Ambience
-        setCurrentAmbience(savedAmbienceProfile);
-        setAmbienceProfile(savedAmbienceProfile);
-        setIsAmbienceOn(savedAmbience);
-
-        if (savedAmbience) {
-            setTimeout(() => toggleAmbience(true), 1000);
-        }
     }, []);
 
     const applyTheme = (t) => {
         setTheme(t);
         document.documentElement.setAttribute('data-theme', t);
         localStorage.setItem('wbds_theme', t);
+
+        if (t === 'custom') {
+            if (customBgDesktop) document.documentElement.style.setProperty('--custom-bg-desktop', `url(${customBgDesktop})`);
+            if (customBgMobile) document.documentElement.style.setProperty('--custom-bg-mobile', `url(${customBgMobile})`);
+        } else {
+            document.documentElement.style.removeProperty('--custom-bg-desktop');
+            document.documentElement.style.removeProperty('--custom-bg-mobile');
+        }
+        window.dispatchEvent(new Event('storage'));
     };
 
     const applyFont = (f) => {
@@ -109,12 +102,12 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
         setLocalAudioProfile(profile);
         setAudioProfile(profile);
         if (profile !== 'silent') {
-            playTypeSound(); // Preview sound!
+            playTypeSound();
         }
+        localStorage.setItem('wbds_audio_profile', profile);
     };
 
     const handleAmbienceSelect = (profile) => {
-        // If clicking the active profile, toggle off
         if (isAmbienceOn && currentAmbience === profile) {
             setIsAmbienceOn(false);
             localStorage.setItem('wbds_ambience', 'false');
@@ -122,14 +115,37 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             return;
         }
 
-        // Otherwise switch to it and turn on
         setCurrentAmbience(profile);
         setIsAmbienceOn(true);
         localStorage.setItem('wbds_ambience', 'true');
         localStorage.setItem('wbds_ambience_profile', profile);
-
         setAmbienceProfile(profile);
         toggleAmbience(true);
+    };
+
+    const handleCustomBgUpload = (e, type) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 3 * 1024 * 1024) {
+            alert("Image too large. Please use a smaller file (max 3MB) to ensure it saves correctly in the void.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64 = reader.result;
+            if (type === 'desktop') {
+                setCustomBgDesktop(base64);
+                localStorage.setItem('wbds_custom_bg_desktop', base64);
+                if (theme === 'custom') document.documentElement.style.setProperty('--custom-bg-desktop', `url(${base64})`);
+            } else {
+                setCustomBgMobile(base64);
+                localStorage.setItem('wbds_custom_bg_mobile', base64);
+                if (theme === 'custom') document.documentElement.style.setProperty('--custom-bg-mobile', `url(${base64})`);
+            }
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleRestore = () => {
@@ -149,20 +165,17 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
 
     return (
         <div className={`panel-wrapper ${isOpen ? 'open' : ''}`}>
-            {/* Hanging Toggle Button */}
             <button
                 className="sidebar-toggle"
                 onClick={onToggle}
                 aria-label="Toggle Settings"
             >
                 {isOpen ? (
-                    /* Open State: Point Away from panel */
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="13 17 18 12 13 7"></polyline>
                         <polyline points="6 17 11 12 6 7"></polyline>
                     </svg>
                 ) : (
-                    /* Closed State: Point Towards edge */
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="11 17 6 12 11 7"></polyline>
                         <polyline points="18 17 13 12 18 7"></polyline>
@@ -171,288 +184,159 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             </button>
 
             <div className="panel-container">
-
-
-                <div>
-                    <div>
-                        <div style={{ paddingBottom: '20px', fontSize: '18px', fontWeight: 'bold', letterSpacing: '0px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            Settings
-                            {/* Mobile Close Button */}
-                            <button
-                                className="mobile-close-btn"
-                                onClick={onClose}
-                            >
-                                ✕
-                            </button>
-
-                        </div>
-                    </div>
+                <div style={{ paddingBottom: '20px', fontSize: '18px', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    Settings
+                    <button className="mobile-close-btn" onClick={onClose}>✕</button>
                 </div>
 
                 {/* THEMES */}
-                <div>
+                <div className="setting-section">
                     <div className="section-title">Atmosphere</div>
                     <div className="option-grid">
-                        <button className={`option-btn ${theme === 'void' ? 'active' : ''}`} onClick={() => applyTheme('void')}>
-                            <div className="preview-circle" style={{ background: '#000000', border: '1px solid #333' }}></div>
-                            The Void
-                        </button>
-                        <button className={`option-btn ${theme === 'midnight' ? 'active' : ''}`} onClick={() => applyTheme('midnight')}>
-                            <div className="preview-circle" style={{ background: '#020817' }}></div>
-                            Midnight
-                        </button>
-                        <button className={`option-btn ${theme === 'paper' ? 'active' : ''}`} onClick={() => applyTheme('paper')}>
-                            <div className="preview-circle" style={{ background: '#f2f0e9' }}></div>
-                            Paper
-                        </button>
-                        <button className={`option-btn ${theme === 'coffee-paper' ? 'active' : ''}`} onClick={() => applyTheme('coffee-paper')}>
-                            <div className="preview-circle" style={{ background: '#d9c2a3', border: '1px solid #8b5a2b' }}></div>
-                            Coffee Paper
-                        </button>
-                        <button className={`option-btn ${theme === 'rose' ? 'active' : ''}`} onClick={() => applyTheme('rose')}>
-                            <div className="preview-circle" style={{ background: '#261010' }}></div>
-                            Rose
-                        </button>
-                        <button className={`option-btn ${theme === 'forest' ? 'active' : ''}`} onClick={() => applyTheme('forest')}>
-                            <div className="preview-circle" style={{ background: '#1a2f23' }}></div>
-                            Forest
-                        </button>
-                        <button className={`option-btn ${theme === 'coffee' ? 'active' : ''}`} onClick={() => applyTheme('coffee')}>
-                            <div className="preview-circle" style={{ background: '#2b211e' }}></div>
-                            Coffee
-                        </button>
-                        <button className={`option-btn ${theme === 'nord' ? 'active' : ''}`} onClick={() => applyTheme('nord')}>
-                            <div className="preview-circle" style={{ background: '#2e3440' }}></div>
-                            Nord
-                        </button>
-                        <button className={`option-btn ${theme === 'dracula' ? 'active' : ''}`} onClick={() => applyTheme('dracula')}>
-                            <div className="preview-circle" style={{ background: '#282a36' }}></div>
-                            Dracula
-                        </button>
-                        <button className={`option-btn ${theme === 'solarized' ? 'active' : ''}`} onClick={() => applyTheme('solarized')}>
-                            <div className="preview-circle" style={{ background: '#002b36' }}></div>
-                            Solarized
-                        </button>
-                        <button className={`option-btn ${theme === 'cyberpunk' ? 'active' : ''}`} onClick={() => applyTheme('cyberpunk')}>
-                            <div className="preview-circle" style={{ background: '#111', border: '1px solid #fcee0c' }}></div>
-                            Cyberpunk
-                        </button>
-                        <button className={`option-btn ${theme === 'synthwave' ? 'active' : ''}`} onClick={() => applyTheme('synthwave')}>
-                            <div className="preview-circle" style={{ background: '#2b213a', border: '1px solid #ff71ce' }}></div>
-                            Synthwave
-                        </button>
-                        <button className={`option-btn ${theme === 'serika' ? 'active' : ''}`} onClick={() => applyTheme('serika')}>
-                            <div className="preview-circle" style={{ background: '#323437', border: '1px solid #e2b714' }}></div>
-                            Serika
-                        </button>
-                        <button className={`option-btn ${theme === 'carbon' ? 'active' : ''}`} onClick={() => applyTheme('carbon')}>
-                            <div className="preview-circle" style={{ background: '#313131', border: '1px solid #f66e0d' }}></div>
-                            Carbon
-                        </button>
-                        <button className={`option-btn ${theme === '8008' ? 'active' : ''}`} onClick={() => applyTheme('8008')}>
-                            <div className="preview-circle" style={{ background: '#333a45', border: '1px solid #f44c7f' }}></div>
-                            8008
-                        </button>
-                        <button className={`option-btn ${theme === 'red-dragon' ? 'active' : ''}`} onClick={() => applyTheme('red-dragon')}>
-                            <div className="preview-circle" style={{ background: '#1a0b0c', border: '1px solid #ff3a32' }}></div>
-                            Red Dragon
-                        </button>
-                        <button className={`option-btn ${theme === 'terminal' ? 'active' : ''}`} onClick={() => { applyTheme('terminal'); applyFont('typewriter'); }}>
-                            <div className="preview-circle" style={{ background: '#0a0a0a', border: '1px solid #30d158' }}></div>
-                            Terminal
-                        </button>
-                        <button className={`option-btn ${theme === 'neovim' ? 'active' : ''}`} onClick={() => { applyTheme('neovim'); applyFont('fira'); applyAudio('mechanical'); }}>
-                            <div className="preview-circle" style={{ background: '#282828', border: '1px solid #ebdbb2' }}></div>
-                            Neovim
-                        </button>
-                        <button className={`option-btn ${theme === 'notepad' ? 'active' : ''}`} onClick={() => { applyTheme('notepad'); applyFont('sans'); applyAudio('typewriter'); }}>
-                            <div className="preview-circle" style={{ background: '#c0c0c0', border: '1px solid #000' }}></div>
-                            Notepad
-                        </button>
+                        {[
+                            { id: 'void', label: 'The Void', color: '#000000' },
+                            { id: 'midnight', label: 'Midnight', color: '#020817' },
+                            { id: 'paper', label: 'Paper', color: '#f2f0e9' },
+                            { id: 'coffee-paper', label: 'Coffee Paper', color: '#d9c2a3' },
+                            { id: 'rose', label: 'Rose', color: '#261010' },
+                            { id: 'forest', label: 'Forest', color: '#1a2f23' },
+                            { id: 'coffee', label: 'Coffee', color: '#2b211e' },
+                            { id: 'nord', label: 'Nord', color: '#2e3440' },
+                            { id: 'dracula', label: 'Dracula', color: '#282a36' },
+                            { id: 'solarized', label: 'Solarized', color: '#002b36' },
+                            { id: 'cyberpunk', label: 'Cyberpunk', color: '#111', border: '#fcee0c' },
+                            { id: 'synthwave', label: 'Synthwave', color: '#2b213a', border: '#ff71ce' },
+                            { id: 'serika', label: 'Serika', color: '#323437', border: '#e2b714' },
+                            { id: 'carbon', label: 'Carbon', color: '#313131', border: '#f66e0d' },
+                            { id: '8008', label: '8008', color: '#333a45', border: '#f44c7f' },
+                            { id: 'red-dragon', label: 'Red Dragon', color: '#1a0b0c', border: '#ff3a32' },
+                            { id: 'terminal', label: 'Terminal', color: '#0a0a0a', border: '#30d158', action: () => applyFont('typewriter') },
+                            { id: 'neovim', label: 'Neovim', color: '#282828', border: '#ebdbb2', action: () => { applyFont('fira'); applyAudio('mechanical'); } },
+                            { id: 'notepad', label: 'Notepad', color: '#c0c0c0', border: '#000', action: () => { applyFont('sans'); applyAudio('typewriter'); } },
+                            { id: 'custom', label: 'Custom', gradient: 'linear-gradient(45deg, #ff00ff, #00ffff)' }
+                        ].map(t => (
+                            <button
+                                key={t.id}
+                                className={`option-btn ${theme === t.id ? 'active' : ''}`}
+                                onClick={() => { applyTheme(t.id); if (t.action) t.action(); }}
+                            >
+                                <div
+                                    className="preview-circle"
+                                    style={{
+                                        background: t.gradient || t.color,
+                                        border: t.border ? `1px solid ${t.border}` : (t.id === 'void' ? '1px solid #333' : 'none')
+                                    }}
+                                ></div>
+                                {t.label}
+                            </button>
+                        ))}
                     </div>
+
+                    {theme === 'custom' && (
+                        <div className="custom-upload-section">
+                            <div className="upload-group">
+                                <label>Desktop Image (1920x1080)</label>
+                                <input type="file" accept="image/*" onChange={(e) => handleCustomBgUpload(e, 'desktop')} id="desktop-upload" hidden />
+                                <button className="upload-btn" onClick={() => document.getElementById('desktop-upload').click()}>
+                                    {customBgDesktop ? 'Change Desktop' : 'Upload Desktop'}
+                                </button>
+                            </div>
+                            <div className="upload-group">
+                                <label>Mobile Image (Portrait)</label>
+                                <input type="file" accept="image/*" onChange={(e) => handleCustomBgUpload(e, 'mobile')} id="mobile-upload" hidden />
+                                <button className="upload-btn" onClick={() => document.getElementById('mobile-upload').click()}>
+                                    {customBgMobile ? 'Change Mobile' : 'Upload Mobile'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* TYPOGRAPHY */}
-                <div>
+                <div className="setting-section">
                     <div className="section-title">Typography</div>
                     <div className="option-grid">
-                        <button className={`option-btn ${font === 'serif' ? 'active' : ''}`} onClick={() => applyFont('serif')}>
-                            <span style={{ fontFamily: 'serif' }}>Aa</span> Serif
-                        </button>
-                        <button className={`option-btn ${font === 'sans' ? 'active' : ''}`} onClick={() => applyFont('sans')}>
-                            <span style={{ fontFamily: 'sans-serif' }}>Aa</span> Sans
-                        </button>
-                        <button className={`option-btn ${font === 'mono' ? 'active' : ''}`} onClick={() => applyFont('mono')}>
-                            <span style={{ fontFamily: 'monospace' }}>Aa</span> Mono
-                        </button>
-                        <button className={`option-btn ${font === 'inter' ? 'active' : ''}`} onClick={() => applyFont('inter')}>
-                            <span style={{ fontFamily: 'sans-serif', fontWeight: 600 }}>Aa</span> Inter
-                        </button>
-                        <button className={`option-btn ${font === 'playfair' ? 'active' : ''}`} onClick={() => applyFont('playfair')}>
-                            <span style={{ fontFamily: 'serif', fontStyle: 'italic' }}>Aa</span> Playfair
-                        </button>
-                        <button className={`option-btn ${font === 'merriweather' ? 'active' : ''}`} onClick={() => applyFont('merriweather')}>
-                            <span style={{ fontFamily: 'serif' }}>Aa</span> Merriweather
-                        </button>
-                        <button className={`option-btn ${font === 'fira' ? 'active' : ''}`} onClick={() => applyFont('fira')}>
-                            <span style={{ fontFamily: 'Fira Code' }}>Aa</span> Fira Code
-                        </button>
-                        <button className={`option-btn ${font === 'jetbrains' ? 'active' : ''}`} onClick={() => applyFont('jetbrains')}>
-                            <span style={{ fontFamily: 'JetBrains Mono' }}>Aa</span> JetBrains
-                        </button>
-                        <button className={`option-btn ${font === 'ibm_plex' ? 'active' : ''}`} onClick={() => applyFont('ibm_plex')}>
-                            <span style={{ fontFamily: 'IBM Plex Mono' }}>Aa</span> IBM Plex
-                        </button>
-                        <button className={`option-btn ${font === 'roboto_mono' ? 'active' : ''}`} onClick={() => applyFont('roboto_mono')}>
-                            <span style={{ fontFamily: 'Roboto Mono' }}>Aa</span> Roboto Mono
-                        </button>
-                        <button className={`option-btn ${font === 'source_code' ? 'active' : ''}`} onClick={() => applyFont('source_code')}>
-                            <span style={{ fontFamily: 'Source Code Pro' }}>Aa</span> Source Code
-                        </button>
-                        <button className={`option-btn ${font === 'lexend' ? 'active' : ''}`} onClick={() => applyFont('lexend')}>
-                            <span style={{ fontFamily: 'Lexend Deca' }}>Aa</span> Lexend
-                        </button>
-                        <button className={`option-btn ${font === 'montserrat' ? 'active' : ''}`} onClick={() => applyFont('montserrat')}>
-                            <span style={{ fontFamily: 'Montserrat' }}>Aa</span> Montserrat
-                        </button>
-                        <button className={`option-btn ${font === 'nunito' ? 'active' : ''}`} onClick={() => applyFont('nunito')}>
-                            <span style={{ fontFamily: 'Nunito' }}>Aa</span> Nunito
-                        </button>
-                        <button className={`option-btn ${font === 'comfortaa' ? 'active' : ''}`} onClick={() => applyFont('comfortaa')}>
-                            <span style={{ fontFamily: 'Comfortaa' }}>Aa</span> Comfortaa
-                        </button>
-                        <button className={`option-btn ${font === 'courier_prime' ? 'active' : ''}`} onClick={() => applyFont('courier_prime')}>
-                            <span style={{ fontFamily: 'Courier Prime' }}>Aa</span> Courier Prime
-                        </button>
-                        <button className={`option-btn ${font === 'hand' ? 'active' : ''}`} onClick={() => applyFont('hand')}>
-                            <span style={{ fontFamily: 'cursive' }}>Aa</span> Hand
-                        </button>
-                        <button className={`option-btn ${font === 'typewriter' ? 'active' : ''}`} onClick={() => applyFont('typewriter')}>
-                            <span style={{ fontFamily: 'Courier New' }}>Aa</span> Typewriter
-                        </button>
-                        <button className={`option-btn ${font === 'dancing' ? 'active' : ''}`} onClick={() => applyFont('dancing')}>
-                            <span style={{ fontFamily: 'Dancing Script', fontSize: '16px' }}>Aa</span> Dancing Script
-                        </button>
-                        <button className={`option-btn ${font === 'great_vibes' ? 'active' : ''}`} onClick={() => applyFont('great_vibes')}>
-                            <span style={{ fontFamily: 'Great Vibes', fontSize: '18px' }}>Aa</span> Great Vibes
-                        </button>
-                        <button className={`option-btn ${font === 'alex_brush' ? 'active' : ''}`} onClick={() => applyFont('alex_brush')}>
-                            <span style={{ fontFamily: 'Alex Brush', fontSize: '16px' }}>Aa</span> Alex Brush
-                        </button>
-                        <button className={`option-btn ${font === 'allura' ? 'active' : ''}`} onClick={() => applyFont('allura')}>
-                            <span style={{ fontFamily: 'Allura', fontSize: '16px' }}>Aa</span> Allura
-                        </button>
-                        <button className={`option-btn ${font === 'parisienne' ? 'active' : ''}`} onClick={() => applyFont('parisienne')}>
-                            <span style={{ fontFamily: 'Parisienne', fontSize: '16px' }}>Aa</span> Parisienne
-                        </button>
+                        {[
+                            { id: 'serif', label: 'Serif', font: 'serif' },
+                            { id: 'sans', label: 'Sans', font: 'sans-serif' },
+                            { id: 'mono', label: 'Mono', font: 'monospace' },
+                            { id: 'inter', label: 'Inter', font: 'sans-serif', weight: 600 },
+                            { id: 'playfair', label: 'Playfair', font: 'serif', italic: true },
+                            { id: 'merriweather', label: 'Merriweather', font: 'serif' },
+                            { id: 'fira', label: 'Fira Code', font: 'Fira Code' },
+                            { id: 'jetbrains', label: 'JetBrains', font: 'JetBrains Mono' },
+                            { id: 'ibm_plex', label: 'IBM Plex', font: 'IBM Plex Mono' },
+                            { id: 'roboto_mono', label: 'Roboto Mono', font: 'Roboto Mono' },
+                            { id: 'source_code', label: 'Source Code', font: 'Source Code Pro' },
+                            { id: 'lexend', label: 'Lexend', font: 'Lexend Deca' },
+                            { id: 'montserrat', label: 'Montserrat', font: 'Montserrat' },
+                            { id: 'nunito', label: 'Nunito', font: 'Nunito' },
+                            { id: 'comfortaa', label: 'Comfortaa', font: 'Comfortaa' },
+                            { id: 'courier_prime', label: 'Courier Prime', font: 'Courier Prime' },
+                            { id: 'hand', label: 'Hand', font: 'cursive' },
+                            { id: 'typewriter', label: 'Typewriter', font: 'Courier New' },
+                            { id: 'dancing', label: 'Dancing Script', font: 'Dancing Script', size: '16px' },
+                            { id: 'great_vibes', label: 'Great Vibes', font: 'Great Vibes', size: '18px' },
+                            { id: 'alex_brush', label: 'Alex Brush', font: 'Alex Brush', size: '16px' },
+                            { id: 'allura', label: 'Allura', font: 'Allura', size: '16px' },
+                            { id: 'parisienne', label: 'Parisienne', font: 'Parisienne', size: '16px' }
+                        ].map(f => (
+                            <button key={f.id} className={`option-btn ${font === f.id ? 'active' : ''}`} onClick={() => applyFont(f.id)}>
+                                <span style={{ fontFamily: f.font, fontWeight: f.weight, fontStyle: f.italic ? 'italic' : 'normal', fontSize: f.size }}>Aa</span> {f.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
                 {/* TACTILE AUDIO */}
-                <div>
+                <div className="setting-section">
                     <div className="section-title">Tactile Sound</div>
                     <div className="option-grid">
-                        <button className={`option-btn ${audioProfile === 'mechanical' ? 'active' : ''}`} onClick={() => applyAudio('mechanical')}>
-                            Mechanical
-                        </button>
-                        <button className={`option-btn ${audioProfile === 'typewriter' ? 'active' : ''}`} onClick={() => applyAudio('typewriter')}>
-                            Typewriter
-                        </button>
-                        <button className={`option-btn ${audioProfile === 'bubble' ? 'active' : ''}`} onClick={() => applyAudio('bubble')}>
-                            Bubble
-                        </button>
-                        <button className={`option-btn ${audioProfile === 'silent' ? 'active' : ''}`} onClick={() => applyAudio('silent')}>
-                            Silent
-                        </button>
+                        <button className={`option-btn ${audioProfile === 'mechanical' ? 'active' : ''}`} onClick={() => applyAudio('mechanical')}>Mechanical</button>
+                        <button className={`option-btn ${audioProfile === 'typewriter' ? 'active' : ''}`} onClick={() => applyAudio('typewriter')}>Typewriter</button>
+                        <button className={`option-btn ${audioProfile === 'bubble' ? 'active' : ''}`} onClick={() => applyAudio('bubble')}>Bubble</button>
+                        <button className={`option-btn ${audioProfile === 'silent' ? 'active' : ''}`} onClick={() => applyAudio('silent')}>Silent</button>
                     </div>
 
                     <div className="section-title" style={{ marginTop: '20px' }}>Atmosphere</div>
                     <div className="option-grid">
-                        <button
-                            className={`option-btn ${isAmbienceOn && currentAmbience === 'deep_space' ? 'active' : ''}`}
-                            onClick={() => handleAmbienceSelect('deep_space')}
-                        >
-                            Deep Space
-                        </button>
-                        <button
-                            className={`option-btn ${isAmbienceOn && currentAmbience === 'interstellar' ? 'active' : ''}`}
-                            onClick={() => handleAmbienceSelect('interstellar')}
-                        >
-                            Interstellar
-                        </button>
-                        <button
-                            className={`option-btn ${isAmbienceOn && currentAmbience === 'cosmic_ocean' ? 'active' : ''}`}
-                            onClick={() => handleAmbienceSelect('cosmic_ocean')}
-                        >
-                            Cosmic Ocean
-                        </button>
+                        <button className={`option-btn ${isAmbienceOn && currentAmbience === 'deep_space' ? 'active' : ''}`} onClick={() => handleAmbienceSelect('deep_space')}>Deep Space</button>
+                        <button className={`option-btn ${isAmbienceOn && currentAmbience === 'interstellar' ? 'active' : ''}`} onClick={() => handleAmbienceSelect('interstellar')}>Interstellar</button>
+                        <button className={`option-btn ${isAmbienceOn && currentAmbience === 'cosmic_ocean' ? 'active' : ''}`} onClick={() => handleAmbienceSelect('cosmic_ocean')}>Cosmic Ocean</button>
                     </div>
                 </div>
 
                 {/* DATA & PRIVACY */}
-                <div>
-                    <div className="section-title" style={{ marginTop: '20px' }}>Data & Privacy</div>
+                <div className="setting-section">
+                    <div className="section-title">Data & Privacy</div>
                     <div className="option-grid">
-                        <button className="option-btn" onClick={() => {
-                            const owned = localStorage.getItem('wbds_owned') || '[]';
-                            setCopyInput(owned);
-                            setShowCopyModal(true);
-                        }}>
-                            View & Copy Key
-                        </button>
-
-                        <button className="option-btn" onClick={() => setShowRestoreModal(true)}>
-                            Restore Backup
-                        </button>
-
-                        <button className="option-btn" style={{ color: '#ff453a', borderColor: 'rgba(255, 69, 58, 0.3)' }} onClick={() => {
-                            if (confirm('This will wipe your local history (owned letters). Continue?')) {
-                                localStorage.removeItem('wbds_owned');
-                                window.location.reload();
-                            }
-                        }}>
-                            Clear History
-                        </button>
+                        <button className="option-btn" onClick={() => { setCopyInput(localStorage.getItem('wbds_owned') || '[]'); setShowCopyModal(true); }}>View & Copy Key</button>
+                        <button className="option-btn" onClick={() => setShowRestoreModal(true)}>Restore Backup</button>
+                        <button className="option-btn" style={{ color: '#ff453a', borderColor: 'rgba(255, 69, 58, 0.3)' }} onClick={() => { if (confirm('Wipe history?')) { localStorage.removeItem('wbds_owned'); window.location.reload(); } }}>Clear History</button>
                     </div>
                 </div>
-            </div> {/* Closes the panel-container div */}
+            </div>
 
-            {/* CUSTOM COPY MODAL */}
             {showCopyModal && (
                 <div className="modal-overlay">
                     <div className="modal-card">
                         <h3>Your Encrypted Key</h3>
                         <p>Copy this code to save your history.</p>
-                        <textarea
-                            className="restore-input"
-                            value={copyInput}
-                            readOnly
-                            onClick={(e) => e.target.select()}
-                        />
+                        <textarea className="restore-input" value={copyInput} readOnly onClick={(e) => e.target.select()} />
                         <div className="modal-actions">
                             <button className="btn-cancel" onClick={() => setShowCopyModal(false)}>Close</button>
-                            <button className="btn-confirm" onClick={() => {
-                                navigator.clipboard.writeText(copyInput);
-                                setCopyButtonLabel('Copied!');
-                                setTimeout(() => setCopyButtonLabel('Copy'), 2000);
-                            }}>{copyButtonLabel}</button>
+                            <button className="btn-confirm" onClick={() => { navigator.clipboard.writeText(copyInput); setCopyButtonLabel('Copied!'); setTimeout(() => setCopyButtonLabel('Copy'), 2000); }}>{copyButtonLabel}</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* CUSTOM RESTORE MODAL - Moved outside to ignore parent transform */}
             {showRestoreModal && (
                 <div className="modal-overlay">
                     <div className="modal-card">
                         <h3>Restore Backup</h3>
-                        <p>Paste your Backup Key below to restore your history.</p>
-                        <textarea
-                            className="restore-input"
-                            value={restoreInput}
-                            onChange={(e) => setRestoreInput(e.target.value)}
-                            placeholder='["123", "456", "789"]...'
-                        />
+                        <p>Paste your Backup Key below.</p>
+                        <textarea className="restore-input" value={restoreInput} onChange={(e) => setRestoreInput(e.target.value)} placeholder='["123", "456"]...' />
                         <div className="modal-actions">
                             <button className="btn-cancel" onClick={() => setShowRestoreModal(false)}>Cancel</button>
                             <button className="btn-confirm" onClick={handleRestore}>Restore</button>
@@ -467,91 +351,47 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             left: 0;
             top: 0;
             height: 100vh;
-            width: 450px; /* Wider wrapper for offset */
+            width: 450px;
             z-index: 5000;
-            /* Fully hide: 280px panel + 40px offset + buffer = 340px */
-            transform: translateX(-340px); 
+            transform: translateX(-340px);
             transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             display: flex;
             align-items: center;
             pointer-events: none;
-            overflow: visible;
         }
-        
-        .panel-wrapper.open {
-            transform: translateX(0);
-            pointer-events: auto;
-        }
-
+        .panel-wrapper.open { transform: translateX(0); pointer-events: auto; }
         .panel-container {
             width: 280px;
-            box-sizing: border-box;
             padding: 32px 24px;
             background: var(--bg-surface);
             border: 1px solid var(--glass-border);
-            height: auto;
-            max-height: 75vh; 
+            max-height: 85vh;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 32px;
             position: absolute;
-            left: 40px; /* Gap from the left screen edge */
-            border-radius: 24px; /* Full rounded corners now that it floats */
+            left: 40px;
+            border-radius: 24px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             backdrop-filter: blur(20px);
             scrollbar-width: none;
             pointer-events: auto;
         }
-
-        /* Floating Toggle Button (Hanging outside) */
         .sidebar-toggle {
             position: absolute;
-            left: 370px; /* 50px gap: 280px panel + 40px offset + 50px gap */
+            left: 370px;
             top: 50%;
             transform: translateY(-50%);
-            background: transparent !important;
-            border: none !important;
-            color: #ff71ce; /* Neon Pink */
+            background: transparent;
+            border: none;
+            color: #ff71ce;
             cursor: pointer;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            transition: all 0.2s;
             pointer-events: auto;
-            transition: all 0.2s ease;
-            z-index: 5001;
-            padding: 0;
-            outline: none;
         }
-
-        .sidebar-toggle:hover {
-            transform: translateY(-50%) scale(1.2);
-            color: #fff;
-        }
-
-        @media (max-width: 768px) {
-          .panel-wrapper {
-            transform: none !important;
-            width: 100%;
-            pointer-events: none;
-            display: ${isOpen ? 'flex' : 'none'};
-            justify-content: center;
-          }
-          .sidebar-toggle {
-            display: none;
-          }
-          .panel-container {
-            position: fixed;
-            width: 90%;
-            max-width: 320px;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            border-radius: 20px;
-            max-height: 80vh;
-          }
-        }
-
+        .sidebar-toggle:hover { color: #fff; transform: translateY(-50%) scale(1.1); }
         .section-title {
             font-size: 11px;
             text-transform: uppercase;
@@ -559,214 +399,71 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             color: var(--text-secondary);
             margin-bottom: 12px;
             opacity: 0.7;
-            position: sticky;
-            top: 0;
-            background: var(--bg-surface);
-            padding-bottom: 10px;
-            z-index: 10;
         }
-
-        .option-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
+        .option-grid { display: flex; flex-direction: column; gap: 8px; }
         .option-btn {
             background: transparent;
             border: 1px solid transparent;
             color: var(--text-secondary);
-            padding: 12px 16px;
+            padding: 10px 16px;
             border-radius: 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             gap: 12px;
             font-size: 14px;
-            text-align: left;
+            transition: all 0.2s;
         }
-
-        .option-btn:hover {
-            background: rgba(255,255,255,0.03);
-            color: var(--text-primary);
+        .option-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.03); }
+        .option-btn.active { color: var(--text-primary); background: rgba(255,255,255,0.05); border-color: var(--glass-border); }
+        .preview-circle { width: 12px; height: 12px; border-radius: 50%; }
+        .custom-upload-section {
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(255,255,255,0.02);
+            border: 1px dashed var(--glass-border);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column; gap: 16px;
         }
-
-        .option-btn.active {
+        .upload-group { display: flex; flex-direction: column; gap: 6px; }
+        .upload-group label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; }
+        .upload-btn {
             background: rgba(255,255,255,0.05);
-            border-color: var(--glass-border);
+            border: 1px solid var(--glass-border);
             color: var(--text-primary);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
         }
-
-        .preview-circle {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            z-index: 9999; display: flex; align-items: center; justify-content: center;
         }
-
-            .modal-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                background: rgba(0, 0, 0, 0.6);
-                backdrop-filter: blur(8px);
-                z-index: 9999; /* Max z-index */
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .modal-card {
-                background: var(--bg-surface);
-                border: 1px solid var(--glass-border);
-                padding: 24px;
-                border-radius: 20px;
-                width: 320px;
-                text-align: center;
-                box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            }
-            h3 {
-                margin: 0 0 10px 0;
-                color: var(--text-primary);
-                font-size: 18px;
-            }
-            p {
-                color: var(--text-secondary);
-                .setting-group {
-                    margin-bottom: 30px;
-                }
-
-                .group-label {
-                    display: block;
-                    font-size: 10px;
-                    color: #666;
-                    margin-bottom: 12px;
-                    letter-spacing: 1px;
-                    text-transform: uppercase;
-                }
-
-                /* === RADIO CONTROLS === */
-                .radio-controller {
-                    background: #111;
-                    padding: 15px;
-                    border-radius: 12px;
-                    border: 1px solid #222;
-                }
-
-                .track-display {
-                    color: #00ff9d;
-                    font-family: 'Courier New', monospace;
-                    font-size: 11px;
-                    margin-bottom: 12px;
-                    text-align: center;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                }
-
-                .radio-buttons {
-                    display: flex;
-                    gap: 10px;
-                }
-
-                .radio-ctrl-btn {
-                    flex: 1;
-                    padding: 10px;
-                    background: #222;
-                    border: none;
-                    color: #888;
-                    font-size: 10px;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    font-weight: bold;
-                    letter-spacing: 1px;
-                }
-
-                .radio-ctrl-btn:hover {
-                    background: #333;
-                    color: #fff;
-                }
-
-                .radio-ctrl-btn.active {
-                    background: #00ff9d;
-                    color: #000;
-                    box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
-                }
-
-                /* Mobile/Desktop Logic for Radio */
-                @media (min-width: 769px) {
-                    .mobile-only-radio {
-                        display: none; /* Hide on Desktop */
-                    }
-                }color: var(--text-primary);
-                font-size: 12px;
-                margin-bottom: 16px;
-            }
-            .restore-input {
-                width: 100%;
-                height: 100px;
-                background: rgba(0,0,0,0.2);
-                border: 1px solid var(--glass-border);
-                border-radius: 12px;
-                padding: 12px;
-                color: var(--text-primary);
-                font-family: monospace;
-                font-size: 12px;
-                margin-bottom: 20px;
-                resize: none;
-            }
-            .restore-input:focus {
-                outline: none;
-                border-color: var(--text-secondary);
-            }
-            .modal-actions {
-                display: flex;
-                gap: 10px;
-                justify-content: center;
-            }
-            .modal-actions button {
-                padding: 10px 20px;
-                border-radius: 50px;
-                border: none;
-                font-weight: 600;
-                cursor: pointer;
-            }
-            .btn-cancel {
-                background: transparent;
-                border: 1px solid var(--glass-border) !important;
-                color: var(--text-secondary);
-            }
-            .btn-confirm {
-                background: var(--text-primary);
-                color: #000000; /* Force black text for maximum contrast on white button */
-                font-weight: 800; /* Extra bold for readability */
-            }
-
-            .mobile-close-btn {
-                display: none;
-                background: transparent;
-                border: 1px solid var(--glass-border);
-                color: var(--text-primary);
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                cursor: pointer;
-                align-items: center;
-                justify-content: center;
-                font-size: 16px;
-            }
-
-            @media (max-width: 768px) {
-                .mobile-close-btn {
-                    display: flex;
-                }
-            }
-         `}</style>
+        .modal-card {
+            background: var(--bg-surface); border: 1px solid var(--glass-border);
+            padding: 24px; border-radius: 20px; width: 320px; text-align: center;
+        }
+        .restore-input {
+            width: 100%; height: 80px; background: rgba(0,0,0,0.2);
+            border: 1px solid var(--glass-border); border-radius: 12px;
+            padding: 12px; color: var(--text-primary); font-family: monospace;
+            margin-bottom: 20px; resize: none;
+        }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; }
+        .modal-actions button { padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; }
+        .btn-confirm { background: var(--text-primary); color: #000; }
+        .btn-cancel { background: transparent; border: 1px solid var(--glass-border) !important; color: var(--text-secondary); }
+        .mobile-close-btn { display: none; }
+        @media (max-width: 768px) {
+            .mobile-close-btn { display: block; background: none; border: none; color: var(--text-primary); font-size: 20px; }
+            .panel-wrapper { transform: none; width: 100%; display: ${isOpen ? 'flex' : 'none'}; justify-content: center; pointer-events: none; }
+            .panel-container { position: relative; left: 0; width: 90%; pointer-events: auto; }
+            .sidebar-toggle { display: none; }
+        }
+      `}</style>
         </div>
     );
 }
