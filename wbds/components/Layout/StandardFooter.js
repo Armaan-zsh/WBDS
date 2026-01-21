@@ -57,7 +57,7 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen, letter
         <footer className="std-footer">
             <div className="void-pulse">
                 <span className="pulse-dot"></span>
-                {letterCount?.toLocaleString() || '...'} thoughts released to the void
+                {letterCount?.toLocaleString() || '...'} WBDS
             </div>
 
             <div className="footer-links">

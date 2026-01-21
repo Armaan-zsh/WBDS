@@ -343,6 +343,7 @@ export default function Home() {
                 body: JSON.stringify({
                     content: text,
                     theme: currentTheme || 'default',
+                    font: typeof document !== 'undefined' ? document.documentElement.getAttribute('data-font') || 'sans' : 'sans',
                     unlockAt: unlockAt ? unlockAt.toISOString() : null,
                     tags: tags,
                     recipient_type: recipientType,

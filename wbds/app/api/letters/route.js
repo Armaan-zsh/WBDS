@@ -10,10 +10,11 @@ export const dynamic = 'force-dynamic';
 const LetterSchema = z.object({
     content: z.string().min(1, "Content is required").max(7777, "Content too long"),
     theme: z.string().default('void'),
-    font: z.string().optional(),
+    font: z.string().optional().default('sans'),
     unlockAt: z.string().optional().nullable(),
     tags: z.array(z.string()).max(5, "Max 5 tags allowed").default([]),
     recipient_type: z.enum(['specific', 'universe', 'self', 'unknown']).default('unknown'),
+    forced: z.boolean().optional(),
 }).strict();
 
 // 2. Purpose Protection: Letter-ness Check
