@@ -723,7 +723,7 @@ export default function Home() {
                     <div className="write-mode animate-enter">
                         <div className="composer-wrapper">
                             <LetterComposer
-                                onSent={() => setView('read')}
+                                onSend={handleLetterSent}
                             />
                         </div>
                     </div>
