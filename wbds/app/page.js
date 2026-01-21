@@ -774,6 +774,17 @@ export default function Home() {
                         className={`nav-item ${view === 'personal' ? 'active' : ''}`}
                         onClick={() => setView('personal')}
                     >YWBDS</span>
+
+                    {/* Integrated Void Bottle */}
+                    <button
+                        className={`nav-item void-nav-btn ${Date.now() - lastBottleTime >= 24 * 60 * 60 * 1000 ? 'ready' : ''}`}
+                        onClick={handleOpenBottle}
+                        title="Pick from the Void"
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                        </svg>
+                    </button>
                 </div>
 
                 {/* VIEW: WRITE */}
@@ -800,20 +811,6 @@ export default function Home() {
                             likedLetters={likedLetters}
                             onReport={handleReport}
                         />
-
-                        {/* BOTTLE FROM THE VOID BUTTON */}
-                        <button
-                            className={`bottle-button ${Date.now() - lastBottleTime >= 24 * 60 * 60 * 1000 ? 'ready' : ''}`}
-                            onClick={handleOpenBottle}
-                            title="Bottle from the Void (Daily)"
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M10 2h4M12 2v3M10 5h4v2l-2 2-2-2V5z" />
-                                <path d="M8 9a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-7a3 3 0 0 0-3-3H8z" />
-                                <path d="M12 13v4" />
-                            </svg>
-                            <span className="tooltip">Bottle from the Void</span>
-                        </button>
                     </div>
                 )}
 
@@ -947,72 +944,24 @@ export default function Home() {
                     40%, 60% { transform: translate3d(4px, 0, 0); }
                 }
 
-                .bottle-button {
-                    position: fixed;
-                    left: 25px;
-                    bottom: 25px;
-                    width: 56px;
-                    height: 56px;
-                    border-radius: 50%;
-                    background: var(--glass-bg);
-                    border: 1px solid var(--glass-border);
-                    color: var(--text-secondary);
+                .void-nav-btn {
+                    background: none;
+                    border: none;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    cursor: pointer;
-                    z-index: 50; /* Below settings, but above content */
-                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-                    backdrop-filter: var(--glass-blur);
-                    -webkit-backdrop-filter: var(--glass-blur);
+                    padding-left: 8px !important;
+                    color: var(--text-secondary);
                 }
-
-                .bottle-button:hover {
-                    transform: scale(1.1) translateY(-5px);
-                    color: var(--accent-primary);
-                    border-color: var(--accent-primary);
-                    box-shadow: 0 0 20px var(--accent-primary-glow);
+                .void-nav-btn:hover { color: var(--text-primary); }
+                .void-nav-btn.ready {
+                    color: var(--accent-gold, #ffd700);
+                    filter: drop-shadow(0 0 5px var(--accent-gold-glow, rgba(255, 215, 0, 0.4)));
+                    animation: star-pulse 2s infinite ease-in-out;
                 }
-
-                .bottle-button.ready {
-                    animation: bottle-pulse 2s infinite;
-                    color: var(--accent-primary);
-                    border-color: var(--accent-primary);
-                }
-
-                @keyframes bottle-pulse {
-                    0% { box-shadow: 0 0 0 0 var(--accent-primary-glow); }
-                    70% { box-shadow: 0 0 0 15px rgba(0,0,0,0); }
-                    100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
-                }
-
-                .bottle-button .tooltip {
-                    position: absolute;
-                    left: 65px;
-                    background: var(--bg-surface);
-                    padding: 8px 14px;
-                    border-radius: 12px;
-                    font-size: 12px;
-                    white-space: nowrap;
-                    opacity: 0;
-                    pointer-events: none;
-                    transition: opacity 0.2s ease;
-                    border: 1px solid var(--glass-border);
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-                }
-
-                .bottle-button:hover .tooltip {
-                    opacity: 1;
-                }
-
-                @media (max-width: 768px) {
-                    .bottle-button {
-                        bottom: 80px;
-                        left: 20px;
-                        width: 48px;
-                        height: 48px;
-                    }
+                @keyframes star-pulse {
+                    0%, 100% { opacity: 0.7; transform: scale(1); }
+                    50% { opacity: 1; transform: scale(1.2); }
                 }
             `}</style>
 
