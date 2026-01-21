@@ -39,6 +39,20 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
           padding-right: 16px;
         }
 
+        .witness-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            margin-right: 8px;
+        }
+        .witness-badge svg {
+            width: 16px;
+            height: 16px;
+        }
+
         /* FILTER BAR */
         .filter-bar {
             display: flex;
@@ -430,7 +444,24 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
             </div>
 
             {displayedLetters.map((letter) => (
-                <div key={letter.id} className="letter-card" onClick={() => onOpen && onOpen(letter)}>
+                <div
+                    key={letter.id}
+                    className="letter-card"
+                    onClick={() => {
+                        if (onOpen) onOpen(letter);
+
+                        // Trigger Witness API
+                        const key = `wbds_witness_${letter.id}`;
+                        if (!sessionStorage.getItem(key)) {
+                            fetch('/api/letters/view', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ letter_id: letter.id })
+                            }).catch(err => console.error("Witness failed", err));
+                            sessionStorage.setItem(key, 'true');
+                        }
+                    }}
+                >
                     {/* Report button - visible for all letters except own */}
                     {onReport && (!myLetterIds || !myLetterIds.has(letter.id)) && (
                         <button
@@ -477,6 +508,15 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
                     <div className="letter-meta">
                         <span>Anonymous</span>
                         <div className="action-bar">
+                            {/* WITNESS COUNT */}
+                            <div className="witness-badge" title="Witnesses">
+                                <svg width="16" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <span>{letter.views || 0}</span>
+                            </div>
+
                             <button
                                 className={`like-btn ${likedLetters && likedLetters.has(letter.id) ? 'liked' : ''}`}
                                 onClick={(e) => { e.stopPropagation(); onLike(letter.id); }}
