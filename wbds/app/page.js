@@ -773,17 +773,107 @@ export default function Home() {
 
             {/* Delete Confirmation Modal */}
             {deleteTargetId && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                    <div className="modal-card shake-anim bg-[#111] border border-white/10 rounded-2xl p-6 max-w-sm w-full text-center">
-                        <h3 className="text-xl font-bold text-white mb-2">Burn this letter?</h3>
-                        <p className="text-sm text-gray-400 mb-6">This action cannot be undone. The fragment will be lost to the void forever.</p>
-                        <div className="flex gap-4 justify-center">
-                            <button className="px-6 py-3 rounded-full border border-white/20 text-white hover:bg-white/10 transition" onClick={() => setDeleteTargetId(null)}>Keep</button>
-                            <button className="px-6 py-3 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition" onClick={confirmDelete}>Burn Forever</button>
+                <div className="delete-modal-overlay">
+                    <div className="delete-modal-card shake-anim">
+                        <h3>Burn this letter?</h3>
+                        <p>This action cannot be undone. The fragment will be lost to the void forever.</p>
+                        <div className="delete-actions">
+                            <button className="btn-keep" onClick={() => setDeleteTargetId(null)}>Keep</button>
+                            <button className="btn-burn" onClick={confirmDelete}>Burn Forever</button>
                         </div>
                     </div>
                 </div>
             )}
+
+            <style jsx>{`
+                .delete-modal-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.85);
+                    backdrop-filter: blur(8px);
+                    z-index: 10000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                }
+
+                .delete-modal-card {
+                    background: #111;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 20px;
+                    padding: 32px;
+                    max-width: 360px;
+                    width: 100%;
+                    text-align: center;
+                    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+                }
+
+                .delete-modal-card h3 {
+                    font-size: 20px;
+                    font-weight: 700;
+                    margin: 0 0 12px 0;
+                    color: white;
+                }
+
+                .delete-modal-card p {
+                    font-size: 14px;
+                    color: #888;
+                    margin: 0 0 24px 0;
+                    line-height: 1.5;
+                }
+
+                .delete-actions {
+                    display: flex;
+                    gap: 12px;
+                    justify-content: center;
+                }
+
+                .btn-keep {
+                    padding: 12px 24px;
+                    border-radius: 50px;
+                    background: transparent;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    color: white;
+                    cursor: pointer;
+                    font-weight: 600;
+                    transition: all 0.2s;
+                }
+
+                .btn-keep:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                }
+
+                .btn-burn {
+                    padding: 12px 24px;
+                    border-radius: 50px;
+                    background: rgba(255, 69, 58, 0.1);
+                    border: 1px solid rgba(255, 69, 58, 0.3);
+                    color: #ff453a;
+                    cursor: pointer;
+                    font-weight: 600;
+                    transition: all 0.2s;
+                }
+
+                .btn-burn:hover {
+                    background: rgba(255, 69, 58, 0.2);
+                    box-shadow: 0 0 15px rgba(255, 69, 58, 0.3);
+                }
+
+                .shake-anim {
+                    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+                }
+
+                @keyframes shake {
+                    10%, 90% { transform: translate3d(-1px, 0, 0); }
+                    20%, 80% { transform: translate3d(2px, 0, 0); }
+                    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+                    40%, 60% { transform: translate3d(4px, 0, 0); }
+                }
+            `}</style>
 
             {/* Global Notification */}
             {notification && (
