@@ -451,14 +451,21 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
                         if (onOpen) onOpen(letter);
 
                         // Trigger Witness API
+                        console.log('Witness Triggered for:', letter.id);
                         const key = `wbds_witness_${letter.id}`;
                         if (!sessionStorage.getItem(key)) {
+                            console.log('Sending Witness Request...');
                             fetch('/api/letters/view', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ letter_id: letter.id })
-                            }).catch(err => console.error("Witness failed", err));
+                            })
+                                .then(res => res.json())
+                                .then(data => console.log('Witness Response:', data))
+                                .catch(err => console.error("Witness failed", err));
                             sessionStorage.setItem(key, 'true');
+                        } else {
+                            console.log('Already witnessed in this session.');
                         }
                     }}
                 >

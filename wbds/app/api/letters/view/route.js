@@ -59,6 +59,6 @@ export async function POST(req) {
 
     } catch (error) {
         console.error('Witness API Error:', error);
-        return NextResponse.json({ error: 'Failed to witness' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to witness', details: error.message }, { status: 500 });
     }
 }

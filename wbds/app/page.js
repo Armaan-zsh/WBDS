@@ -303,7 +303,7 @@ export default function Home() {
             })
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'letters' }, (payload) => {
                 setLetters(current => current.map(l =>
-                    l.id === payload.new.id ? { ...l, likes: payload.new.likes } : l
+                    l.id === payload.new.id ? { ...l, ...payload.new } : l
                 ));
             })
             .subscribe();
