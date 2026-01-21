@@ -11,6 +11,7 @@ import AppearancePanel from '../components/Settings/AppearancePanel';
 import VoidClock from '../components/Layout/VoidClock';
 import GalaxyBackground from '../components/Layout/GalaxyBackground';
 import StandardFooter from '../components/Layout/StandardFooter';
+import VoidWhisper from '../components/Layout/VoidWhisper';
 import dynamic from 'next/dynamic';
 
 const Link = dynamic(() => import('next/link'), { ssr: false }); // Example fallback if needed, but we need GlobalGraph
@@ -43,6 +44,7 @@ export default function Home() {
     const [replyTo, setReplyTo] = useState(null); // Track parent letter
     const [currentTheme, setCurrentTheme] = useState('paper'); // Track theme for conditional rendering
     const [showSplash, setShowSplash] = useState(true); // Splash screen state
+    const [lastBottleTime, setLastBottleTime] = useState(0); // [NEW] Bottle Cooldown
 
     // Splash Screen Timer
     useEffect(() => {
@@ -443,6 +445,39 @@ export default function Home() {
             ));
         }
     };
+    // --- BOTTLE FROM THE VOID LOGIC ---
+    useEffect(() => {
+        const saved = localStorage.getItem('wbds_last_bottle');
+        if (saved) setLastBottleTime(parseInt(saved));
+    }, []);
+
+    const handleOpenBottle = async () => {
+        const now = Date.now();
+        const cooldown = 24 * 60 * 60 * 1000; // 24 hours
+
+        if (now - lastBottleTime < cooldown) {
+            const remaining = cooldown - (now - lastBottleTime);
+            const hours = Math.ceil(remaining / (1000 * 60 * 60));
+            setNotification({ message: `The sea is empty. Try again in ${hours}h.`, type: 'info' });
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/letters/bottle');
+            const data = await res.json();
+
+            if (data.letter) {
+                setSelectedLetter(data.letter);
+                localStorage.setItem('wbds_last_bottle', now.toString());
+                setLastBottleTime(now);
+                setNotification({ message: 'A bottle drifted from the void...', type: 'success' });
+            } else {
+                handleError("The bottle was empty.");
+            }
+        } catch (err) {
+            handleError("The sea is too rough right now.");
+        }
+    };
 
     // Old handleDeleteLetter removed
 
@@ -743,6 +778,19 @@ export default function Home() {
                             likedLetters={likedLetters}
                             onReport={handleReport}
                         />
+
+                        {/* BOTTLE FROM THE VOID BUTTON */}
+                        <button
+                            className={`bottle-button ${Date.now() - lastBottleTime >= 24 * 60 * 60 * 1000 ? 'ready' : ''}`}
+                            onClick={handleOpenBottle}
+                            title="Open a bottle from the void (Daily)"
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 2v2M12 18v4M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                                <circle cx="12" cy="12" r="4" />
+                            </svg>
+                            <span className="tooltip">Bottle from the Void</span>
+                        </button>
                     </div>
                 )}
 
@@ -874,6 +922,70 @@ export default function Home() {
                     30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
                     40%, 60% { transform: translate3d(4px, 0, 0); }
                 }
+
+                .bottle-button {
+                    position: fixed;
+                    right: 30px;
+                    bottom: 100px;
+                    width: 56px;
+                    height: 56px;
+                    border-radius: 50%;
+                    background: var(--bg-card);
+                    border: 1px solid var(--border-color);
+                    color: var(--text-secondary);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    z-index: 100;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                    backdrop-filter: blur(10px);
+                }
+
+                .bottle-button:hover {
+                    transform: scale(1.1) translateY(-5px);
+                    color: var(--accent-primary);
+                    border-color: var(--accent-primary);
+                    box-shadow: 0 0 20px var(--accent-primary-glow);
+                }
+
+                .bottle-button.ready {
+                    animation: bottle-pulse 2s infinite;
+                    color: var(--accent-primary);
+                    border-color: var(--accent-primary);
+                }
+
+                @keyframes bottle-pulse {
+                    0% { box-shadow: 0 0 0 0 var(--accent-primary-glow); }
+                    70% { box-shadow: 0 0 0 15px rgba(0,0,0,0); }
+                    100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+                }
+
+                .bottle-button .tooltip {
+                    position: absolute;
+                    right: 70px;
+                    background: var(--bg-card);
+                    padding: 8px 12px;
+                    border-radius: 8px;
+                    font-size: 12px;
+                    white-space: nowrap;
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: opacity 0.2s ease;
+                    border: 1px solid var(--border-color);
+                }
+
+                .bottle-button:hover .tooltip {
+                    opacity: 1;
+                }
+
+                @media (max-width: 768px) {
+                    .bottle-button {
+                        bottom: 120px;
+                        right: 20px;
+                    }
+                }
             `}</style>
 
             {/* Global Notification */}
@@ -898,6 +1010,9 @@ export default function Home() {
                 onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
                 onClose={() => setIsSidebarOpen(false)}
             />
+
+            {/* Daily Whisper Prompt */}
+            <VoidWhisper />
         </div>
     );
 }
