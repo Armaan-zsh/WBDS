@@ -411,22 +411,22 @@ export default function Home() {
             const res = await fetch('/api/letters/like', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ letterId })
+                body: JSON.stringify({ letter_id: letterId })
             });
             const data = await res.json();
 
             if (!res.ok) throw new Error(data.error);
 
-            // Sync with Server Truth
-            setLetters(prev => prev.map(l =>
-                l.id === letterId ? { ...l, likes: data.likes } : l
-            ));
-
-            // Sync Local Set with Server Truth
+            // Sync Local Set with Server Truth (Liked status only)
             setLikedLetters(prev => {
                 const next = new Set(prev);
-                if (data.liked) next.add(letterId);
-                else next.delete(letterId);
+                if (data.liked) {
+                    next.add(letterId);
+                    setNotification({ message: 'Letter Liked.', type: 'success' });
+                } else {
+                    next.delete(letterId);
+                    setNotification({ message: 'Like removed.', type: 'info' });
+                }
                 return next;
             });
 
