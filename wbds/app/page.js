@@ -805,11 +805,12 @@ export default function Home() {
                         <button
                             className={`bottle-button ${Date.now() - lastBottleTime >= 24 * 60 * 60 * 1000 ? 'ready' : ''}`}
                             onClick={handleOpenBottle}
-                            title="Open a bottle from the void (Daily)"
+                            title="Bottle from the Void (Daily)"
                         >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M12 2v2M12 18v4M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-                                <circle cx="12" cy="12" r="4" />
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M10 2h4M12 2v3M10 5h4v2l-2 2-2-2V5z" />
+                                <path d="M8 9a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-7a3 3 0 0 0-3-3H8z" />
+                                <path d="M12 13v4" />
                             </svg>
                             <span className="tooltip">Bottle from the Void</span>
                         </button>
@@ -948,22 +949,23 @@ export default function Home() {
 
                 .bottle-button {
                     position: fixed;
-                    right: 30px;
-                    bottom: 100px;
+                    left: 25px;
+                    bottom: 25px;
                     width: 56px;
                     height: 56px;
                     border-radius: 50%;
-                    background: var(--bg-card);
-                    border: 1px solid var(--border-color);
+                    background: var(--glass-bg);
+                    border: 1px solid var(--glass-border);
                     color: var(--text-secondary);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
-                    z-index: 100;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                    backdrop-filter: blur(10px);
+                    z-index: 50; /* Below settings, but above content */
+                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+                    backdrop-filter: var(--glass-blur);
+                    -webkit-backdrop-filter: var(--glass-blur);
                 }
 
                 .bottle-button:hover {
@@ -987,16 +989,17 @@ export default function Home() {
 
                 .bottle-button .tooltip {
                     position: absolute;
-                    right: 70px;
-                    background: var(--bg-card);
-                    padding: 8px 12px;
-                    border-radius: 8px;
+                    left: 65px;
+                    background: var(--bg-surface);
+                    padding: 8px 14px;
+                    border-radius: 12px;
                     font-size: 12px;
                     white-space: nowrap;
                     opacity: 0;
                     pointer-events: none;
                     transition: opacity 0.2s ease;
-                    border: 1px solid var(--border-color);
+                    border: 1px solid var(--glass-border);
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
                 }
 
                 .bottle-button:hover .tooltip {
@@ -1005,8 +1008,10 @@ export default function Home() {
 
                 @media (max-width: 768px) {
                     .bottle-button {
-                        bottom: 120px;
-                        right: 20px;
+                        bottom: 80px;
+                        left: 20px;
+                        width: 48px;
+                        height: 48px;
                     }
                 }
             `}</style>
