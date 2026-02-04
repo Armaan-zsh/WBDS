@@ -276,6 +276,45 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         }
     };
 
+    // Handle markdown shortcuts in focus mode
+    const handleFocusKeyDown = (e) => {
+        const textarea = e.target;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = text.substring(start, end);
+
+        // Ctrl/Cmd + B for bold
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
+            e.preventDefault();
+            if (selectedText) {
+                const newText = text.substring(0, start) + `**${selectedText}**` + text.substring(end);
+                if (newText.length <= MAX_CHARS) {
+                    setText(newText);
+                    // Set cursor after the formatted text
+                    setTimeout(() => {
+                        textarea.selectionStart = start + 2;
+                        textarea.selectionEnd = end + 2;
+                    }, 0);
+                }
+            }
+        }
+
+        // Ctrl/Cmd + I for italic
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'i' || e.key === 'I')) {
+            e.preventDefault();
+            if (selectedText) {
+                const newText = text.substring(0, start) + `*${selectedText}*` + text.substring(end);
+                if (newText.length <= MAX_CHARS) {
+                    setText(newText);
+                    setTimeout(() => {
+                        textarea.selectionStart = start + 1;
+                        textarea.selectionEnd = end + 1;
+                    }, 0);
+                }
+            }
+        }
+    };
+
     // Focus mode portal element - NOT a component to prevent remount on every render
     const focusModeElement = isFocusMode && typeof document !== 'undefined' ? createPortal(
         <div
@@ -287,9 +326,9 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                 bottom: 0,
                 width: '100vw',
                 height: '100vh',
-                background: 'rgba(10, 10, 15, 0.75)',
-                backdropFilter: 'blur(50px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(50px) saturate(180%)',
+                background: 'rgba(0, 0, 0, 0.4)',
+                backdropFilter: 'blur(30px) saturate(150%)',
+                WebkitBackdropFilter: 'blur(30px) saturate(150%)',
                 zIndex: 99999,
                 display: 'flex',
                 flexDirection: 'column',
@@ -306,22 +345,37 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     right: 24,
                     width: 44,
                     height: 44,
-                    background: 'rgba(255,255,255,0.08)',
-                    border: '1px solid rgba(255,255,255,0.15)',
+                    background: 'rgba(255,255,255,0.1)',
+                    border: '1px solid rgba(255,255,255,0.2)',
                     borderRadius: '50%',
-                    color: 'rgba(255,255,255,0.6)',
+                    color: 'rgba(255,255,255,0.7)',
                     fontSize: 20,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
                 }}
             >
                 ×
             </button>
 
-            {/* Main content */}
-            <div style={{ width: '90%', maxWidth: 800, height: '70vh', display: 'flex', flexDirection: 'column' }}>
+            {/* Main content - glass card */}
+            <div style={{
+                width: '90%',
+                maxWidth: 800,
+                height: '70vh',
+                display: 'flex',
+                flexDirection: 'column',
+                background: 'rgba(20, 20, 25, 0.6)',
+                borderRadius: 20,
+                padding: 40,
+                border: '1px solid rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            }}>
                 <textarea
                     value={text}
                     onChange={(e) => {
@@ -329,6 +383,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                             setText(e.target.value);
                         }
                     }}
+                    onKeyDown={handleFocusKeyDown}
                     placeholder="Dear..."
                     autoFocus
                     spellCheck={false}
@@ -338,18 +393,18 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                         border: 'none',
                         color: 'var(--text-primary, #fff)',
                         fontFamily: 'var(--font-current, serif)',
-                        fontSize: 26,
-                        lineHeight: 1.9,
+                        fontSize: 24,
+                        lineHeight: 1.8,
                         width: '100%',
                         resize: 'none',
                         outline: 'none',
-                        caretColor: '#fff',
+                        caretColor: 'var(--text-primary, #fff)',
                     }}
                 />
 
                 {/* Bottom bar */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 20, opacity: 0.6 }}>
-                    <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: 20 }}>
+                    <span style={{ fontSize: 13, color: 'var(--text-secondary, rgba(255,255,255,0.5))', fontFamily: 'monospace' }}>
                         {text.split(/\s+/).filter(w => w.length > 0).length} words · {text.length}/{MAX_CHARS}
                     </span>
                     <button
@@ -360,14 +415,13 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                         disabled={!text.trim()}
                         style={{
                             padding: '10px 24px',
-                            background: 'rgba(255,255,255,0.1)',
-                            border: '1px solid rgba(255,255,255,0.2)',
+                            background: text.trim() ? 'var(--text-primary, #fff)' : 'rgba(255,255,255,0.1)',
+                            border: 'none',
                             borderRadius: 30,
-                            color: '#fff',
+                            color: text.trim() ? 'var(--bg-depth, #000)' : 'rgba(255,255,255,0.3)',
                             fontSize: 14,
-                            fontWeight: 500,
+                            fontWeight: 600,
                             cursor: text.trim() ? 'pointer' : 'not-allowed',
-                            opacity: text.trim() ? 1 : 0.3,
                         }}
                     >
                         Send to Void
@@ -376,8 +430,8 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             </div>
 
             {/* Hint */}
-            <span style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', fontSize: 11, color: 'rgba(255,255,255,0.25)', fontFamily: 'monospace' }}>
-                ESC to exit · ⌘⇧F to toggle
+            <span style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', background: 'rgba(0,0,0,0.3)', padding: '6px 12px', borderRadius: 20, backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+                ESC to exit · ⌘B bold · ⌘I italic
             </span>
         </div>,
         document.body
