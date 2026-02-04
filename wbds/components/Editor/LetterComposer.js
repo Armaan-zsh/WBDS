@@ -23,6 +23,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
     const [recipientType, setRecipientType] = useState('unknown'); // [NEW] Purpose Protection
     const [showGuidanceModal, setShowGuidanceModal] = useState(false); // [NEW] Purpose Protection
     const [isCrisisDetected, setIsCrisisDetected] = useState(false); // [NEW] Crisis Lifeline
+    const [isFocusMode, setIsFocusMode] = useState(false); // [NEW] Distraction-Free Mode
 
     const MAX_CHARS = 7777; // Maximum character limit
 
@@ -39,6 +40,31 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
         }
     }, [text]);
+
+    // Focus Mode Keyboard Shortcuts
+    useEffect(() => {
+        const handleFocusShortcut = (e) => {
+            // Cmd/Ctrl + Shift + F to enter focus mode
+            if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+                e.preventDefault();
+                setIsFocusMode(true);
+                setTimeout(() => textareaRef.current?.focus(), 100);
+            }
+            // ESC to exit focus mode (only when not in Vim theme)
+            if (e.key === 'Escape' && isFocusMode) {
+                const isVim = typeof document !== 'undefined' &&
+                    (document.documentElement.getAttribute('data-theme') === 'neovim' ||
+                        document.documentElement.getAttribute('data-theme') === 'terminal');
+                if (!isVim) {
+                    e.preventDefault();
+                    setIsFocusMode(false);
+                }
+            }
+        };
+
+        document.addEventListener('keydown', handleFocusShortcut);
+        return () => document.removeEventListener('keydown', handleFocusShortcut);
+    }, [isFocusMode]);
 
     // Real-time doxxing detection
     useEffect(() => {
@@ -634,6 +660,112 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             animation: fadeIn 0.5s ease;
         }
         .crisis-banner a { color: #ff453a; font-weight: bold; text-decoration: underline; }
+
+        /* FOCUS MODE - Distraction-Free Writing */
+        .focus-mode-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: focusFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes focusFadeIn {
+            from { opacity: 0; backdrop-filter: blur(0); }
+            to { opacity: 1; backdrop-filter: blur(30px); }
+        }
+
+        .focus-mode-content {
+            width: 100%;
+            max-width: 700px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .focus-textarea {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: var(--font-current);
+            font-size: 24px;
+            line-height: 1.8;
+            width: 100%;
+            min-height: 50vh;
+            resize: none;
+            outline: none;
+            caret-color: var(--text-primary);
+        }
+
+        .focus-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+            font-style: italic;
+        }
+
+        .focus-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0.4;
+            transition: opacity 0.3s ease;
+        }
+
+        .focus-footer:hover {
+            opacity: 0.8;
+        }
+
+        .focus-word-count {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-family: monospace;
+        }
+
+        .focus-close-btn {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-secondary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            opacity: 0.5;
+        }
+
+        .focus-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .focus-hint {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0.3;
+            font-family: monospace;
+        }
       `}</style>
 
             <div className="composer-card">
@@ -677,6 +809,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     }}
                     onFocus={() => { setIsFocused(true); if (onFocusChange) onFocusChange(true); }}
                     onBlur={() => { setIsFocused(false); if (onFocusChange) onFocusChange(false); }}
+                    onDoubleClick={() => setIsFocusMode(true)}
                     onPaste={handlePaste}
                     onKeyDown={handleKeyDown}
                     rows={1}
@@ -948,6 +1081,53 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     align-items: center;
                 }
             `}</style>
+
+            {/* FOCUS MODE OVERLAY */}
+            {isFocusMode && (
+                <div className="focus-mode-overlay">
+                    <button
+                        className="focus-close-btn"
+                        onClick={() => setIsFocusMode(false)}
+                        aria-label="Exit Focus Mode"
+                    >
+                        ×
+                    </button>
+
+                    <div className="focus-mode-content">
+                        <textarea
+                            className="focus-textarea"
+                            placeholder="Dear..."
+                            value={text}
+                            onChange={(e) => {
+                                if (e.target.value.length <= MAX_CHARS) {
+                                    setText(e.target.value);
+                                }
+                            }}
+                            autoFocus
+                            spellCheck={false}
+                        />
+
+                        <div className="focus-footer">
+                            <span className="focus-word-count">
+                                {text.split(/\s+/).filter(w => w.length > 0).length} words · {text.length} / {MAX_CHARS}
+                            </span>
+                            <button
+                                className="btn-action"
+                                style={{ padding: '10px 24px', fontSize: '14px' }}
+                                onClick={() => {
+                                    setIsFocusMode(false);
+                                    setTimeout(() => handlePreSend(), 100);
+                                }}
+                                disabled={!text.trim()}
+                            >
+                                Send to Void
+                            </button>
+                        </div>
+                    </div>
+
+                    <span className="focus-hint">ESC to exit · ⌘⇧F to toggle</span>
+                </div>
+            )}
         </div>
     );
 }
