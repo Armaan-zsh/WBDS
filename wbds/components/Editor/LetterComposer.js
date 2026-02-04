@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { containsLinkPattern, containsSocialSolicitation } from '../../utils/contentFilters';
 import { maskPrivateInfo, detectPotentialDox } from '../../utils/privacyShield';
 
@@ -275,9 +276,183 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         }
     };
 
+    // Focus mode overlay - rendered via Portal
+    const FocusModeOverlay = () => {
+        if (typeof document === 'undefined') return null;
+
+        return createPortal(
+            <div className="focus-mode-overlay">
+                <style jsx>{`
+                    .focus-mode-overlay {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        width: 100vw;
+                        height: 100vh;
+                        background: rgba(0, 0, 0, 0.92);
+                        backdrop-filter: blur(40px) saturate(180%);
+                        -webkit-backdrop-filter: blur(40px) saturate(180%);
+                        z-index: 99999;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        animation: focusFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    }
+
+                    @keyframes focusFadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+
+                    .focus-content {
+                        width: 90%;
+                        max-width: 800px;
+                        height: 70vh;
+                        display: flex;
+                        flex-direction: column;
+                    }
+
+                    .focus-textarea {
+                        flex: 1;
+                        background: transparent;
+                        border: none;
+                        color: var(--text-primary, #fff);
+                        font-family: var(--font-current, serif);
+                        font-size: 26px;
+                        line-height: 1.9;
+                        width: 100%;
+                        resize: none;
+                        outline: none;
+                        caret-color: #fff;
+                    }
+
+                    .focus-textarea::placeholder {
+                        color: rgba(255, 255, 255, 0.15);
+                        font-style: italic;
+                    }
+
+                    .focus-bottom {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding-top: 20px;
+                        opacity: 0.5;
+                        transition: opacity 0.3s;
+                    }
+
+                    .focus-bottom:hover {
+                        opacity: 1;
+                    }
+
+                    .focus-stats {
+                        font-size: 13px;
+                        color: rgba(255,255,255,0.5);
+                        font-family: monospace;
+                    }
+
+                    .focus-close {
+                        position: fixed;
+                        top: 24px;
+                        right: 24px;
+                        width: 44px;
+                        height: 44px;
+                        background: rgba(255,255,255,0.08);
+                        border: 1px solid rgba(255,255,255,0.15);
+                        border-radius: 50%;
+                        color: rgba(255,255,255,0.6);
+                        font-size: 20px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        transition: all 0.2s;
+                    }
+
+                    .focus-close:hover {
+                        background: rgba(255,255,255,0.15);
+                        color: #fff;
+                        transform: scale(1.1);
+                    }
+
+                    .focus-hint {
+                        position: fixed;
+                        bottom: 24px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        font-size: 11px;
+                        color: rgba(255,255,255,0.25);
+                        font-family: monospace;
+                    }
+
+                    .focus-send-btn {
+                        padding: 10px 24px;
+                        background: rgba(255,255,255,0.1);
+                        border: 1px solid rgba(255,255,255,0.2);
+                        border-radius: 30px;
+                        color: #fff;
+                        font-size: 14px;
+                        font-weight: 500;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    }
+
+                    .focus-send-btn:hover:not(:disabled) {
+                        background: #fff;
+                        color: #000;
+                    }
+
+                    .focus-send-btn:disabled {
+                        opacity: 0.3;
+                        cursor: not-allowed;
+                    }
+                `}</style>
+
+                <button className="focus-close" onClick={() => setIsFocusMode(false)}>×</button>
+
+                <div className="focus-content">
+                    <textarea
+                        className="focus-textarea"
+                        placeholder="Dear..."
+                        value={text}
+                        onChange={(e) => {
+                            if (e.target.value.length <= MAX_CHARS) {
+                                setText(e.target.value);
+                            }
+                        }}
+                        autoFocus
+                        spellCheck={false}
+                    />
+
+                    <div className="focus-bottom">
+                        <span className="focus-stats">
+                            {text.split(/\s+/).filter(w => w.length > 0).length} words · {text.length}/{MAX_CHARS}
+                        </span>
+                        <button
+                            className="focus-send-btn"
+                            onClick={() => {
+                                setIsFocusMode(false);
+                                setTimeout(() => handlePreSend(), 100);
+                            }}
+                            disabled={!text.trim()}
+                        >
+                            Send to Void
+                        </button>
+                    </div>
+                </div>
+
+                <span className="focus-hint">ESC to exit · ⌘⇧F to toggle</span>
+            </div>,
+            document.body
+        );
+    };
+
     return (
-        <div className={`composer-container ${isFocused ? 'focused' : ''} ${status === 'SENDING' ? 'sending' : ''}`}>
-            <style jsx>{`
+        <>
+            <div className={`composer-container ${isFocused ? 'focused' : ''} ${status === 'SENDING' ? 'sending' : ''}`}>
+                <style jsx>{`
         @keyframes flyAway {
             0% { transform: scale(1) translateY(0) rotateX(0); opacity: 1; filter: blur(0); }
             20% { transform: scale(0.9) translateY(20px) rotateX(-10deg); opacity: 1; }
@@ -768,193 +943,207 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         }
       `}</style>
 
-            <div className="composer-card">
-                {replyTo && (
-                    <div className="reply-context">
-                        <span>↳ Threading with Fragment #{replyTo.id.toString().substring(0, 6)}...</span>
-                    </div>
-                )}
+                <div className="composer-card">
+                    {replyTo && (
+                        <div className="reply-context">
+                            <span>↳ Threading with Fragment #{replyTo.id.toString().substring(0, 6)}...</span>
+                        </div>
+                    )}
 
-                {/* RECIPIENT SELECTOR */}
-                <div className="recipient-section">
-                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)', opacity: 0.6 }}>To:</span>
-                    <select
-                        className="recipient-select"
-                        value={recipientType}
-                        onChange={(e) => setRecipientType(e.target.value)}
-                    >
-                        <option value="unknown">Someone unnamed...</option>
-                        <option value="specific">A specific person...</option>
-                        <option value="universe">The universe...</option>
-                        <option value="self">My future/past self...</option>
-                    </select>
-                </div>
-
-                {doxWarning && (
-                    <div className="dox-warning">
-                        <strong>⚠️ Privacy Warning</strong>
-                        {doxWarning}
-                    </div>
-                )}
-
-                <textarea
-                    ref={textareaRef}
-                    className={`letter-input ${errorShake ? 'animate-shake' : ''}`}
-                    placeholder={replyTo ? "Continue the thought..." : "Dear..."}
-                    value={text}
-                    onChange={(e) => {
-                        if (e.target.value.length <= MAX_CHARS) {
-                            setText(e.target.value);
-                        }
-                    }}
-                    onFocus={() => { setIsFocused(true); if (onFocusChange) onFocusChange(true); }}
-                    onBlur={() => { setIsFocused(false); if (onFocusChange) onFocusChange(false); }}
-                    onDoubleClick={() => setIsFocusMode(true)}
-                    onPaste={handlePaste}
-                    onKeyDown={handleKeyDown}
-                    rows={1}
-                    spellCheck={false}
-                    autoCorrect="off"
-                    autoCapitalize="none"
-                    maxLength={MAX_CHARS}
-                />
-
-                <TurnstileWidget onVerify={(token) => setIsVerified(true)} />
-
-                <PrivacyWarningModal
-                    isOpen={showPrivacyModal}
-                    onClose={() => setShowPrivacyModal(false)}
-                    onConfirm={processSend}
-                    risks={detectedRisks.risks}
-                    warnings={detectedRisks.warnings}
-                />
-
-                {/* EMOTIONAL TAGS SELECTOR */}
-                <div className="tags-section">
-                    <div className="tags-container">
-                        {['#Love', '#Hope', '#Regret', '#Anger', '#Grief', '#Joy', '#Fear', '#Void'].map(tag => (
-                            <button
-                                key={tag}
-                                className={`tag-pill ${tags.includes(tag) ? 'selected' : ''}`}
-                                onClick={() => {
-                                    if (tags.includes(tag)) {
-                                        setTags(tags.filter(t => t !== tag));
-                                    } else {
-                                        if (tags.length < 5) setTags([...tags, tag]);
-                                        else triggerShake();
-                                    }
-                                }}
-                            >
-                                {tag}
-                            </button>
-                        ))}
-
-                        {text.length > 0 && (
-                            <div className={`char-count ${text.length > MAX_CHARS * 0.9 ? 'warning' : ''} ${text.length >= MAX_CHARS ? 'error' : ''}`}>
-                                {text.length} / {MAX_CHARS}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="controls">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
-                        <button
-                            className={`btn-icon ${unlockAt ? 'active' : ''}`}
-                            onClick={() => {
-                                if (unlockAt) {
-                                    setUnlockAt(null);
-                                } else {
-                                    const tomorrow = new Date();
-                                    tomorrow.setDate(tomorrow.getDate() + 1);
-                                    setUnlockAt(tomorrow);
-                                }
-                            }}
-                            title="Time Capsule (Lock Letter)"
+                    {/* RECIPIENT SELECTOR */}
+                    <div className="recipient-section">
+                        <span style={{ fontSize: '13px', color: 'var(--text-secondary)', opacity: 0.6 }}>To:</span>
+                        <select
+                            className="recipient-select"
+                            value={recipientType}
+                            onChange={(e) => setRecipientType(e.target.value)}
                         >
-                            {unlockAt ? '⏳' : '⏳'}
-                        </button>
-
-                        {unlockAt && (
-                            <input
-                                type="date"
-                                min={new Date().toISOString().split('T')[0]}
-                                value={unlockAt.toISOString().split('T')[0]}
-                                onChange={(e) => {
-                                    if (e.target.value) {
-                                        setUnlockAt(new Date(e.target.value));
-                                    }
-                                }}
-                                style={{
-                                    background: 'transparent',
-                                    border: 'none',
-                                    color: 'var(--text-secondary)',
-                                    fontFamily: 'var(--font-current)',
-                                    fontSize: '12px',
-                                    cursor: 'pointer'
-                                }}
-                            />
-                        )}
+                            <option value="unknown">Someone unnamed...</option>
+                            <option value="specific">A specific person...</option>
+                            <option value="universe">The universe...</option>
+                            <option value="self">My future/past self...</option>
+                        </select>
                     </div>
 
-                    <div className="helper-text" style={{ flexGrow: 1 }}>
-                        {text.length === 0 ? 'Write what you think' : ''}
-                    </div>
+                    {doxWarning && (
+                        <div className="dox-warning">
+                            <strong>⚠️ Privacy Warning</strong>
+                            {doxWarning}
+                        </div>
+                    )}
 
-                    <button className="btn-action btn-danger" onClick={handleBurn}>
-                        {status === 'BURNING' ? '🔥' : 'Burn'}
-                    </button>
-                    <button
-                        className={`btn-action ${!isVerified ? 'disabled' : ''}`}
-                        onClick={() => processSend(false)}
-                        disabled={!isVerified}
-                    >
-                        {status === 'SENDING' ? 'Sent' : 'Send'}
-                    </button>
-                </div>
+                    <textarea
+                        ref={textareaRef}
+                        className={`letter-input ${errorShake ? 'animate-shake' : ''}`}
+                        placeholder={replyTo ? "Continue the thought..." : "Dear..."}
+                        value={text}
+                        onChange={(e) => {
+                            if (e.target.value.length <= MAX_CHARS) {
+                                setText(e.target.value);
+                            }
+                        }}
+                        onFocus={() => { setIsFocused(true); if (onFocusChange) onFocusChange(true); }}
+                        onBlur={() => { setIsFocused(false); if (onFocusChange) onFocusChange(false); }}
+                        onDoubleClick={() => setIsFocusMode(true)}
+                        onPaste={handlePaste}
+                        onKeyDown={handleKeyDown}
+                        rows={1}
+                        spellCheck={false}
+                        autoCorrect="off"
+                        autoCapitalize="none"
+                        maxLength={MAX_CHARS}
+                    />
 
-                {/* GUIDANCE MODAL */}
-                {showGuidanceModal && (
-                    <div className="guidance-overlay">
-                        <div className="guidance-card">
-                            <h3>Is this a letter?</h3>
-                            <p>WBDS is a space for unsent letters and personal release. Your words feel more like a story or a public post.</p>
-                            <div className="guidance-actions">
-                                <button className="btn-action btn-danger" onClick={() => setShowGuidanceModal(false)}>Edit</button>
-                                <button className="btn-action" onClick={() => processSend(true)}>It IS a letter</button>
-                            </div>
+                    <TurnstileWidget onVerify={(token) => setIsVerified(true)} />
+
+                    <PrivacyWarningModal
+                        isOpen={showPrivacyModal}
+                        onClose={() => setShowPrivacyModal(false)}
+                        onConfirm={processSend}
+                        risks={detectedRisks.risks}
+                        warnings={detectedRisks.warnings}
+                    />
+
+                    {/* EMOTIONAL TAGS SELECTOR */}
+                    <div className="tags-section">
+                        <div className="tags-container">
+                            {['#Love', '#Hope', '#Regret', '#Anger', '#Grief', '#Joy', '#Fear', '#Void'].map(tag => (
+                                <button
+                                    key={tag}
+                                    className={`tag-pill ${tags.includes(tag) ? 'selected' : ''}`}
+                                    onClick={() => {
+                                        if (tags.includes(tag)) {
+                                            setTags(tags.filter(t => t !== tag));
+                                        } else {
+                                            if (tags.length < 5) setTags([...tags, tag]);
+                                            else triggerShake();
+                                        }
+                                    }}
+                                >
+                                    {tag}
+                                </button>
+                            ))}
+
+                            {text.length > 0 && (
+                                <div className={`char-count ${text.length > MAX_CHARS * 0.9 ? 'warning' : ''} ${text.length >= MAX_CHARS ? 'error' : ''}`}>
+                                    {text.length} / {MAX_CHARS}
+                                </div>
+                            )}
                         </div>
                     </div>
-                )}
 
-                {/* CRISIS LIFELINE */}
-                {isCrisisDetected && (
-                    <div className="crisis-banner">
-                        <p>The void hears you, but the world still needs you.</p>
-                        <p style={{ fontSize: '14px', marginTop: '8px' }}>
-                            You are not alone. Please consider reaching out: <br />
-                            <strong>National Suicide Prevention Lifeline: 988</strong> or <a href="https://findahelpline.com" target="_blank">Find a local helpline</a>
-                        </p>
+                    <div className="controls">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
+                            {/* Fullscreen Focus Mode Button */}
+                            <button
+                                className="btn-icon"
+                                onClick={() => setIsFocusMode(true)}
+                                title="Focus Mode (⌘⇧F)"
+                                style={{ opacity: 0.6 }}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <polyline points="9 21 3 21 3 15"></polyline>
+                                    <polyline points="21 15 21 21 15 21"></polyline>
+                                    <polyline points="3 9 3 3 9 3"></polyline>
+                                </svg>
+                            </button>
+                            <button
+                                className={`btn-icon ${unlockAt ? 'active' : ''}`}
+                                onClick={() => {
+                                    if (unlockAt) {
+                                        setUnlockAt(null);
+                                    } else {
+                                        const tomorrow = new Date();
+                                        tomorrow.setDate(tomorrow.getDate() + 1);
+                                        setUnlockAt(tomorrow);
+                                    }
+                                }}
+                                title="Time Capsule (Lock Letter)"
+                            >
+                                {unlockAt ? '⏳' : '⏳'}
+                            </button>
+
+                            {unlockAt && (
+                                <input
+                                    type="date"
+                                    min={new Date().toISOString().split('T')[0]}
+                                    value={unlockAt.toISOString().split('T')[0]}
+                                    onChange={(e) => {
+                                        if (e.target.value) {
+                                            setUnlockAt(new Date(e.target.value));
+                                        }
+                                    }}
+                                    style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: 'var(--text-secondary)',
+                                        fontFamily: 'var(--font-current)',
+                                        fontSize: '12px',
+                                        cursor: 'pointer'
+                                    }}
+                                />
+                            )}
+                        </div>
+
+                        <div className="helper-text" style={{ flexGrow: 1 }}>
+                            {text.length === 0 ? 'Write what you think' : ''}
+                        </div>
+
+                        <button className="btn-action btn-danger" onClick={handleBurn}>
+                            {status === 'BURNING' ? '🔥' : 'Burn'}
+                        </button>
                         <button
-                            className="tag-pill"
-                            style={{ marginTop: '16px', background: 'rgba(255,255,255,0.1)' }}
-                            onClick={() => setIsCrisisDetected(false)}
+                            className={`btn-action ${!isVerified ? 'disabled' : ''}`}
+                            onClick={() => processSend(false)}
+                            disabled={!isVerified}
                         >
-                            Close
+                            {status === 'SENDING' ? 'Sent' : 'Send'}
                         </button>
                     </div>
-                )}
 
-                <div className="vim-status-bar">
-                    {cmdBuffer ? (
-                        <span className="vim-cmd">{cmdBuffer}<span className="cursor-block"></span></span>
-                    ) : (
-                        <span className="vim-mode">-- {vimMode} --</span>
+                    {/* GUIDANCE MODAL */}
+                    {showGuidanceModal && (
+                        <div className="guidance-overlay">
+                            <div className="guidance-card">
+                                <h3>Is this a letter?</h3>
+                                <p>WBDS is a space for unsent letters and personal release. Your words feel more like a story or a public post.</p>
+                                <div className="guidance-actions">
+                                    <button className="btn-action btn-danger" onClick={() => setShowGuidanceModal(false)}>Edit</button>
+                                    <button className="btn-action" onClick={() => processSend(true)}>It IS a letter</button>
+                                </div>
+                            </div>
+                        </div>
                     )}
-                </div>
-            </div>
 
-            <style jsx global>{`
+                    {/* CRISIS LIFELINE */}
+                    {isCrisisDetected && (
+                        <div className="crisis-banner">
+                            <p>The void hears you, but the world still needs you.</p>
+                            <p style={{ fontSize: '14px', marginTop: '8px' }}>
+                                You are not alone. Please consider reaching out: <br />
+                                <strong>National Suicide Prevention Lifeline: 988</strong> or <a href="https://findahelpline.com" target="_blank">Find a local helpline</a>
+                            </p>
+                            <button
+                                className="tag-pill"
+                                style={{ marginTop: '16px', background: 'rgba(255,255,255,0.1)' }}
+                                onClick={() => setIsCrisisDetected(false)}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="vim-status-bar">
+                        {cmdBuffer ? (
+                            <span className="vim-cmd">{cmdBuffer}<span className="cursor-block"></span></span>
+                        ) : (
+                            <span className="vim-mode">-- {vimMode} --</span>
+                        )}
+                    </div>
+                </div>
+
+                <style jsx global>{`
                 .cursor-block {
                     display: inline-block;
                     width: 10px;
@@ -1081,53 +1270,10 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                     align-items: center;
                 }
             `}</style>
+            </div>
 
-            {/* FOCUS MODE OVERLAY */}
-            {isFocusMode && (
-                <div className="focus-mode-overlay">
-                    <button
-                        className="focus-close-btn"
-                        onClick={() => setIsFocusMode(false)}
-                        aria-label="Exit Focus Mode"
-                    >
-                        ×
-                    </button>
-
-                    <div className="focus-mode-content">
-                        <textarea
-                            className="focus-textarea"
-                            placeholder="Dear..."
-                            value={text}
-                            onChange={(e) => {
-                                if (e.target.value.length <= MAX_CHARS) {
-                                    setText(e.target.value);
-                                }
-                            }}
-                            autoFocus
-                            spellCheck={false}
-                        />
-
-                        <div className="focus-footer">
-                            <span className="focus-word-count">
-                                {text.split(/\s+/).filter(w => w.length > 0).length} words · {text.length} / {MAX_CHARS}
-                            </span>
-                            <button
-                                className="btn-action"
-                                style={{ padding: '10px 24px', fontSize: '14px' }}
-                                onClick={() => {
-                                    setIsFocusMode(false);
-                                    setTimeout(() => handlePreSend(), 100);
-                                }}
-                                disabled={!text.trim()}
-                            >
-                                Send to Void
-                            </button>
-                        </div>
-                    </div>
-
-                    <span className="focus-hint">ESC to exit · ⌘⇧F to toggle</span>
-                </div>
-            )}
-        </div>
+            {/* Focus Mode - Rendered via Portal for true fullscreen */}
+            {isFocusMode && <FocusModeOverlay />}
+        </>
     );
 }
