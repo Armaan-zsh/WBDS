@@ -353,15 +353,16 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             left: 0;
             top: 0;
             height: 100vh;
-            width: 450px;
             z-index: 5000;
-            transform: translateX(-340px);
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             display: flex;
             align-items: center;
             pointer-events: none;
         }
-        .panel-wrapper.open { transform: translateX(0); pointer-events: auto; }
+        .panel-wrapper.open .panel-container { 
+            transform: translateX(0); 
+            opacity: 1;
+            pointer-events: auto;
+        }
         .panel-container {
             width: 280px;
             padding: 32px 24px;
@@ -372,17 +373,18 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             display: flex;
             flex-direction: column;
             gap: 32px;
-            position: absolute;
-            left: 40px;
+            margin-left: 40px;
             border-radius: 24px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             backdrop-filter: blur(20px);
             scrollbar-width: none;
-            pointer-events: auto;
+            transform: translateX(-400px);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease;
         }
         .sidebar-toggle {
-            position: absolute;
-            left: 370px;
+            position: fixed;
+            left: 10px;
             top: 50%;
             transform: translateY(-50%);
             background: transparent;
@@ -392,6 +394,10 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
             display: flex;
             transition: all 0.2s;
             pointer-events: auto;
+            z-index: 5001;
+        }
+        .panel-wrapper.open .sidebar-toggle {
+            left: 370px;
         }
         .sidebar-toggle:hover { color: #fff; transform: translateY(-50%) scale(1.1); }
         .section-title {
