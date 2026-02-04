@@ -276,178 +276,112 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         }
     };
 
-    // Focus mode overlay - rendered via Portal
-    const FocusModeOverlay = () => {
-        if (typeof document === 'undefined') return null;
+    // Focus mode portal element - NOT a component to prevent remount on every render
+    const focusModeElement = isFocusMode && typeof document !== 'undefined' ? createPortal(
+        <div
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                width: '100vw',
+                height: '100vh',
+                background: 'rgba(10, 10, 15, 0.75)',
+                backdropFilter: 'blur(50px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(50px) saturate(180%)',
+                zIndex: 99999,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            {/* Close button */}
+            <button
+                onClick={() => setIsFocusMode(false)}
+                style={{
+                    position: 'fixed',
+                    top: 24,
+                    right: 24,
+                    width: 44,
+                    height: 44,
+                    background: 'rgba(255,255,255,0.08)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    borderRadius: '50%',
+                    color: 'rgba(255,255,255,0.6)',
+                    fontSize: 20,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                ×
+            </button>
 
-        return createPortal(
-            <div className="focus-mode-overlay">
-                <style jsx>{`
-                    .focus-mode-overlay {
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        right: 0;
-                        bottom: 0;
-                        width: 100vw;
-                        height: 100vh;
-                        background: rgba(0, 0, 0, 0.92);
-                        backdrop-filter: blur(40px) saturate(180%);
-                        -webkit-backdrop-filter: blur(40px) saturate(180%);
-                        z-index: 99999;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        justify-content: center;
-                        animation: focusFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-                    }
+            {/* Main content */}
+            <div style={{ width: '90%', maxWidth: 800, height: '70vh', display: 'flex', flexDirection: 'column' }}>
+                <textarea
+                    value={text}
+                    onChange={(e) => {
+                        if (e.target.value.length <= MAX_CHARS) {
+                            setText(e.target.value);
+                        }
+                    }}
+                    placeholder="Dear..."
+                    autoFocus
+                    spellCheck={false}
+                    style={{
+                        flex: 1,
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text-primary, #fff)',
+                        fontFamily: 'var(--font-current, serif)',
+                        fontSize: 26,
+                        lineHeight: 1.9,
+                        width: '100%',
+                        resize: 'none',
+                        outline: 'none',
+                        caretColor: '#fff',
+                    }}
+                />
 
-                    @keyframes focusFadeIn {
-                        from { opacity: 0; }
-                        to { opacity: 1; }
-                    }
-
-                    .focus-content {
-                        width: 90%;
-                        max-width: 800px;
-                        height: 70vh;
-                        display: flex;
-                        flex-direction: column;
-                    }
-
-                    .focus-textarea {
-                        flex: 1;
-                        background: transparent;
-                        border: none;
-                        color: var(--text-primary, #fff);
-                        font-family: var(--font-current, serif);
-                        font-size: 26px;
-                        line-height: 1.9;
-                        width: 100%;
-                        resize: none;
-                        outline: none;
-                        caret-color: #fff;
-                    }
-
-                    .focus-textarea::placeholder {
-                        color: rgba(255, 255, 255, 0.15);
-                        font-style: italic;
-                    }
-
-                    .focus-bottom {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        padding-top: 20px;
-                        opacity: 0.5;
-                        transition: opacity 0.3s;
-                    }
-
-                    .focus-bottom:hover {
-                        opacity: 1;
-                    }
-
-                    .focus-stats {
-                        font-size: 13px;
-                        color: rgba(255,255,255,0.5);
-                        font-family: monospace;
-                    }
-
-                    .focus-close {
-                        position: fixed;
-                        top: 24px;
-                        right: 24px;
-                        width: 44px;
-                        height: 44px;
-                        background: rgba(255,255,255,0.08);
-                        border: 1px solid rgba(255,255,255,0.15);
-                        border-radius: 50%;
-                        color: rgba(255,255,255,0.6);
-                        font-size: 20px;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        transition: all 0.2s;
-                    }
-
-                    .focus-close:hover {
-                        background: rgba(255,255,255,0.15);
-                        color: #fff;
-                        transform: scale(1.1);
-                    }
-
-                    .focus-hint {
-                        position: fixed;
-                        bottom: 24px;
-                        left: 50%;
-                        transform: translateX(-50%);
-                        font-size: 11px;
-                        color: rgba(255,255,255,0.25);
-                        font-family: monospace;
-                    }
-
-                    .focus-send-btn {
-                        padding: 10px 24px;
-                        background: rgba(255,255,255,0.1);
-                        border: 1px solid rgba(255,255,255,0.2);
-                        border-radius: 30px;
-                        color: #fff;
-                        font-size: 14px;
-                        font-weight: 500;
-                        cursor: pointer;
-                        transition: all 0.2s;
-                    }
-
-                    .focus-send-btn:hover:not(:disabled) {
-                        background: #fff;
-                        color: #000;
-                    }
-
-                    .focus-send-btn:disabled {
-                        opacity: 0.3;
-                        cursor: not-allowed;
-                    }
-                `}</style>
-
-                <button className="focus-close" onClick={() => setIsFocusMode(false)}>×</button>
-
-                <div className="focus-content">
-                    <textarea
-                        className="focus-textarea"
-                        placeholder="Dear..."
-                        value={text}
-                        onChange={(e) => {
-                            if (e.target.value.length <= MAX_CHARS) {
-                                setText(e.target.value);
-                            }
+                {/* Bottom bar */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 20, opacity: 0.6 }}>
+                    <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace' }}>
+                        {text.split(/\s+/).filter(w => w.length > 0).length} words · {text.length}/{MAX_CHARS}
+                    </span>
+                    <button
+                        onClick={() => {
+                            setIsFocusMode(false);
+                            setTimeout(() => handlePreSend(), 100);
                         }}
-                        autoFocus
-                        spellCheck={false}
-                    />
-
-                    <div className="focus-bottom">
-                        <span className="focus-stats">
-                            {text.split(/\s+/).filter(w => w.length > 0).length} words · {text.length}/{MAX_CHARS}
-                        </span>
-                        <button
-                            className="focus-send-btn"
-                            onClick={() => {
-                                setIsFocusMode(false);
-                                setTimeout(() => handlePreSend(), 100);
-                            }}
-                            disabled={!text.trim()}
-                        >
-                            Send to Void
-                        </button>
-                    </div>
+                        disabled={!text.trim()}
+                        style={{
+                            padding: '10px 24px',
+                            background: 'rgba(255,255,255,0.1)',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: 30,
+                            color: '#fff',
+                            fontSize: 14,
+                            fontWeight: 500,
+                            cursor: text.trim() ? 'pointer' : 'not-allowed',
+                            opacity: text.trim() ? 1 : 0.3,
+                        }}
+                    >
+                        Send to Void
+                    </button>
                 </div>
+            </div>
 
-                <span className="focus-hint">ESC to exit · ⌘⇧F to toggle</span>
-            </div>,
-            document.body
-        );
-    };
+            {/* Hint */}
+            <span style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', fontSize: 11, color: 'rgba(255,255,255,0.25)', fontFamily: 'monospace' }}>
+                ESC to exit · ⌘⇧F to toggle
+            </span>
+        </div>,
+        document.body
+    ) : null;
 
     return (
         <>
@@ -1273,7 +1207,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             </div>
 
             {/* Focus Mode - Rendered via Portal for true fullscreen */}
-            {isFocusMode && <FocusModeOverlay />}
+            {focusModeElement}
         </>
     );
 }
