@@ -1075,7 +1075,7 @@ export default function Home() {
                             backdropFilter: 'blur(30px)',
                             WebkitBackdropFilter: 'blur(30px)',
                             border: '1px solid rgba(255, 255, 255, 0.1)',
-                            borderRadius: 20,
+                            borderRadius: 32,
                             padding: '28px 32px',
                             minWidth: 320,
                             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'

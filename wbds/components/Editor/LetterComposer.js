@@ -386,7 +386,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                 display: 'flex',
                 flexDirection: 'column',
                 background: 'rgba(20, 20, 25, 0.6)',
-                borderRadius: 20,
+                borderRadius: 32,
                 padding: 40,
                 border: '1px solid rgba(255,255,255,0.1)',
                 backdropFilter: 'blur(20px)',
