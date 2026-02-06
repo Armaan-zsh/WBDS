@@ -434,6 +434,37 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
             font-weight: 600;
         }
 
+        .share-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            min-height: 36px;
+            min-width: 36px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .share-btn:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-primary);
+        }
+
+        .share-btn.copied {
+            color: #30d158;
+        }
+
+        .share-btn.copied::after {
+            content: '✓';
+            position: absolute;
+            font-size: 10px;
+        }
+
         /* LOCKED STATE */
         .locked-content {
             background: #000;
@@ -632,6 +663,25 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
                                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                                 </svg>
                                 {letter.likes > 0 && <span className="like-count">{letter.likes}</span>}
+                            </button>
+                            <button
+                                className="share-btn"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const url = `${window.location.origin}/letter/${letter.id}`;
+                                    navigator.clipboard.writeText(url);
+                                    // Show brief feedback
+                                    const btn = e.currentTarget;
+                                    btn.classList.add('copied');
+                                    setTimeout(() => btn.classList.remove('copied'), 1500);
+                                }}
+                                title="Copy link to this letter"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                                    <polyline points="16 6 12 2 8 6" />
+                                    <line x1="12" y1="2" x2="12" y2="15" />
+                                </svg>
                             </button>
                             <span className="timestamp">{new Date(letter.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>

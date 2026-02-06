@@ -47,6 +47,48 @@ export default function Home() {
     const [currentTheme, setCurrentTheme] = useState('paper'); // Track theme for conditional rendering
     const [showSplash, setShowSplash] = useState(true); // Splash screen state
     const [lastBottleTime, setLastBottleTime] = useState(0); // [NEW] Bottle Cooldown
+    const [showShortcuts, setShowShortcuts] = useState(false); // Shortcuts modal
+
+    // Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Only trigger on Alt+key
+            if (!e.altKey) return;
+
+            // Don't trigger when typing in inputs
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+
+            switch (e.key.toLowerCase()) {
+                case 'r':
+                    e.preventDefault();
+                    setView('read');
+                    break;
+                case 'b':
+                    e.preventDefault();
+                    setView('best');
+                    break;
+                case 'f':
+                    e.preventDefault();
+                    setView('chain'); // FMWBDS
+                    break;
+                case 'y':
+                    e.preventDefault();
+                    setView('personal'); // YWBDS
+                    break;
+                case 'e':
+                    e.preventDefault();
+                    setIsSidebarOpen(prev => !prev);
+                    break;
+                case '/':
+                    e.preventDefault();
+                    setShowShortcuts(prev => !prev);
+                    break;
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     // Splash Screen Timer
     useEffect(() => {
@@ -369,6 +411,18 @@ export default function Home() {
             // Mark as owned (Local Persistence)
             setMyLetterIds(prev => new Set(prev).add(id));
             localStorage.setItem('wbds_last_sent', Date.now());
+
+            // Update streak
+            const today = new Date().toDateString();
+            const lastWrite = localStorage.getItem('wbds_last_write_date');
+            const currentStreak = parseInt(localStorage.getItem('wbds_streak') || '0');
+
+            if (lastWrite !== today) {
+                const yesterday = new Date(Date.now() - 86400000).toDateString();
+                const newStreak = (lastWrite === yesterday || !lastWrite) ? currentStreak + 1 : 1;
+                localStorage.setItem('wbds_streak', newStreak.toString());
+                localStorage.setItem('wbds_last_write_date', today);
+            }
 
             // Switch to Read View
             setTimeout(() => {
@@ -994,6 +1048,79 @@ export default function Home() {
 
             {/* Daily Whisper Prompt */}
             <VoidWhisper />
+
+            {/* Keyboard Shortcuts Modal */}
+            {showShortcuts && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(0, 0, 0, 0.5)',
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 99999
+                    }}
+                    onClick={() => setShowShortcuts(false)}
+                >
+                    <div
+                        style={{
+                            background: 'rgba(30, 30, 30, 0.85)',
+                            backdropFilter: 'blur(20px)',
+                            WebkitBackdropFilter: 'blur(20px)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: 20,
+                            padding: '28px 32px',
+                            minWidth: 320,
+                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 style={{ margin: '0 0 20px 0', fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', textAlign: 'center' }}>
+                            Keyboard Shortcuts
+                        </h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            {[
+                                ['Alt + R', 'Read Letters'],
+                                ['Alt + B', 'BWBDS (Best)'],
+                                ['Alt + F', 'FMWBDS (Fragments)'],
+                                ['Alt + Y', 'YWBDS (Your Letters)'],
+                                ['Alt + E', 'Toggle Sidebar'],
+                                ['Alt + /', 'Show Shortcuts']
+                            ].map(([key, desc]) => (
+                                <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 24 }}>
+                                    <span style={{
+                                        background: 'rgba(255, 255, 255, 0.1)',
+                                        padding: '6px 12px',
+                                        borderRadius: 8,
+                                        fontFamily: "'JetBrains Mono', monospace",
+                                        fontSize: 13,
+                                        color: 'var(--text-primary)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                                    }}>{key}</span>
+                                    <span style={{ color: 'var(--text-secondary)', fontSize: 14 }}>{desc}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <button
+                            onClick={() => setShowShortcuts(false)}
+                            style={{
+                                marginTop: 24,
+                                width: '100%',
+                                background: 'rgba(255, 255, 255, 0.1)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                color: 'var(--text-primary)',
+                                padding: 12,
+                                borderRadius: 12,
+                                cursor: 'pointer',
+                                fontSize: 14
+                            }}
+                        >Close</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
