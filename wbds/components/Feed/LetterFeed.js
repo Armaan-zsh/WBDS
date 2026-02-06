@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 
 import { useState, useEffect } from 'react';
 
-export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onLike, likedLetters, onReport }) {
+export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onLike, likedLetters, onReport, viewMode }) {
     const [activeTag, setActiveTag] = useState(null);
     const [pinnedLetters, setPinnedLetters] = useState(new Set());
     const TAGS = ['#Love', '#Hope', '#Regret', '#Anger', '#Grief', '#Joy', '#Fear', '#Void'];
@@ -37,9 +37,24 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
     };
 
     // Filter by tag (no pin sorting - pins shown in Saved section)
-    const sortedLetters = activeTag
+    let sortedLetters = activeTag
         ? letters.filter(l => l.tags && l.tags.includes(activeTag))
         : letters;
+
+    // If in saved view, filter to only pinned letters
+    if (viewMode === 'saved') {
+        sortedLetters = letters.filter(l => pinnedLetters.has(l.id));
+    }
+
+    // Empty state for saved view
+    if (viewMode === 'saved' && sortedLetters.length === 0) {
+        return (
+            <div className="empty-state" style={{ marginTop: 60, textAlign: 'center', opacity: 0.5 }}>
+                <p style={{ fontSize: 16, marginBottom: 8 }}>📖 No saved letters yet</p>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Click the bookmark icon on any letter to save it here</p>
+            </div>
+        );
+    }
 
     if (!letters || letters.length === 0) {
         return (

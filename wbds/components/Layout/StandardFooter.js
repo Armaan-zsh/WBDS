@@ -88,7 +88,7 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen, letter
                 }
 
                 .void-pulse {
-                    font-size: 10px;
+                    font-size: 12px;
                     color: var(--text-secondary);
                     font-family: var(--font-mono, monospace);
                     text-transform: uppercase;
@@ -159,7 +159,7 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen, letter
                 a, .footer-settings-btn {
                     color: var(--text-secondary, #8e8e93);
                     text-decoration: none;
-                    font-size: 10px;
+                    font-size: 13px;
                     font-weight: 500;
                     letter-spacing: 1px;
                     text-transform: uppercase;
@@ -229,7 +229,7 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen, letter
                     }
                     a, .footer-settings-btn {
                         font-family: var(--font-mono); /* Tech feel */
-                        font-size: 10px;
+                        font-size: 12px;
                         opacity: 0.4;
                         letter-spacing: 1px;
                         padding: 10px; /* Touch target */

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { setAudioProfile, playTypeSound, toggleAmbience, setAmbienceProfile, radioControl, radioEvents } from '../../utils/audioEngine';
 import { saveImage, getImage } from '../../utils/db';
 
-export default function AppearancePanel({ onClose, isOpen, onToggle, letters = [], onOpenLetter }) {
+export default function AppearancePanel({ onClose, isOpen, onToggle, letters = [], onOpenLetter, onShowSaved, currentView }) {
     const [theme, setTheme] = useState('void');
     const [font, setFont] = useState('serif');
     const [audioProfile, setLocalAudioProfile] = useState('mechanical');
@@ -343,62 +343,36 @@ export default function AppearancePanel({ onClose, isOpen, onToggle, letters = [
                 {/* SAVED LETTERS */}
                 <div className="setting-section">
                     <div className="section-title">Saved ({savedLetters.length})</div>
-                    {savedLetters.length === 0 ? (
-                        <div style={{
-                            fontSize: 13,
-                            color: 'var(--text-secondary)',
-                            opacity: 0.5,
-                            padding: '12px 0'
-                        }}>
-                            No saved letters yet. Click the bookmark icon on any letter to save it.
-                        </div>
-                    ) : (
-                        <div style={{
-                            maxHeight: 300,
-                            overflowY: 'auto',
+                    <button
+                        className={`option-btn ${currentView === 'saved' ? 'active' : ''}`}
+                        onClick={() => {
+                            if (onShowSaved) onShowSaved();
+                        }}
+                        style={{
+                            width: '100%',
+                            padding: '14px 16px',
+                            borderColor: savedLetters.length > 0 ? '#d4af37' : undefined,
                             display: 'flex',
-                            flexDirection: 'column',
-                            gap: 8
-                        }}>
-                            {savedLetters.map(letter => (
-                                <button
-                                    key={letter.id}
-                                    className="option-btn"
-                                    onClick={() => {
-                                        if (onOpenLetter) onOpenLetter(letter);
-                                    }}
-                                    style={{
-                                        textAlign: 'left',
-                                        display: 'block',
-                                        width: '100%',
-                                        padding: '12px',
-                                        borderColor: '#d4af37',
-                                    }}
-                                >
-                                    <div style={{
-                                        fontSize: 13,
-                                        lineHeight: 1.4,
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        display: '-webkit-box',
-                                        WebkitLineClamp: 2,
-                                        WebkitBoxOrient: 'vertical',
-                                        color: 'var(--text-primary)',
-                                    }}>
-                                        {letter.content.substring(0, 100)}{letter.content.length > 100 ? '...' : ''}
-                                    </div>
-                                    <div style={{
-                                        fontSize: 11,
-                                        color: 'var(--text-secondary)',
-                                        marginTop: 6,
-                                        opacity: 0.6
-                                    }}>
-                                        {letter.tags?.join(' ') || 'No tags'}
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                            alignItems: 'center',
+                            gap: '10px',
+                        }}
+                    >
+                        <span style={{ fontSize: 18 }}>📖</span>
+                        <span>View Saved Letters</span>
+                        {savedLetters.length > 0 && (
+                            <span style={{
+                                marginLeft: 'auto',
+                                background: '#d4af37',
+                                color: '#000',
+                                padding: '2px 8px',
+                                borderRadius: 10,
+                                fontSize: 11,
+                                fontWeight: 600
+                            }}>
+                                {savedLetters.length}
+                            </span>
+                        )}
+                    </button>
                 </div>
 
                 {/* TACTILE AUDIO */}

@@ -798,8 +798,8 @@ export default function Home() {
                     </div>
                 )}
 
-                {/* VIEW: READ / BEST */}
-                {(view === 'read' || view === 'best') && (
+                {/* VIEW: READ / BEST / SAVED */}
+                {(view === 'read' || view === 'best' || view === 'saved') && (
                     <div className="animate-enter" style={{ zIndex: 10 }}>
                         <LetterFeed
                             letters={letters}
@@ -988,6 +988,8 @@ export default function Home() {
                 onClose={() => setIsSidebarOpen(false)}
                 letters={letters}
                 onOpenLetter={(letter) => setSelectedLetter(letter)}
+                onShowSaved={() => setView('saved')}
+                currentView={view}
             />
 
             {/* Daily Whisper Prompt */}
