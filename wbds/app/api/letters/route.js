@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../lib/supabase-admin';
 import { headers } from 'next/headers';
 import { maskPrivateInfo } from '../../../utils/privacyShield';
+import { moderateContent, sanitizeContent } from '../../../utils/contentFilters';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -57,12 +58,28 @@ export async function POST(req) {
 
         const { content, theme, unlockAt, tags, recipient_type } = result.data;
 
+        // CONTENT MODERATION CHECK (8 layers)
+        const moderation = moderateContent(content);
+        if (moderation.blocked) {
+            return NextResponse.json({
+                error: 'Content not allowed',
+                message: moderation.blockMessage,
+                reason: moderation.blockReason
+            }, { status: 400 });
+        }
+
+        // Sanitize HTML/JS if detected
+        let processedContent = content;
+        if (moderation.warnings.includes('html_stripped')) {
+            processedContent = sanitizeContent(content);
+        }
+
         // Purpose Check
-        const isLetter = isLikelyLetter(content);
-        const isCrisis = hasCrisisKeywords(content);
+        const isLetter = isLikelyLetter(processedContent);
+        const isCrisis = hasCrisisKeywords(processedContent);
 
         // SERVER-SIDE PRIVACY ENFORCEMENT
-        const safeContent = maskPrivateInfo(content);
+        const safeContent = maskPrivateInfo(processedContent);
 
         // 1. Get IP
         const headersList = headers();

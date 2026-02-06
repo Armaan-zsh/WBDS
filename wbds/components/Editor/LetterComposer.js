@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { containsLinkPattern, containsSocialSolicitation } from '../../utils/contentFilters';
+import { containsLinkPattern, containsSocialSolicitation, moderateContent } from '../../utils/contentFilters';
 import { maskPrivateInfo, detectPotentialDox } from '../../utils/privacyShield';
 
 import { playTypeSound, playSendSound } from '../../utils/audioEngine';
@@ -99,21 +99,29 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             return;
         }
 
-        // 1. Check Links
+        // 1. CONTENT MODERATION (8 layers)
+        const moderation = moderateContent(text);
+        if (moderation.blocked) {
+            triggerShake();
+            if (onError) onError(moderation.blockMessage);
+            return;
+        }
+
+        // 2. Check Links (additional warning - moderation catches most)
         if (containsLinkPattern(text)) {
             triggerShake();
             if (onError) onError("No links. The void rejects them.");
             return;
         }
 
-        // 2. Check Social Solicitation
+        // 3. Check Social Solicitation
         if (containsSocialSolicitation(text)) {
             triggerShake();
             if (onError) onError("No social handles or self-promo allowed.");
             return;
         }
 
-        // 3. Check Doxxing Risk - Enhanced warning
+        // 4. Check Doxxing Risk - Enhanced warning
         const doxRisk = detectPotentialDox(text);
         if (doxRisk.isRisky) {
             setDetectedRisks({ risks: doxRisk.risks || [], warnings: doxRisk.warnings || [] });
