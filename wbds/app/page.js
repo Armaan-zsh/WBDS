@@ -355,8 +355,8 @@ export default function Home() {
             const data = await res.json();
 
             if (!res.ok) {
-                handleError(data.error || "The Void rejected your letter.");
-                return data;
+                handleError(data.message || data.error || "The Void rejected your letter.");
+                return { error: true, message: data.message || data.error };
             }
 
             // [SOUL LAYER] If it's a story and not forced, return for guidance modal

@@ -147,6 +147,14 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             // [MODIFIED] Using internal onSend and handling response
             const response = await onSend(safeText, unlockAt, replyTo?.id, tags, recipientType, forced);
 
+            // Check if API returned an error (blocked by moderation)
+            if (response?.error) {
+                setStatus('IDLE');
+                // Error is already shown by handleError in page.js
+                // Don't clear text - let user see what was blocked
+                return;
+            }
+
             if (response?.crisis_detected) {
                 setIsCrisisDetected(true);
             }
@@ -157,6 +165,7 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
                 return;
             }
 
+            // Only clear on SUCCESS
             setText('');
             setTags([]);
             setRecipientType('unknown');
