@@ -480,36 +480,36 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
             pointer-events: none;
         }
 
-        .composer-card {
-           position: relative;
-           width: 100%;
-           box-sizing: border-box;
-           background: transparent;
-           border: 1px solid rgba(255, 255, 255, 0.18);
-           border-radius: 28px;
-           padding: 30px;
-           box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-           isolation: isolate; 
-           transform: translateZ(0);
-           transition: box-shadow 0.4s var(--ease-ios);
-        }
-
         @keyframes flyAway {
             0% { transform: scale(1) translateY(0) rotateX(0); opacity: 1; filter: blur(0); }
             20% { transform: scale(0.9) translateY(20px) rotateX(-10deg); opacity: 1; }
             100% { transform: scale(0.2) translateY(-300px) rotateX(20deg) translateZ(0); opacity: 0; filter: blur(10px); }
         }
 
+        .composer-card {
+           position: relative;
+           width: 100%;
+           box-sizing: border-box;
+           background: transparent;
+           border: 1px solid rgba(255, 255, 255, 0.2);
+           border-radius: 28px;
+           padding: 30px;
+           box-shadow: 
+             0 10px 40px rgba(0,0,0,0.5),
+             inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+           transform: translateZ(0);
+           transition: box-shadow 0.4s var(--ease-ios);
+        }
+
         .composer-card::before {
            content: "";
            position: absolute;
            inset: 0;
-           background: rgba(15, 15, 15, 0.55);
-           backdrop-filter: blur(40px) saturate(220%);
-           -webkit-backdrop-filter: blur(40px) saturate(220%);
+           background: rgba(255, 255, 255, 0.03); /* Light tint for frost */
+           backdrop-filter: blur(32px) saturate(180%) brightness(1.1);
+           -webkit-backdrop-filter: blur(32px) saturate(180%) brightness(1.1);
            border-radius: 28px;
            z-index: -1;
-           /* NO TRANSITIONS HERE to prevent drop during render */
         }
 
         @media (max-width: 768px) {
@@ -523,13 +523,14 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         }
 
         .focused .composer-card {
-           border-color: rgba(255, 255, 255, 0.35);
+           border-color: rgba(255, 255, 255, 0.4);
            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
         }
 
         .focused .composer-card::before {
-           background: rgba(10, 10, 10, 0.65);
-           /* Still no transitions */
+           background: rgba(255, 255, 255, 0.06);
+           backdrop-filter: blur(40px) saturate(200%) brightness(1.2);
+           -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.2);
         }
         
         .letter-input {
