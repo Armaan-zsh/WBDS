@@ -489,41 +489,59 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         }
 
         .composer-card {
-           background: rgba(10, 10, 10, 0.45);
-           backdrop-filter: blur(20px);
-           -webkit-backdrop-filter: blur(20px);
-           border: 1px solid rgba(255, 255, 255, 0.15);
-           border-radius: 24px;
-           padding: 30px;
-           box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-           transition: transform 0.4s var(--ease-ios), box-shadow 0.4s var(--ease-ios), border-color 0.4s var(--ease-ios);
            position: relative;
            width: 100%;
            box-sizing: border-box;
-           will-change: backdrop-filter, transform;
+           background: transparent; /* Background now in pseudo-element */
+           border: 1px solid rgba(255, 255, 255, 0.15);
+           border-radius: 28px;
+           padding: 30px;
+           box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+           transition: box-shadow 0.4s var(--ease-ios), border-color 0.4s var(--ease-ios);
+           isolation: isolate; /* Create new stacking context */
+        }
+
+        .composer-card::before {
+           content: "";
+           position: absolute;
+           inset: 0;
+           background: rgba(10, 10, 10, 0.4);
+           backdrop-filter: blur(24px) saturate(180%);
+           -webkit-backdrop-filter: blur(24px) saturate(180%);
+           border-radius: 28px;
+           z-index: -1;
+           transition: background 0.4s ease;
         }
 
         @media (max-width: 768px) {
           .composer-card {
             padding: 16px; /* Reduced padding for smaller card */
-            border-radius: 16px;
+            border-radius: 20px;
             margin: 0; /* Remove any margin */
+          }
+          .composer-card::before {
+            border-radius: 20px;
           }
         }
 
         @media (max-width: 480px) {
           .composer-card {
             padding: 12px; /* Even smaller padding on very small screens */
-            border-radius: 12px;
+            border-radius: 16px;
             margin: 0;
+          }
+          .composer-card::before {
+            border-radius: 16px;
           }
         }
 
         .focused .composer-card {
-           background: rgba(10, 10, 10, 0.55);
            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-           transform: translateY(-2px);
-           border-color: var(--text-secondary);
+           border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .focused .composer-card::before {
+           background: rgba(10, 10, 10, 0.55);
         }
         
         .letter-input {
