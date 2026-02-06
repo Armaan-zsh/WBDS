@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { setAudioProfile, playTypeSound, toggleAmbience, setAmbienceProfile, radioControl, radioEvents } from '../../utils/audioEngine';
 import { saveImage, getImage } from '../../utils/db';
 
-export default function AppearancePanel({ onClose, isOpen, onToggle }) {
+export default function AppearancePanel({ onClose, isOpen, onToggle, letters = [], onOpenLetter }) {
     const [theme, setTheme] = useState('void');
     const [font, setFont] = useState('serif');
     const [audioProfile, setLocalAudioProfile] = useState('mechanical');
@@ -18,10 +18,28 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
     const [fontSize, setFontSize] = useState('medium');
     const [customBgDesktop, setCustomBgDesktop] = useState(null);
     const [customBgMobile, setCustomBgMobile] = useState(null);
+    const [pinnedLetters, setPinnedLetters] = useState(new Set());
 
     // Radio State for Mobile
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTrack, setCurrentTrack] = useState(null);
+
+    // Load pinned letters from localStorage
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('wbds_pinned_letters');
+            if (saved) {
+                try {
+                    setPinnedLetters(new Set(JSON.parse(saved)));
+                } catch (e) {
+                    console.error('Failed to load pinned letters');
+                }
+            }
+        }
+    }, []);
+
+    // Get saved letters from props
+    const savedLetters = letters.filter(l => pinnedLetters.has(l.id));
 
     // Sync Settings & Audio
     useEffect(() => {
@@ -320,6 +338,67 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
                             ))}
                         </div>
                     </div>
+                </div>
+
+                {/* SAVED LETTERS */}
+                <div className="setting-section">
+                    <div className="section-title">Saved ({savedLetters.length})</div>
+                    {savedLetters.length === 0 ? (
+                        <div style={{
+                            fontSize: 13,
+                            color: 'var(--text-secondary)',
+                            opacity: 0.5,
+                            padding: '12px 0'
+                        }}>
+                            No saved letters yet. Click the bookmark icon on any letter to save it.
+                        </div>
+                    ) : (
+                        <div style={{
+                            maxHeight: 300,
+                            overflowY: 'auto',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 8
+                        }}>
+                            {savedLetters.map(letter => (
+                                <button
+                                    key={letter.id}
+                                    className="option-btn"
+                                    onClick={() => {
+                                        if (onOpenLetter) onOpenLetter(letter);
+                                    }}
+                                    style={{
+                                        textAlign: 'left',
+                                        display: 'block',
+                                        width: '100%',
+                                        padding: '12px',
+                                        borderColor: '#d4af37',
+                                    }}
+                                >
+                                    <div style={{
+                                        fontSize: 13,
+                                        lineHeight: 1.4,
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical',
+                                        color: 'var(--text-primary)',
+                                    }}>
+                                        {letter.content.substring(0, 100)}{letter.content.length > 100 ? '...' : ''}
+                                    </div>
+                                    <div style={{
+                                        fontSize: 11,
+                                        color: 'var(--text-secondary)',
+                                        marginTop: 6,
+                                        opacity: 0.6
+                                    }}>
+                                        {letter.tags?.join(' ') || 'No tags'}
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* TACTILE AUDIO */}

@@ -36,17 +36,10 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
         });
     };
 
-    // Sort: pinned first, then by timestamp
-    const sortedLetters = [...(activeTag
+    // Filter by tag (no pin sorting - pins shown in Saved section)
+    const sortedLetters = activeTag
         ? letters.filter(l => l.tags && l.tags.includes(activeTag))
-        : letters
-    )].sort((a, b) => {
-        const aPinned = pinnedLetters.has(a.id);
-        const bPinned = pinnedLetters.has(b.id);
-        if (aPinned && !bPinned) return -1;
-        if (!aPinned && bPinned) return 1;
-        return 0; // Keep original order for same pin status
-    });
+        : letters;
 
     if (!letters || letters.length === 0) {
         return (

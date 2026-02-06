@@ -986,6 +986,8 @@ export default function Home() {
                 isOpen={isSidebarOpen}
                 onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
                 onClose={() => setIsSidebarOpen(false)}
+                letters={letters}
+                onOpenLetter={(letter) => setSelectedLetter(letter)}
             />
 
             {/* Daily Whisper Prompt */}
