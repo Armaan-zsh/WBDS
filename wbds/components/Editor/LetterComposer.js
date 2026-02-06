@@ -489,16 +489,18 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         }
 
         .composer-card {
-           background: rgba(10, 10, 10, 0.3);
-           backdrop-filter: blur(12px);
-           border: 1px solid rgba(255, 255, 255, 0.1);
-           border-radius: 20px;
+           background: rgba(10, 10, 10, 0.45);
+           backdrop-filter: blur(20px);
+           -webkit-backdrop-filter: blur(20px);
+           border: 1px solid rgba(255, 255, 255, 0.15);
+           border-radius: 24px;
            padding: 30px;
-           box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-           transition: all 0.4s var(--ease-ios);
+           box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+           transition: transform 0.4s var(--ease-ios), box-shadow 0.4s var(--ease-ios), border-color 0.4s var(--ease-ios);
            position: relative;
            width: 100%;
            box-sizing: border-box;
+           will-change: backdrop-filter, transform;
         }
 
         @media (max-width: 768px) {
@@ -518,7 +520,8 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
         }
 
         .focused .composer-card {
-           box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+           background: rgba(10, 10, 10, 0.55);
+           box-shadow: 0 20px 60px rgba(0,0,0,0.4);
            transform: translateY(-2px);
            border-color: var(--text-secondary);
         }
