@@ -59,13 +59,17 @@ export default function Home() {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
 
             switch (e.key.toLowerCase()) {
+                case 'w':
+                    e.preventDefault();
+                    setView('write'); // WBDS
+                    break;
                 case 'r':
                     e.preventDefault();
                     setView('read');
                     break;
-                case 'b':
+                case 'a':
                     e.preventDefault();
-                    setView('best');
+                    setView('best'); // BWBDS
                     break;
                 case 'f':
                     e.preventDefault();
@@ -1055,9 +1059,9 @@ export default function Home() {
                     style={{
                         position: 'fixed',
                         inset: 0,
-                        background: 'rgba(0, 0, 0, 0.5)',
-                        backdropFilter: 'blur(8px)',
-                        WebkitBackdropFilter: 'blur(8px)',
+                        background: 'rgba(0, 0, 0, 0.3)',
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -1067,14 +1071,14 @@ export default function Home() {
                 >
                     <div
                         style={{
-                            background: 'rgba(30, 30, 30, 0.85)',
-                            backdropFilter: 'blur(20px)',
-                            WebkitBackdropFilter: 'blur(20px)',
+                            background: 'rgba(30, 30, 30, 0.6)',
+                            backdropFilter: 'blur(30px)',
+                            WebkitBackdropFilter: 'blur(30px)',
                             border: '1px solid rgba(255, 255, 255, 0.1)',
                             borderRadius: 20,
                             padding: '28px 32px',
                             minWidth: 320,
-                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -1083,8 +1087,9 @@ export default function Home() {
                         </h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                             {[
+                                ['Alt + W', 'WBDS (Write)'],
                                 ['Alt + R', 'Read Letters'],
-                                ['Alt + B', 'BWBDS (Best)'],
+                                ['Alt + A', 'BWBDS (Best)'],
                                 ['Alt + F', 'FMWBDS (Fragments)'],
                                 ['Alt + Y', 'YWBDS (Your Letters)'],
                                 ['Alt + E', 'Toggle Sidebar'],
