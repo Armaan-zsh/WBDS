@@ -170,6 +170,27 @@ export function containsEncodedContent(text) {
 }
 
 /**
+ * Layer 1.5: Emoji Limit Check
+ * Limits emojis to 7 per letter
+ */
+const MAX_EMOJIS = 7;
+
+export function countEmojis(text) {
+    // Unicode emoji regex - catches most emojis including compound ones
+    const emojiRegex = /\p{Emoji_Presentation}|\p{Extended_Pictographic}/gu;
+    const matches = text.match(emojiRegex);
+    return matches ? matches.length : 0;
+}
+
+export function containsTooManyEmojis(text) {
+    const count = countEmojis(text);
+    if (count > MAX_EMOJIS) {
+        return { detected: true, count, limit: MAX_EMOJIS };
+    }
+    return { detected: false, count };
+}
+
+/**
  * Layer 2: HTML/JS Injection Detection
  * Strips or blocks script injection attempts
  */
@@ -319,6 +340,16 @@ export function moderateContent(text) {
         results.allowed = false;
         results.blockReason = 'encoded_content';
         results.blockMessage = "The void speaks in words, not code. Please write plainly.";
+        return results;
+    }
+
+    // Layer 1.5: Emoji Limit
+    const emojis = containsTooManyEmojis(text);
+    if (emojis.detected) {
+        results.blocked = true;
+        results.allowed = false;
+        results.blockReason = 'too_many_emojis';
+        results.blockMessage = `Too many emojis (${emojis.count}). Maximum ${emojis.limit} allowed. Express with words.`;
         return results;
     }
 
