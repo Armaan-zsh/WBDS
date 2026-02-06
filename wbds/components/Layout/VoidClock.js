@@ -31,7 +31,7 @@ export default function VoidClock() {
                     top: 20px;
                     right: 20px;
                     font-family: 'JetBrains Mono', 'Fira Code', monospace;
-                    font-size: 14px;
+                    font-size: 18px;
                     color: var(--text-secondary);
                     opacity: 0.5;
                     z-index: 100;
@@ -47,7 +47,7 @@ export default function VoidClock() {
                 }
                 .ms {
                     opacity: 0.5;
-                    font-size: 10px;
+                    font-size: 13px;
                     margin-left: 4px;
                 }
                 .fade-in {
