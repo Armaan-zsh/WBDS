@@ -469,18 +469,10 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
           width: 100%;
           max-width: 600px;
           margin: 0 auto;
-          transition: transform 0.4s var(--ease-ios);
           perspective: 1000px;
           padding: 0 16px;
           box-sizing: border-box;
-        }
-
-        @media (max-width: 768px) {
-          .composer-container {
-            max-width: 100%;
-            padding: 0 8px; /* Reduced padding */
-            margin-top: 0; /* Remove extra margin */
-          }
+          transform: translateZ(0); /* Force GPU */
         }
 
         .sending .composer-card {
@@ -492,56 +484,52 @@ export default function LetterComposer({ onSend, onError, onFocusChange, replyTo
            position: relative;
            width: 100%;
            box-sizing: border-box;
-           background: transparent; /* Background now in pseudo-element */
-           border: 1px solid rgba(255, 255, 255, 0.15);
+           background: transparent;
+           border: 1px solid rgba(255, 255, 255, 0.18);
            border-radius: 28px;
            padding: 30px;
-           box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-           transition: box-shadow 0.4s var(--ease-ios), border-color 0.4s var(--ease-ios);
-           isolation: isolate; /* Create new stacking context */
+           box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+           isolation: isolate; 
+           transform: translateZ(0);
+           transition: box-shadow 0.4s var(--ease-ios);
+        }
+
+        @keyframes flyAway {
+            0% { transform: scale(1) translateY(0) rotateX(0); opacity: 1; filter: blur(0); }
+            20% { transform: scale(0.9) translateY(20px) rotateX(-10deg); opacity: 1; }
+            100% { transform: scale(0.2) translateY(-300px) rotateX(20deg) translateZ(0); opacity: 0; filter: blur(10px); }
         }
 
         .composer-card::before {
            content: "";
            position: absolute;
            inset: 0;
-           background: rgba(10, 10, 10, 0.4);
-           backdrop-filter: blur(24px) saturate(180%);
-           -webkit-backdrop-filter: blur(24px) saturate(180%);
+           background: rgba(15, 15, 15, 0.55);
+           backdrop-filter: blur(40px) saturate(220%);
+           -webkit-backdrop-filter: blur(40px) saturate(220%);
            border-radius: 28px;
            z-index: -1;
-           transition: background 0.4s ease;
+           /* NO TRANSITIONS HERE to prevent drop during render */
         }
 
         @media (max-width: 768px) {
           .composer-card {
-            padding: 16px; /* Reduced padding for smaller card */
+            padding: 18px;
             border-radius: 20px;
-            margin: 0; /* Remove any margin */
           }
           .composer-card::before {
             border-radius: 20px;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .composer-card {
-            padding: 12px; /* Even smaller padding on very small screens */
-            border-radius: 16px;
-            margin: 0;
-          }
-          .composer-card::before {
-            border-radius: 16px;
           }
         }
 
         .focused .composer-card {
-           box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-           border-color: rgba(255, 255, 255, 0.3);
+           border-color: rgba(255, 255, 255, 0.35);
+           box-shadow: 0 30px 80px rgba(0,0,0,0.6);
         }
 
         .focused .composer-card::before {
-           background: rgba(10, 10, 10, 0.55);
+           background: rgba(10, 10, 10, 0.65);
+           /* Still no transitions */
         }
         
         .letter-input {
