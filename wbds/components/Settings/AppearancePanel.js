@@ -32,14 +32,20 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
                 const savedAudio = localStorage.getItem('wbds_audio_profile') || 'mechanical';
                 const savedAmbience = localStorage.getItem('wbds_ambience') === 'true';
                 const savedAmbienceProfile = localStorage.getItem('wbds_ambience_profile') || 'space';
+                const savedFontSize = localStorage.getItem('wbds_font_size') || 'medium';
 
                 setTheme(savedTheme);
                 setFont(savedFont);
+                setFontSize(savedFontSize);
                 setLocalAudioProfile(savedAudio);
                 setAudioProfile(savedAudio);
                 setCurrentAmbience(savedAmbienceProfile);
                 setAmbienceProfile(savedAmbienceProfile);
                 setIsAmbienceOn(savedAmbience);
+
+                // Apply font size CSS variable
+                const fontSizeMap = { small: '14px', medium: '16px', large: '18px', xl: '20px' };
+                document.documentElement.style.setProperty('--letter-font-size', fontSizeMap[savedFontSize] || '16px');
 
                 // Load from IndexedDB (supporting 10MB images)
                 const savedCustomDesktop = await getImage('wbds_custom_bg_desktop');
@@ -287,6 +293,32 @@ export default function AppearancePanel({ onClose, isOpen, onToggle }) {
                                 <span style={{ fontFamily: f.font, fontWeight: f.weight, fontStyle: f.italic ? 'italic' : 'normal', fontSize: f.size }}>Aa</span> {f.label}
                             </button>
                         ))}
+                    </div>
+
+                    {/* FONT SIZE */}
+                    <div style={{ marginTop: 16 }}>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>Text Size</div>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                            {[
+                                { id: 'small', label: 'S', size: '14px' },
+                                { id: 'medium', label: 'M', size: '16px' },
+                                { id: 'large', label: 'L', size: '18px' },
+                                { id: 'xl', label: 'XL', size: '20px' }
+                            ].map(s => (
+                                <button
+                                    key={s.id}
+                                    className={`option-btn ${fontSize === s.id ? 'active' : ''}`}
+                                    onClick={() => {
+                                        setFontSize(s.id);
+                                        document.documentElement.style.setProperty('--letter-font-size', s.size);
+                                        localStorage.setItem('wbds_font_size', s.id);
+                                    }}
+                                    style={{ minWidth: 44, padding: '8px 12px' }}
+                                >
+                                    <span style={{ fontSize: s.size }}>{s.label}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 

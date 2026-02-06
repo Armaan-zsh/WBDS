@@ -1,15 +1,52 @@
 'use client';
 import ReactMarkdown from 'react-markdown';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onLike, likedLetters, onReport }) {
     const [activeTag, setActiveTag] = useState(null);
+    const [pinnedLetters, setPinnedLetters] = useState(new Set());
     const TAGS = ['#Love', '#Hope', '#Regret', '#Anger', '#Grief', '#Joy', '#Fear', '#Void'];
 
-    const displayedLetters = activeTag
+    // Load pinned letters from localStorage
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('wbds_pinned_letters');
+            if (saved) {
+                try {
+                    setPinnedLetters(new Set(JSON.parse(saved)));
+                } catch (e) {
+                    console.error('Failed to load pinned letters');
+                }
+            }
+        }
+    }, []);
+
+    // Toggle pin
+    const togglePin = (letterId) => {
+        setPinnedLetters(prev => {
+            const newPinned = new Set(prev);
+            if (newPinned.has(letterId)) {
+                newPinned.delete(letterId);
+            } else {
+                newPinned.add(letterId);
+            }
+            localStorage.setItem('wbds_pinned_letters', JSON.stringify([...newPinned]));
+            return newPinned;
+        });
+    };
+
+    // Sort: pinned first, then by timestamp
+    const sortedLetters = [...(activeTag
         ? letters.filter(l => l.tags && l.tags.includes(activeTag))
-        : letters;
+        : letters
+    )].sort((a, b) => {
+        const aPinned = pinnedLetters.has(a.id);
+        const bPinned = pinnedLetters.has(b.id);
+        if (aPinned && !bPinned) return -1;
+        if (!aPinned && bPinned) return 1;
+        return 0; // Keep original order for same pin status
+    });
 
     if (!letters || letters.length === 0) {
         return (
@@ -126,7 +163,7 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
            border-radius: 24px; /* Curved, modern look */
            padding: 24px;
            font-family: var(--font-current);
-           font-size: 18px;
+           font-size: var(--letter-font-size, 18px);
            line-height: 1.6;
            color: var(--text-primary);
            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
@@ -137,6 +174,51 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
            box-sizing: border-box;
            display: flex;
            flex-direction: column;
+        }
+
+        .letter-content.pinned {
+            border-color: #d4af37;
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.2);
+        }
+
+        .pin-btn {
+            position: absolute;
+            top: 24px;
+            right: 90px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .pin-btn.pinned {
+            color: #d4af37;
+            opacity: 1 !important;
+        }
+
+        @media (hover: hover) {
+            .letter-card:hover .pin-btn {
+                opacity: 0.5;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .pin-btn {
+                opacity: 0.3;
+                top: 16px;
+                right: 85px;
+            }
+        }
+
+        .pin-btn:hover {
+            opacity: 1 !important;
+            transform: scale(1.1);
         }
 
         .content-text {
@@ -443,7 +525,7 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
                 ))}
             </div>
 
-            {displayedLetters.map((letter) => (
+            {sortedLetters.map((letter) => (
                 <div
                     key={letter.id}
                     className="letter-card"
@@ -489,7 +571,17 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
                             </svg>
                         </button>
                     )}
-                    <div className={`letter-content ${letter.is_locked ? 'locked-content' : ''}`}>
+                    {/* Pin button */}
+                    <button
+                        className={`pin-btn ${pinnedLetters.has(letter.id) ? 'pinned' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); togglePin(letter.id); }}
+                        title={pinnedLetters.has(letter.id) ? 'Unpin letter' : 'Pin letter'}
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill={pinnedLetters.has(letter.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </button>
+                    <div className={`letter-content ${letter.is_locked ? 'locked-content' : ''} ${pinnedLetters.has(letter.id) ? 'pinned' : ''}`}>
                         {letter.is_locked ? (
                             <div className="locked-overlay">
                                 <div className="glitch-text" data-text="LOCKED">LOCKED</div>
