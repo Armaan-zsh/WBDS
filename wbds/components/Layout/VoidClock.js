@@ -3,6 +3,15 @@ import { useState, useEffect } from 'react';
 
 export default function VoidClock() {
     const [time, setTime] = useState(null);
+    const [is24Hour, setIs24Hour] = useState(true);
+
+    // Load preference from localStorage
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('wbds_clock_format');
+            if (saved === '12') setIs24Hour(false);
+        }
+    }, []);
 
     useEffect(() => {
         const updateTime = () => {
@@ -15,16 +24,32 @@ export default function VoidClock() {
         return () => cancelAnimationFrame(frameId);
     }, []);
 
+    const toggleFormat = () => {
+        setIs24Hour(prev => {
+            const newValue = !prev;
+            localStorage.setItem('wbds_clock_format', newValue ? '24' : '12');
+            return newValue;
+        });
+    };
+
     if (!time) return <div className="void-clock" />;
 
-    // Format: HH:MM:SS.mmm
-    const hours = time.getHours().toString().padStart(2, '0');
+    // Format time based on preference
+    let hours = time.getHours();
+    let suffix = '';
+
+    if (!is24Hour) {
+        suffix = hours >= 12 ? ' PM' : ' AM';
+        hours = hours % 12 || 12; // Convert 0 to 12
+    }
+
+    const hoursStr = hours.toString().padStart(2, '0');
     const minutes = time.getMinutes().toString().padStart(2, '0');
     const seconds = time.getSeconds().toString().padStart(2, '0');
     const ms = time.getMilliseconds().toString().padStart(3, '0');
 
     return (
-        <div className="void-clock fade-in">
+        <div className="void-clock fade-in" onClick={toggleFormat} title="Click to toggle 12/24 hour format">
             <style jsx>{`
                 .void-clock {
                     position: fixed;
@@ -39,7 +64,8 @@ export default function VoidClock() {
                     transition: opacity 0.3s ease;
                     font-variant-numeric: tabular-nums;
                     text-shadow: 0 0 10px rgba(0,0,0,0.5);
-                    cursor: default;
+                    cursor: pointer;
+                    user-select: none;
                 }
                 .void-clock:hover {
                     opacity: 1;
@@ -50,6 +76,11 @@ export default function VoidClock() {
                     font-size: 13px;
                     margin-left: 4px;
                 }
+                .suffix {
+                    opacity: 0.6;
+                    font-size: 12px;
+                    margin-left: 4px;
+                }
                 .fade-in {
                     animation: fadeIn 1s ease;
                 }
@@ -58,7 +89,7 @@ export default function VoidClock() {
                     to { opacity: 0.5; }
                 }
             `}</style>
-            {hours}:{minutes}:{seconds}<span className="ms">.{ms}</span>
+            {hoursStr}:{minutes}:{seconds}<span className="ms">.{ms}</span>{suffix && <span className="suffix">{suffix}</span>}
         </div>
     );
 }
