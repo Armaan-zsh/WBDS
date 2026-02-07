@@ -420,13 +420,14 @@ export default function GalaxyBackground() {
                     <PerspectiveCamera makeDefault position={[0, 0, camZ]} />
                     <ambientLight intensity={0.4} />
 
-                    {currentTheme === 'void' && <EventHorizon />}
+                    {/* Circular elements (EventHorizon) removed for Extreme Minimalism per user request */}
+                    {/* {currentTheme === 'void' && <EventHorizon />} */}
                     {currentTheme === 'solarized' && <SolarCore />}
                     {currentTheme === 'synthwave' && <RetroGrid />}
 
-                    {/* Add stars background for 3D depth - High-end sharp stars */}
+                    {/* High-end sharp stars - Reduced count for minimalism */}
                     {currentTheme !== 'synthwave' &&
-                        <Stars radius={150} depth={100} count={6000} factor={4} saturation={0} fade speed={0.5} />
+                        <Stars radius={150} depth={100} count={2000} factor={4} saturation={0} fade speed={0.3} />
                     }
                 </Canvas>
             </div>
