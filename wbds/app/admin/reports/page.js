@@ -17,7 +17,7 @@ export default function AdminReports() {
     const [activeTab, setActiveTab] = useState('letters'); // 'letters' or 'feedback'
 
     // Use environment variable for admin access
-    const ADMIN_SECRET = process.env.NEXT_PUBLIC_ADMIN_SECRET || 'wbds-admin';
+    const ADMIN_SECRET = (process.env.NEXT_PUBLIC_ADMIN_SECRET || 'wbds-admin').trim();
 
     const fetchReports = useCallback(async () => {
         setLoading(true);
@@ -57,10 +57,10 @@ export default function AdminReports() {
 
     const handleUnlock = (e) => {
         e.preventDefault();
-        if (password === ADMIN_SECRET) {
+        if (password.trim() === ADMIN_SECRET) {
             setIsUnlocked(true);
         } else {
-            alert('Access Denied');
+            alert(`Access Denied. Secret length: ${ADMIN_SECRET.length}`);
         }
     };
 
@@ -112,6 +112,11 @@ export default function AdminReports() {
                         />
                         <button type="submit">Unlock</button>
                     </div>
+                    <div className="hint">
+                        {process.env.NEXT_PUBLIC_ADMIN_SECRET
+                            ? `✅ Custom secret loaded (Length: ${ADMIN_SECRET.length})`
+                            : `⚠️ Using default secret (Length: ${ADMIN_SECRET.length})`}
+                    </div>
                 </form>
                 <style jsx>{`
                     .admin-lock {
@@ -150,6 +155,11 @@ export default function AdminReports() {
                         border-radius: 8px;
                         cursor: pointer;
                         font-weight: 600;
+                    }
+                    .hint {
+                        font-size: 11px;
+                        color: #666;
+                        margin-top: 10px;
                     }
                 `}</style>
             </div>
