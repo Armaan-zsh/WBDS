@@ -3,6 +3,9 @@
  * The first line of defense against spam and chaos.
  */
 
+// Zero-width characters to strip
+const ZERO_WIDTH = /[\u200B-\u200D\uFEFF\u00A0]/g;
+
 // LEETSPEAK MAPPING
 // We map common "trick" characters back to their normal English counterparts
 // so our pattern matchers can see through the disguise.
@@ -19,6 +22,36 @@ const LEET_MAP = {
     '{': 'c',
     '+': 't'
 };
+
+/**
+ * "The Squisher" - Collapse ALL whitespace to catch split handles
+ * Input: "@  user\nname 123"
+ * Output: "@username123"
+ */
+export function squishText(text) {
+    return text
+        .replace(ZERO_WIDTH, '')      // Remove zero-width chars
+        .replace(/[\s\r\n\t]+/g, '')  // Remove ALL whitespace
+        .toLowerCase();
+}
+
+/**
+ * Detect obfuscated social handles that bypass normalizeText
+ */
+export function containsObfuscatedSocial(text) {
+    const squished = squishText(text);
+
+    const patterns = [
+        /@[a-z0-9_]{3,}/,                          // @handle
+        /followmeon(insta|ig|tiktok|snap|discord|telegram)/,
+        /dmme(on)?/,
+        /(add|hit)me(up)?(on)?/,
+        /my(ig|insta|snap|tiktok|discord)[:=]/,
+        /u(ser)?[:=][a-z0-9_]+/,
+    ];
+
+    return patterns.some(p => p.test(squished));
+}
 
 /**
  * "The Squasher"
@@ -332,6 +365,15 @@ export function moderateContent(text) {
         blockReason: null,
         blockMessage: null,
     };
+
+    // Layer 0: Obfuscation Check (runs first)
+    if (containsObfuscatedSocial(text)) {
+        results.blocked = true;
+        results.allowed = false;
+        results.blockReason = 'obfuscated_social';
+        results.blockMessage = "The void is for releasing emotions, not collecting followers.";
+        return results;
+    }
 
     // Layer 1: Encoded Content
     const encoded = containsEncodedContent(text);

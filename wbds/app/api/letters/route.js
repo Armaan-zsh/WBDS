@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../../../lib/supabase-admin';
 import { headers } from 'next/headers';
 import { maskPrivateInfo } from '../../../utils/privacyShield';
 import { moderateContent, sanitizeContent } from '../../../utils/contentFilters';
+import { analyzeWithAI } from '../../../utils/aiModeration';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -72,6 +73,18 @@ export async function POST(req) {
         let processedContent = content;
         if (moderation.warnings.includes('html_stripped')) {
             processedContent = sanitizeContent(content);
+        }
+
+        // AI MODERATION (after regex passes)
+        const aiResult = await analyzeWithAI(processedContent);
+        if (!aiResult.skip) {
+            if (aiResult.flagged || aiResult.maxScore > 0.85) {
+                return NextResponse.json({
+                    error: 'Content not allowed',
+                    message: "The void senses something off. Try rephrasing.",
+                    reason: 'ai_flagged'
+                }, { status: 400 });
+            }
         }
 
         // Purpose Check
@@ -147,9 +160,11 @@ export async function POST(req) {
                     location_lng: lng,
                     unlock_at: unlockAt,
                     tags,
-                    recipient_type, // [NEW]
-                    is_purpose_match: isLetter, // [NEW] Track but don't block yet
-                    has_crisis_flag: isCrisis // [NEW] Track for UI response
+                    recipient_type,
+                    is_purpose_match: isLetter,
+                    has_crisis_flag: isCrisis,
+                    ai_toxicity_score: aiResult.skip ? null : aiResult.maxScore,
+                    needs_review: aiResult.needsReview || false,
                 }
             ])
             .select()
