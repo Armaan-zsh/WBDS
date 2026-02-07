@@ -60,7 +60,7 @@ export default function AdminReports() {
         if (password.trim() === ADMIN_SECRET) {
             setIsUnlocked(true);
         } else {
-            alert(`Access Denied. Secret length: ${ADMIN_SECRET.length}`);
+            alert('Access Denied');
         }
     };
 
@@ -112,20 +112,15 @@ export default function AdminReports() {
                         />
                         <button type="submit">Unlock</button>
                     </div>
-                    <div className="hint-container">
-                        <div className="hint">
-                            {process.env.NEXT_PUBLIC_ADMIN_SECRET
-                                ? `✅ Custom secret loaded (Length: ${ADMIN_SECRET.length})`
-                                : `⚠️ Using default secret (Length: ${ADMIN_SECRET.length})`}
+                    {process.env.NEXT_PUBLIC_ADMIN_SECRET ? (
+                        <div className="hint-container">
+                            <span className="hint">✅ Secure Environment Detected</span>
                         </div>
-                        <button
-                            type="button"
-                            className="btn-reveal"
-                            onClick={() => alert(`SECRET IS: ${ADMIN_SECRET}`)}
-                        >
-                            See Secret (Debug)
-                        </button>
-                    </div>
+                    ) : (
+                        <div className="hint-container">
+                            <span className="hint">⚠️ Using Default Secret</span>
+                        </div>
+                    )}
                 </form>
                 <style jsx>{`
                     .admin-lock {
@@ -172,21 +167,13 @@ export default function AdminReports() {
                     .hint-container {
                         margin-top: 20px;
                         display: flex;
-                        flex-direction: column;
-                        gap: 10px;
-                        align-items: center;
+                        justify-content: center;
                     }
                     .hint {
                         font-size: 11px;
-                        color: #666;
-                    }
-                    .btn-reveal {
-                        background: transparent;
                         color: #444;
-                        font-size: 10px;
-                        padding: 4px;
-                        border: none;
-                        text-decoration: underline;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
                     }
                 `}</style>
             </div>
