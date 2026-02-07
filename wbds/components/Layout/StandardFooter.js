@@ -62,6 +62,7 @@ export default function StandardFooter({ onSettingsClick, isSettingsOpen, letter
 
             <div className="footer-links">
                 <a href="/report">REPORT A BUG</a>
+                <a href="/about">ABOUT</a>
                 <button
                     className="footer-settings-btn"
                     onClick={onSettingsClick}

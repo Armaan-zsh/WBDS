@@ -26,28 +26,28 @@ body {
 }
 
 :root {
-  /* DEFAULTS (THE VOID) */
+  /* DEFAULTS (THE VOID) - Premium Minimal Refinement */
   --bg-depth: #000000;
-  --bg-surface: #0a0a0a;
-  --text-primary: #f2f2f7;
-  --text-secondary: #8e8e93;
+  --bg-surface: #0a0a0c;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.55);
   --accent-danger: #ff453a;
-  --accent-success: #30d158;
+  --accent-success: #32d74b;
+  --accent-gold: #ffd60a;
 
-  --font-family-base: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  --font-family-base: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
   --font-family-serif: 'Charter', 'Georgia', 'Times New Roman', serif;
-  --font-family-mono: 'SF Mono', 'Menlo', monospace;
-  --font-family-hand: 'Snell Roundhand', 'Brush Script MT', 'Comic Sans MS', cursive;
+  --font-family-mono: "SF Mono", "Menlo", "Fira Code", monospace;
+  --font-family-hand: 'Snell Roundhand', 'Brush Script MT', cursive;
 
   --font-current: var(--font-family-serif);
-  /* Default for letters */
 
-  --glass-bg: rgba(20, 20, 20, 0.65);
+  --glass-bg: rgba(25, 25, 27, 0.45);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-blur: blur(20px) saturate(180%);
+  --glass-blur: blur(40px) saturate(140%) brightness(1.1);
 
   --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  --ease-ios: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-ios: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* THEME: PAPER (Light) - Enhanced Elegant Paper */

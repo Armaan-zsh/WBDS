@@ -416,17 +416,17 @@ export default function GalaxyBackground() {
                         }, false);
                     }}
                 >
-                    <color attach="background" args={[currentTheme === 'synthwave' ? '#05000a' : '#000000']} />
+                    <color attach="background" args={[currentTheme === 'synthwave' ? '#020005' : '#000000']} />
                     <PerspectiveCamera makeDefault position={[0, 0, camZ]} />
-                    <ambientLight intensity={0.5} />
+                    <ambientLight intensity={0.4} />
 
                     {currentTheme === 'void' && <EventHorizon />}
                     {currentTheme === 'solarized' && <SolarCore />}
                     {currentTheme === 'synthwave' && <RetroGrid />}
 
-                    {/* Add stars background for 3D depth (except for Synthwave which uses its own fog) */}
+                    {/* Add stars background for 3D depth - High-end sharp stars */}
                     {currentTheme !== 'synthwave' &&
-                        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+                        <Stars radius={150} depth={100} count={6000} factor={4} saturation={0} fade speed={0.5} />
                     }
                 </Canvas>
             </div>
