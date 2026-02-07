@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase Client (Client-side)
+// Initialize Supabase Client
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -14,49 +14,86 @@ export default function AdminReports() {
     const [isUnlocked, setIsUnlocked] = useState(false);
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState('letters'); // 'letters' or 'feedback'
 
-    // Simple hardcoded secret for now - clear enough for this use case
-    const SECRET_CODE = 'wbds-admin';
+    // Use environment variable for admin access
+    const ADMIN_SECRET = process.env.NEXT_PUBLIC_ADMIN_SECRET || 'wbds-admin';
+
+    const fetchReports = useCallback(async () => {
+        setLoading(true);
+        const table = activeTab === 'letters' ? 'letter_reports' : 'feedback';
+
+        let query = supabase.from(table).select('*').order('created_at', { ascending: false });
+
+        // If letter reports, join with letters to see content
+        if (activeTab === 'letters') {
+            query = supabase
+                .from('letter_reports')
+                .select(`
+                    *,
+                    letters (
+                        content,
+                        ip_address
+                    )
+                `)
+                .order('created_at', { ascending: false });
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.error(`Error fetching ${activeTab} reports:`, error);
+        } else {
+            setReports(data || []);
+        }
+        setLoading(false);
+    }, [activeTab]);
+
+    useEffect(() => {
+        if (isUnlocked) {
+            fetchReports();
+        }
+    }, [isUnlocked, fetchReports]);
 
     const handleUnlock = (e) => {
         e.preventDefault();
-        if (password === SECRET_CODE) {
+        if (password === ADMIN_SECRET) {
             setIsUnlocked(true);
-            fetchReports();
         } else {
             alert('Access Denied');
         }
     };
 
-    const fetchReports = async () => {
-        setLoading(true);
-        const { data, error } = await supabase
-            .from('feedback')
-            .select('*')
-            .order('created_at', { ascending: false });
+    const handleAction = async (action, report) => {
+        const confirmMsg = `Are you sure you want to ${action.replace('_', ' ')}?`;
+        if (!window.confirm(confirmMsg)) return;
 
-        if (error) console.error('Error fetching reports:', error);
-        else setReports(data || []);
-        setLoading(false);
-    };
+        try {
+            const res = await fetch('/api/admin/actions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${ADMIN_SECRET}`
+                },
+                body: JSON.stringify({
+                    action,
+                    report_id: report.id,
+                    letter_id: report.letter_id,
+                    target_ip: report.letters?.ip_address || report.reporter_ip,
+                    notes: `Action taken via admin dashboard: ${action}`
+                })
+            });
 
-    const toggleStatus = async (id, currentStatus) => {
-        const newStatus = currentStatus === 'resolved' ? 'open' : 'resolved';
+            const result = await res.json();
 
-        // Optimistic update
-        setReports(prev => prev.map(r =>
-            r.id === id ? { ...r, status: newStatus } : r
-        ));
-
-        const { error } = await supabase
-            .from('feedback')
-            .update({ status: newStatus })
-            .eq('id', id);
-
-        if (error) {
-            console.error('Update failed:', error);
-            // Revert
-            fetchReports();
+            if (result.success) {
+                // Optimistic refresh
+                fetchReports();
+            } else {
+                alert(`Action failed: ${result.error}`);
+            }
+        } catch (err) {
+            alert(`Error: ${err.message}`);
         }
     };
 
@@ -65,47 +102,54 @@ export default function AdminReports() {
             <div className="admin-lock">
                 <form onSubmit={handleUnlock} className="lock-form">
                     <h1>Restricted Area</h1>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter Code"
-                        autoFocus
-                    />
-                    <button type="submit">Unlock</button>
+                    <div className="input-group">
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter Admin Secret"
+                            autoFocus
+                        />
+                        <button type="submit">Unlock</button>
+                    </div>
                 </form>
                 <style jsx>{`
                     .admin-lock {
                         height: 100vh;
                         width: 100vw;
-                        background: #000;
+                        background: #050505;
                         color: #fff;
                         display: flex;
                         justify-content: center;
                         align-items: center;
-                        font-family: monospace;
+                        font-family: 'Inter', -apple-system, sans-serif;
                     }
                     .lock-form {
                         display: flex;
                         flex-direction: column;
-                        gap: 20px;
+                        gap: 24px;
                         text-align: center;
                     }
+                    h1 { font-weight: 300; letter-spacing: 2px; }
+                    .input-group { display: flex; gap: 10px; }
                     input {
-                        padding: 10px;
-                        border-radius: 4px;
+                        padding: 12px 20px;
+                        border-radius: 8px;
                         border: 1px solid #333;
                         background: #111;
                         color: #fff;
-                        text-align: center;
+                        outline: none;
+                        transition: border-color 0.2s;
                     }
+                    input:focus { border-color: #555; }
                     button {
-                        padding: 10px;
+                        padding: 12px 24px;
                         background: #fff;
                         color: #000;
                         border: none;
+                        border-radius: 8px;
                         cursor: pointer;
-                        font-weight: bold;
+                        font-weight: 600;
                     }
                 `}</style>
             </div>
@@ -115,169 +159,260 @@ export default function AdminReports() {
     return (
         <div className="admin-dashboard">
             <header>
-                <h1>WBDS Reports</h1>
-                <button onClick={fetchReports} className="refresh-btn">Refresh</button>
+                <div className="brand">
+                    <h1>WBDS Control Center</h1>
+                    <div className="tabs">
+                        <button
+                            className={activeTab === 'letters' ? 'active' : ''}
+                            onClick={() => setActiveTab('letters')}
+                        >
+                            Letter Reports
+                        </button>
+                        <button
+                            className={activeTab === 'feedback' ? 'active' : ''}
+                            onClick={() => setActiveTab('feedback')}
+                        >
+                            Feedback
+                        </button>
+                    </div>
+                </div>
+                <button onClick={fetchReports} className="refresh-btn">Refresh Feed</button>
             </header>
 
             {loading ? (
-                <div className="loading">Loading transmission logs...</div>
+                <div className="loading">Scanning void for transmissions...</div>
             ) : (
-                <div className="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Status</th>
-                                <th>Description</th>
-                                <th>Details</th>
-                                <th>Meta</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {reports.map(report => (
-                                <tr key={report.id} className={report.status}>
-                                    <td className="date">
-                                        {new Date(report.created_at).toLocaleDateString()}
-                                    </td>
-                                    <td>
-                                        <span className={`tag ${report.type.toLowerCase()}`}>
-                                            {report.type}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button
-                                            className={`status-btn ${report.status}`}
-                                            onClick={() => toggleStatus(report.id, report.status)}
-                                        >
-                                            {report.status}
-                                        </button>
-                                    </td>
-                                    <td className="desc">
-                                        <div className="main-desc">{report.description}</div>
-                                        {report.steps_to_reproduce && (
-                                            <div className="steps">
-                                                <strong>Steps:</strong> {report.steps_to_reproduce}
+                <div className="content-area">
+                    {activeTab === 'letters' ? (
+                        <div className="reports-grid">
+                            {reports.length === 0 ? (
+                                <div className="empty">The void is silent. No reports found.</div>
+                            ) : (
+                                reports.map(report => (
+                                    <div key={report.id} className={`report-card ${report.status}`}>
+                                        <div className="card-header">
+                                            <span className={`status-badge ${report.status}`}>{report.status}</span>
+                                            <span className="reason-badge">{report.reason}</span>
+                                            {report.toxicity_score && (
+                                                <span className={`toxicity-badge ${report.toxicity_score > 0.7 ? 'high' : 'low'}`}>
+                                                    Tox: {(report.toxicity_score * 100).toFixed(0)}%
+                                                </span>
+                                            )}
+                                            <span className="timestamp">{new Date(report.created_at).toLocaleString()}</span>
+                                        </div>
+
+                                        <div className="letter-preview">
+                                            <p>{report.letters?.content || "Letter content missing or deleted"}</p>
+                                        </div>
+
+                                        {report.description && (
+                                            <div className="user-note">
+                                                <strong>Reporter Note:</strong> {report.description}
                                             </div>
                                         )}
-                                    </td>
-                                    <td className="user-details">
-                                        {report.name && <div>👤 {report.name}</div>}
-                                        {report.email && <div>✉️ {report.email}</div>}
-                                    </td>
-                                    <td className="meta">
-                                        <div title={report.user_agent}>🖥 {report.screen_size}</div>
-                                        <div className="url-trunc" title={report.current_url}>🔗 {report.current_url.split('/').pop() || '/'}</div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+
+                                        <div className="card-footer">
+                                            <div className="meta-info">
+                                                <span>IP: {report.letters?.ip_address || report.reporter_ip}</span>
+                                            </div>
+                                            <div className="actions">
+                                                {report.status === 'pending' && (
+                                                    <>
+                                                        <button className="btn-dismiss" onClick={() => handleAction('dismiss', report)}>Dismiss</button>
+                                                        <button className="btn-ban" onClick={() => handleAction('ban_ip', report)}>Ban IP</button>
+                                                        <button className="btn-delete" onClick={() => handleAction('delete_letter', report)}>Delete Letter</button>
+                                                    </>
+                                                )}
+                                                {report.status !== 'pending' && (
+                                                    <span className="action-taken">Resolved: {report.action_taken}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    ) : (
+                        <div className="feedback-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Description</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {reports.map(f => (
+                                        <tr key={f.id}>
+                                            <td>{new Date(f.created_at).toLocaleDateString()}</td>
+                                            <td><span className={`tag ${f.type.toLowerCase()}`}>{f.type}</span></td>
+                                            <td>{f.description}</td>
+                                            <td>{f.email || 'Anonymous'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
             )}
 
             <style jsx>{`
                 .admin-dashboard {
                     min-height: 100vh;
-                    background: #111;
-                    color: #fff;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                    background: #0a0a0b;
+                    color: #e2e2e7;
+                    font-family: 'Inter', -apple-system, sans-serif;
                     padding: 40px;
                 }
 
                 header {
                     display: flex;
                     justify-content: space-between;
-                    align-items: center;
+                    align-items: flex-end;
                     margin-bottom: 40px;
-                    border-bottom: 1px solid #333;
-                    padding-bottom: 20px;
+                    border-bottom: 1px solid #1c1c1e;
+                    padding-bottom: 24px;
+                }
+
+                .brand h1 { margin: 0 0 16px 0; font-weight: 300; font-size: 24px; }
+                .tabs { display: flex; gap: 8px; }
+                .tabs button {
+                    background: transparent;
+                    color: #8e8e93;
+                    border: 1px solid #2c2c2e;
+                    padding: 8px 16px;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    transition: all 0.2s;
+                }
+                .tabs button.active {
+                    background: #1c1c1e;
+                    color: #fff;
+                    border-color: #444;
                 }
 
                 .refresh-btn {
-                    background: #333;
+                    background: #2c2c2e;
                     color: #fff;
                     border: none;
-                    padding: 8px 16px;
-                    border-radius: 4px;
+                    padding: 10px 20px;
+                    border-radius: 8px;
                     cursor: pointer;
+                    font-weight: 500;
                 }
 
-                .table-wrapper {
-                    overflow-x: auto;
+                .reports-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+                    gap: 24px;
+                }
+
+                .report-card {
                     background: #1c1c1e;
                     border-radius: 12px;
-                    border: 1px solid #333;
+                    border: 1px solid #2c2c2e;
+                    padding: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 16px;
                 }
 
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    font-size: 14px;
+                .card-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    flex-wrap: wrap;
                 }
 
-                th {
-                    text-align: left;
-                    padding: 16px;
-                    border-bottom: 1px solid #333;
-                    color: #8e8e93;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    font-size: 12px;
-                }
-
-                td {
-                    padding: 16px;
-                    border-bottom: 1px solid #2c2c2e;
-                    vertical-align: top;
-                }
-
-                tr:last-child td { border-bottom: none; }
-
-                .tag {
-                    padding: 4px 8px;
+                .status-badge {
+                    padding: 2px 8px;
                     border-radius: 4px;
-                    font-size: 11px;
-                    font-weight: 700;
+                    font-size: 10px;
+                    font-weight: 800;
                     text-transform: uppercase;
                 }
-                .tag.bug { background: rgba(255, 69, 58, 0.2); color: #ff453a; }
-                .tag.feature { background: rgba(10, 132, 255, 0.2); color: #0a84ff; }
-                .tag.security { background: rgba(255, 159, 10, 0.2); color: #ff9f0a; }
+                .status-badge.pending { background: #ff9f0a; color: #000; }
+                .status-badge.dismissed { background: #333; color: #8e8e93; }
+                .status-badge.resolved { background: #30d158; color: #000; }
 
-                .status-btn {
-                    border: none;
-                    padding: 4px 12px;
-                    border-radius: 100px;
-                    font-size: 12px;
+                .reason-badge {
+                    background: #2c2c2e;
+                    padding: 2px 8px;
+                    border-radius: 4px;
+                    font-size: 10px;
                     font-weight: 600;
-                    text-transform: uppercase;
-                    cursor: pointer;
-                }
-                .status-btn.open { background: #30d158; color: #000; }
-                .status-btn.resolved { background: #333; color: #8e8e93; }
-
-                .desc { max-width: 400px; }
-                .main-desc { margin-bottom: 8px; font-size: 15px; }
-                .steps { 
-                    background: #2c2c2e; 
-                    padding: 8px; 
-                    border-radius: 6px; 
-                    font-family: monospace; 
-                    font-size: 12px;
                     color: #d1d1d6;
                 }
 
-                .user-details div { margin-bottom: 4px; font-size: 12px; color: #a1a1a6; }
-
-                .meta { font-family: monospace; font-size: 12px; color: #636366; }
-                .url-trunc { 
-                    max-width: 100px; 
-                    white-space: nowrap; 
-                    overflow: hidden; 
-                    text-overflow: ellipsis; 
+                .toxicity-badge {
+                    padding: 2px 8px;
+                    border-radius: 4px;
+                    font-size: 10px;
+                    font-weight: 800;
                 }
+                .toxicity-badge.high { background: rgba(255, 69, 58, 0.2); color: #ff453a; }
+                .toxicity-badge.low { background: rgba(48, 209, 88, 0.2); color: #30d158; }
+
+                .timestamp { font-size: 11px; color: #636366; margin-left: auto; }
+
+                .letter-preview {
+                    background: #000;
+                    padding: 16px;
+                    border-radius: 8px;
+                    font-family: serif;
+                    line-height: 1.5;
+                    font-size: 14px;
+                    max-height: 150px;
+                    overflow-y: auto;
+                    border: 1px solid #111;
+                }
+
+                .user-note {
+                    font-size: 13px;
+                    color: #a1a1a6;
+                    background: #2c2c2e;
+                    padding: 10px;
+                    border-radius: 6px;
+                }
+
+                .card-footer {
+                    margin-top: auto;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding-top: 16px;
+                    border-top: 1px solid #2c2c2e;
+                }
+
+                .meta-info { font-family: monospace; font-size: 11px; color: #636366; }
+
+                .actions { display: flex; gap: 8px; }
+                .actions button {
+                    padding: 6px 12px;
+                    border-radius: 6px;
+                    border: none;
+                    font-size: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: opacity 0.2s;
+                }
+                .actions button:hover { opacity: 0.8; }
+                .btn-dismiss { background: #333; color: #fff; }
+                .btn-ban { background: #ff9f0a; color: #000; }
+                .btn-delete { background: #ff453a; color: #fff; }
+                .action-taken { font-size: 12px; color: #8e8e93; font-style: italic; }
+
+                .feedback-table table { width: 100%; border-collapse: collapse; }
+                .feedback-table th { text-align: left; padding: 12px; border-bottom: 2px solid #2c2c2e; font-size: 12px; color: #8e8e93; }
+                .feedback-table td { padding: 12px; border-bottom: 1px solid #1c1c1e; font-size: 14px; }
+                .tag { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; }
+                .tag.bug { background: #ff453a; color: #fff; }
             `}</style>
         </div>
     );
 }
+
