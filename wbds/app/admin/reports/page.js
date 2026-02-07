@@ -112,10 +112,19 @@ export default function AdminReports() {
                         />
                         <button type="submit">Unlock</button>
                     </div>
-                    <div className="hint">
-                        {process.env.NEXT_PUBLIC_ADMIN_SECRET
-                            ? `✅ Custom secret loaded (Length: ${ADMIN_SECRET.length})`
-                            : `⚠️ Using default secret (Length: ${ADMIN_SECRET.length})`}
+                    <div className="hint-container">
+                        <div className="hint">
+                            {process.env.NEXT_PUBLIC_ADMIN_SECRET
+                                ? `✅ Custom secret loaded (Length: ${ADMIN_SECRET.length})`
+                                : `⚠️ Using default secret (Length: ${ADMIN_SECRET.length})`}
+                        </div>
+                        <button
+                            type="button"
+                            className="btn-reveal"
+                            onClick={() => alert(`SECRET IS: ${ADMIN_SECRET}`)}
+                        >
+                            See Secret (Debug)
+                        </button>
                     </div>
                 </form>
                 <style jsx>{`
@@ -134,8 +143,12 @@ export default function AdminReports() {
                         flex-direction: column;
                         gap: 24px;
                         text-align: center;
+                        background: rgba(255, 255, 255, 0.02);
+                        padding: 40px;
+                        border-radius: 20px;
+                        border: 1px solid rgba(255, 255, 255, 0.05);
                     }
-                    h1 { font-weight: 300; letter-spacing: 2px; }
+                    h1 { font-weight: 300; letter-spacing: 2px; margin-bottom: 20px; }
                     .input-group { display: flex; gap: 10px; }
                     input {
                         padding: 12px 20px;
@@ -156,10 +169,24 @@ export default function AdminReports() {
                         cursor: pointer;
                         font-weight: 600;
                     }
+                    .hint-container {
+                        margin-top: 20px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 10px;
+                        align-items: center;
+                    }
                     .hint {
                         font-size: 11px;
                         color: #666;
-                        margin-top: 10px;
+                    }
+                    .btn-reveal {
+                        background: transparent;
+                        color: #444;
+                        font-size: 10px;
+                        padding: 4px;
+                        border: none;
+                        text-decoration: underline;
                     }
                 `}</style>
             </div>
