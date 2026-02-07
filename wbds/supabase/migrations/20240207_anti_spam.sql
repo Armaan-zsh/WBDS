@@ -27,7 +27,7 @@ ALTER TABLE letters ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;
 -- Letter Reports Table
 CREATE TABLE IF NOT EXISTS letter_reports (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    letter_id UUID REFERENCES letters(id) ON DELETE CASCADE,
+    letter_id BIGINT REFERENCES letters(id) ON DELETE CASCADE,
     reporter_ip TEXT NOT NULL,
     reason TEXT CHECK (reason IN ('spam', 'harassment', 'self_harm', 'illegal', 'other')),
     description TEXT,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS admin_actions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     admin_id TEXT NOT NULL,
     action_type TEXT NOT NULL CHECK (action_type IN ('delete_letter', 'ban_ip', 'unban_ip', 'dismiss', 'resolve')),
-    target_letter_id UUID,
+    target_letter_id BIGINT,
     target_report_id UUID,
     target_ip TEXT,
     notes TEXT,
