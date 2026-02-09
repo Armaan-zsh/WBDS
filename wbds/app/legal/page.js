@@ -86,8 +86,16 @@ export default function LegalPage() {
                         <h2>CREDITS</h2>
                         <div className="credits-content">
                             <p>
+                                <strong>KEXP 90.3 FM</strong><br />
+                                Direct stream provided by KEXP Seattle. Special thanks to the DJs and staff at KEXP for their incredible work in human-centered radio.
+                            </p>
+                            <p>
+                                <strong>Lo-Fi Girl</strong><br />
+                                Relaxing beats provided by Lofi Girl (YouTube). All credits to the original artists and the Lofi Girl team.
+                            </p>
+                            <p>
                                 <strong>Synthwave Radio</strong><br />
-                                The synthwave radio feature is powered by <strong>Nightride FM</strong> streaming service. Special thanks to <strong>Odysseus</strong> and all the featured artists who make the retro-futuristic soundscape possible.
+                                Retro-futuristic soundscapes powered by the Synthwave community on YouTube. Special thanks to the artists who define the neon aesthetic.
                             </p>
                             <p>
                                 <em>"In the void, we are all just frequencies."</em>

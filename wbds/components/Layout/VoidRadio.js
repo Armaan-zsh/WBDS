@@ -17,6 +17,9 @@ export default function VoidRadio() {
     const [isExpanded, setIsExpanded] = useState(false);
     const [volume, setVolume] = useState(0.5);
     const [isMuted, setIsMuted] = useState(false);
+    const [nowPlaying, setNowPlaying] = useState(null);
+    const [isRainy, setIsRainy] = useState(false);
+    const [isThundery, setIsThundery] = useState(false);
 
     // Core Logic Refs
     const playerRef = useRef(null);
@@ -24,15 +27,25 @@ export default function VoidRadio() {
     const youtubeReady = useRef(false);
     const lastPlayerState = useRef(-1);
 
+    // Ambiance Refs
+    const rainRef = useRef(null);
+    const thunderRef = useRef(null);
+
     // Track stationId to avoid closures
     const stationIdRef = useRef(stationId);
     useEffect(() => { stationIdRef.current = stationId; }, [stationId]);
 
-    // Initial Audio Setup
+    // Initial Audio & Ambiance Setup
     useEffect(() => {
         if (typeof window === 'undefined') return;
         audioRef.current = new Audio();
         audioRef.current.crossOrigin = 'anonymous';
+
+        // Ambiance Setup
+        rainRef.current = new Audio('https://www.soundjay.com/nature/rain-07.mp3');
+        rainRef.current.loop = true;
+        thunderRef.current = new Audio('https://www.soundjay.com/nature/thunder-strike-1.mp3');
+        thunderRef.current.loop = false; // Thunder strike, we can randomize it
 
         const onAudioPlay = () => { setIsPlaying(true); setIsLoading(false); setError(null); };
         const onAudioPause = () => setIsPlaying(false);
@@ -53,11 +66,9 @@ export default function VoidRadio() {
             if (audioRef.current) {
                 audioRef.current.pause();
                 audioRef.current.src = "";
-                audioRef.current.removeEventListener('playing', onAudioPlay);
-                audioRef.current.removeEventListener('pause', onAudioPause);
-                audioRef.current.removeEventListener('waiting', onAudioWaiting);
-                audioRef.current.removeEventListener('error', onAudioError);
             }
+            if (rainRef.current) rainRef.current.pause();
+            if (thunderRef.current) thunderRef.current.pause();
         };
     }, []);
 
@@ -149,15 +160,18 @@ export default function VoidRadio() {
     // 3. Sync Volume & Mute Changes
     useEffect(() => {
         if (typeof window === 'undefined') return;
+        const v = isMuted ? 0 : volume;
         if (audioRef.current) {
-            audioRef.current.volume = volume;
+            audioRef.current.volume = v;
             audioRef.current.muted = isMuted;
         }
         if (youtubeReady.current && playerRef.current && playerRef.current.setVolume) {
-            playerRef.current.setVolume(volume * 100);
+            playerRef.current.setVolume(v * 100);
             if (isMuted) playerRef.current.mute();
             else playerRef.current.unMute();
         }
+        if (rainRef.current) rainRef.current.volume = v * 0.4;
+        if (thunderRef.current) thunderRef.current.volume = v * 0.6;
     }, [volume, isMuted]);
 
     // 4. Handle Remote Controls & State Broadcasting
@@ -218,6 +232,60 @@ export default function VoidRadio() {
         return () => clearTimeout(timeout);
     }, [isLoading, stationId]);
 
+    // 6. Poll KEXP Metadata
+    useEffect(() => {
+        if (stationId !== 'kexp') {
+            setNowPlaying(null);
+            return;
+        }
+
+        const fetchMeta = async () => {
+            try {
+                const res = await fetch('https://api.kexp.org/v2/plays/?limit=1');
+                const data = await res.json();
+                if (data.results && data.results.length > 0) {
+                    const play = data.results[0];
+                    setNowPlaying({
+                        artist: play.artist,
+                        song: play.song,
+                        album: play.album,
+                        image: play.thumbnail_uri
+                    });
+                }
+            } catch (e) {
+                console.error('KEXP Meta Error:', e);
+            }
+        };
+
+        fetchMeta();
+        const interval = setInterval(fetchMeta, 30000); // 30s polling
+        return () => clearInterval(interval);
+    }, [stationId]);
+
+    // 7. Ambiance Toggles
+    useEffect(() => {
+        if (!rainRef.current) return;
+        if (isRainy) rainRef.current.play().catch(() => { });
+        else rainRef.current.pause();
+    }, [isRainy]);
+
+    useEffect(() => {
+        if (!thunderRef.current) return;
+        let interval;
+        if (isThundery) {
+            const strike = () => {
+                thunderRef.current.currentTime = 0;
+                thunderRef.current.play().catch(() => { });
+                const next = Math.random() * 30000 + 10000;
+                interval = setTimeout(strike, next);
+            };
+            strike();
+        } else {
+            thunderRef.current.pause();
+        }
+        return () => clearTimeout(interval);
+    }, [isThundery]);
+
     const togglePlay = () => {
         const station = STATIONS.find(s => s.id === stationId);
         if (!station) return;
@@ -256,28 +324,46 @@ export default function VoidRadio() {
         setIsLoading(true);
         setError(null);
 
-        // Stop current
+        // Cross-fade out
         if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.src = "";
+            audioRef.current.volume = 0;
         }
-        if (youtubeReady.current && playerRef.current) {
-            playerRef.current.stopVideo();
+        if (youtubeReady.current && playerRef.current?.setVolume) {
+            playerRef.current.setVolume(0);
         }
 
-        setStationId(id);
+        setTimeout(() => {
+            // Stop current
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.src = "";
+            }
+            if (youtubeReady.current && playerRef.current) {
+                playerRef.current.stopVideo();
+            }
 
-        if (station.type === 'stream') {
-            audioRef.current.src = station.url;
-            audioRef.current.load();
-            audioRef.current.play().catch(e => {
-                setError('CLICK TO UNMUTE');
-            });
-        } else if (station.type === 'youtube' && youtubeReady.current) {
-            playerRef.current.loadVideoById(station.videoId);
-            playerRef.current.playVideo();
-        } else {
-        }
+            setStationId(id);
+
+            if (station.type === 'stream') {
+                audioRef.current.src = station.url;
+                audioRef.current.load();
+                audioRef.current.play().catch(e => {
+                    setError('CLICK TO UNMUTE');
+                });
+            } else if (station.type === 'youtube' && youtubeReady.current) {
+                playerRef.current.loadVideoById(station.videoId);
+                playerRef.current.playVideo();
+            } else {
+                setError('API LOADING...');
+            }
+
+            // Sync volume back
+            const v = isMuted ? 0 : volume;
+            if (audioRef.current) audioRef.current.volume = v;
+            if (youtubeReady.current && playerRef.current?.setVolume) {
+                playerRef.current.setVolume(v * 100);
+            }
+        }, 500);
     };
 
     return (
@@ -294,6 +380,16 @@ export default function VoidRadio() {
                             <div className={`status-dot ${isPlaying ? 'active' : isLoading ? 'loading' : error ? 'error' : ''}`} />
                         </div>
 
+                        {nowPlaying && (
+                            <div className="now-playing-info">
+                                <div className="track-meta">
+                                    <span className="artist">{nowPlaying.artist}</span>
+                                    <span className="song">{nowPlaying.song}</span>
+                                </div>
+                                {nowPlaying.image && <img src={nowPlaying.image} alt="album" className="album-art" />}
+                            </div>
+                        )}
+
                         <div className="station-selector">
                             {STATIONS.map(s => (
                                 <button
@@ -304,6 +400,21 @@ export default function VoidRadio() {
                                     {s.label}
                                 </button>
                             ))}
+                        </div>
+
+                        <div className="ambient-toggles">
+                            <button
+                                className={`ambient-btn ${isRainy ? 'active' : ''}`}
+                                onClick={() => setIsRainy(!isRainy)}
+                            >
+                                🌧️ RAIN
+                            </button>
+                            <button
+                                className={`ambient-btn ${isThundery ? 'active' : ''}`}
+                                onClick={() => setIsThundery(!isThundery)}
+                            >
+                                ⚡ THUNDER
+                            </button>
                         </div>
 
                         <div className="card-controls">
@@ -328,14 +439,12 @@ export default function VoidRadio() {
                     className={`radio-toggle ${isPlaying ? 'playing' : ''}`}
                     onClick={() => setIsExpanded(!isExpanded)}
                 >
+                    <div className="visualizer">
+                        <div className="bar v1" />
+                        <div className="bar v2" />
+                        <div className="bar v3" />
+                    </div>
                     <span className="radio-label">RADIO</span>
-                    {isPlaying && (
-                        <div className="visualizer">
-                            <div className="bar v1" />
-                            <div className="bar v2" />
-                            <div className="bar v3" />
-                        </div>
-                    )}
                 </button>
             </div>
 
@@ -353,23 +462,37 @@ export default function VoidRadio() {
                 .status-dot.active { background: #fff; box-shadow: 0 0 10px #fff; }
                 .status-dot.loading { background: #555; animation: pulse 1s infinite; }
                 .status-dot.error { background: #ff453a; box-shadow: 0 0 10px #ff453a; }
+                
+                .now-playing-info { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
+                .track-meta { flex: 1; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+                .artist { font-size: 8px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; }
+                .song { font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                .album-art { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; }
+
                 .station-selector { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
                 .station-btn { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.4); padding: 12px; border-radius: 12px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; }
                 .station-btn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
                 .station-btn.active { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); color: #fff; }
+                
+                .ambient-toggles { display: flex; gap: 8px; margin-bottom: 24px; }
+                .ambient-btn { flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.3); padding: 10px; border-radius: 10px; font-size: 9px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
+                .ambient-btn:hover { background: rgba(255,255,255,0.06); }
+                .ambient-btn.active { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.2); }
+
                 .card-controls { display: flex; gap: 12px; align-items: center; }
                 .play-btn { flex: 1; background: #fff; color: #000; border: none; padding: 10px; border-radius: 10px; font-size: 10px; font-weight: 900; letter-spacing: 1px; cursor: pointer; transition: transform 0.2s; }
                 .play-btn:hover { transform: scale(1.02); }
                 .play-btn:disabled { opacity: 0.5; cursor: wait; }
-                .skip-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 10px 15px; border-radius: 10px; font-size: 10px; font-weight: 800; cursor: pointer; }
-                .skip-btn:hover { background: rgba(255, 255, 255, 0.2); }
                 .volume-slider { width: 80px; accent-color: #fff; }
-                .visualizer { display: flex; gap: 2px; height: 10px; align-items: flex-end; }
-                .bar { width: 2px; background: #fff; border-radius: 1px; }
+                
+                .visualizer { display: flex; gap: 2px; height: 10px; align-items: flex-end; margin-right: 8px; }
+                .bar { width: 2px; background: #fff; border-radius: 1px; opacity: 0.4; }
+                .playing .bar { opacity: 1; }
                 .v1 { height: 100%; animation: bounce 0.5s infinite alternate; }
                 .v2 { height: 60%; animation: bounce 0.4s infinite alternate-reverse; }
                 .v3 { height: 80%; animation: bounce 0.6s infinite alternate; }
                 @keyframes bounce { from { height: 20%; } to { height: 100%; } }
+                
                 @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
                 @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
                 @media (max-width: 768px) { .void-radio-root { display: none !important; } }

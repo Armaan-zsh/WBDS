@@ -76,82 +76,93 @@ export default function ReportPage() {
 
     return (
         <div className="report-page">
+            <div className="void-background">
+                <div className="void-glow g1" />
+                <div className="void-glow g2" />
+            </div>
+
             <div className="report-container">
                 <div className="header">
-                    <h1>Report an Issue</h1>
-                    <p>Help us improve the void. Found a bug? Have a suggestion?</p>
+                    <span className="system-tag">SYSTEM // REPORT_BUG</span>
+                    <h1>Transmit Feedback</h1>
+                    <p>Encountered a glitch in the void? Log your findings below.</p>
                 </div>
 
                 {isRateLimited ? (
                     <div className="limit-message">
-                        <h2>Transmission Cooldown</h2>
-                        <p>You can only send one report every 10 days to prevent frequency jamming.</p>
+                        <div className="warning-icon">⚠️</div>
+                        <h2>COOLDOWN ACTIVE</h2>
+                        <p>To prevent signal interference, only one transmission is allowed every 10 days.</p>
                         <Link href="/">
-                            <button className="btn-back">Return to Void</button>
+                            <button className="btn-back">RETURN TO SOURCE</button>
                         </Link>
                     </div>
                 ) : status === 'success' ? (
                     <div className="success-message">
-                        <h2>Signal Received.</h2>
-                        <p>Your report has been logged. Thank you for your contribution.</p>
-                        <p className="redirect-text">Returning to the void...</p>
+                        <div className="success-icon">✓</div>
+                        <h2>SIGNAL RECEIVED</h2>
+                        <p>Your data has been successfully logged into the void manifest.</p>
+                        <div className="loading-bar">
+                            <div className="loading-fill" />
+                        </div>
+                        <p className="redirect-text">Returning to origin...</p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="report-form">
 
                         <div className="form-group full">
-                            <label>Issue Type</label>
+                            <label>ENQUIRY TYPE</label>
                             <select name="type" value={formData.type} onChange={handleChange}>
-                                <option value="Bug">Bug Report</option>
-                                <option value="Feature">Feature Request</option>
-                                <option value="Security">Security Vulnerability</option>
-                                <option value="Other">Other</option>
+                                <option value="Bug">GLITCH / BUG</option>
+                                <option value="Feature">EVOLUTION REQUEST</option>
+                                <option value="Security">VULNERABILITY</option>
+                                <option value="Other">MISC FREQUENCY</option>
                             </select>
                         </div>
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label>Name (Optional)</label>
+                                <label>TRAVELER NAME (OPTIONAL)</label>
                                 <input
                                     type="text"
                                     name="name"
                                     value={formData.name}
                                     onChange={handleChange}
-                                    placeholder="Traveler Name"
+                                    placeholder="Anonymous"
                                 />
                             </div>
                             <div className="form-group">
-                                <label>Email (Optional)</label>
+                                <label>RETURN FREQUENCY (OPTIONAL)</label>
                                 <input
                                     type="email"
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    placeholder="contact@email.com"
+                                    placeholder="contact@void.net"
                                 />
                             </div>
                         </div>
 
                         <div className="form-group full">
-                            <label>Description <span className="req">*</span></label>
+                            <label>DESCRIPTION <span className="req">*</span></label>
                             <textarea
                                 name="description"
                                 required
                                 value={formData.description}
                                 onChange={handleChange}
-                                placeholder="What happened? What did you expect?"
+                                placeholder="Describe the anomaly..."
                                 rows={5}
                             />
                         </div>
 
                         {formData.type === 'Bug' && (
                             <div className="form-group full">
-                                <label>Steps to Reproduce</label>
+                                <label>REPLICATION STEPS</label>
                                 <textarea
                                     name="steps"
                                     value={formData.steps}
                                     onChange={handleChange}
-                                    placeholder="1. Go to homepage&#10;2. Click button..."
+                                    placeholder="1. Navigate to...&#10;2. Interact with..."
                                     rows={3}
                                 />
                             </div>
@@ -159,19 +170,19 @@ export default function ReportPage() {
 
                         <div className="form-actions">
                             <Link href="/">
-                                <button type="button" className="btn-cancel">Cancel</button>
+                                <button type="button" className="btn-cancel">ABORT</button>
                             </Link>
                             <button
                                 type="submit"
                                 className="btn-submit"
                                 disabled={status === 'submitting'}
                             >
-                                {status === 'submitting' ? 'Transmitting...' : 'Submit Report'}
+                                {status === 'submitting' ? 'TRANSMITTING...' : 'TRANSMIT SIGNAL'}
                             </button>
                         </div>
 
                         {status === 'error' && (
-                            <p className="error-msg">Transmission failed. Please try again.</p>
+                            <p className="error-msg">CONNECTION LOST. RETRY TRANSMISSION.</p>
                         )}
                     </form>
                 )}
@@ -185,217 +196,181 @@ export default function ReportPage() {
                     color: #fff;
                     display: flex;
                     justify-content: center;
-                    align-items: flex-start;
-                    padding: 20px;
-                    padding-bottom: 200px; /* ample space for footer */
-                    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-                    position: relative; /* Scrolls properly */
-                    z-index: 9999;
+                    align-items: center;
+                    padding: 40px 20px;
+                    font-family: 'Inter', -apple-system, sans-serif;
+                    position: relative;
+                    overflow-x: hidden;
                     box-sizing: border-box;
+                }
+
+                .void-background {
+                    position: fixed;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    z-index: 1;
+                    overflow: hidden;
+                }
+
+                .void-glow {
+                    position: absolute;
+                    width: 600px;
+                    height: 600px;
+                    border-radius: 50%;
+                    filter: blur(120px);
+                    opacity: 0.15;
+                    pointer-events: none;
+                }
+
+                .g1 { top: -200px; right: -100px; background: #3aedff; animation: float 15s infinite alternate; }
+                .g2 { bottom: -200px; left: -100px; background: #7000ff; animation: float 18s infinite alternate-reverse; }
+
+                @keyframes float {
+                    from { transform: translate(0, 0); }
+                    to { transform: translate(100px, 50px); }
                 }
 
                 .report-container {
                     width: 100%;
-                    max-width: 500px; /* Maximum width similar to iOS modal */
-                    background: rgba(28, 28, 30, 0.6); /* iOS System Material Dark */
-                    backdrop-filter: blur(25px) saturate(180%);
-                    -webkit-backdrop-filter: blur(25px) saturate(180%);
+                    max-width: 600px;
+                    background: rgba(10, 10, 10, 0.4);
+                    backdrop-filter: blur(40px) saturate(180%);
+                    -webkit-backdrop-filter: blur(40px) saturate(180%);
                     border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 32px; /* Large rounded corners */
-                    padding: 32px;
-                    box-shadow: 
-                        0 20px 60px rgba(0,0,0,0.5),
-                        0 0 0 1px rgba(0,0,0,0.5); /* Inner border shadow */
-                    animation: springUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-                    transform-origin: center bottom;
+                    border-radius: 40px;
+                    padding: 48px;
+                    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+                    position: relative;
+                    z-index: 2;
+                    animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
                 }
 
-                .header {
-                    margin-bottom: 32px;
-                    text-align: center;
+                .system-tag {
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 10px;
+                    color: rgba(255, 255, 255, 0.3);
+                    letter-spacing: 4px;
+                    margin-bottom: 12px;
+                    display: block;
                 }
 
+                .header { margin-bottom: 40px; text-align: left; }
                 .header h1 {
-                    font-size: 22px;
-                    font-weight: 700;
-                    margin: 0 0 8px 0;
-                    color: #fff;
-                    letter-spacing: -0.5px;
+                    font-size: 36px;
+                    font-weight: 800;
+                    margin: 0 0 12px 0;
+                    letter-spacing: -1.5px;
+                    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.5) 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
                 }
 
-                .header p {
-                    color: #8e8e93; /* iOS Secondary Label Color */
-                    font-size: 15px;
-                    line-height: 1.4;
-                }
+                .header p { color: rgba(255, 255, 255, 0.5); font-size: 16px; line-height: 1.5; }
 
-                .report-form {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 20px;
-                }
-
-                .form-row {
-                    display: flex;
-                    gap: 16px;
-                }
-                
-                @media (max-width: 600px) {
-                    .form-row { flex-direction: column; gap: 16px; }
-                    .report-container { 
-                        padding: 24px; 
-                        border-radius: 24px;
-                        max-width: 100%;
-                    }
-                    .report-page {
-                        padding-bottom: 180px; /* Extra space for footer on mobile */
-                    }
-                }
-
-                .form-group {
-                    flex: 1;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 8px;
-                }
+                .report-form { display: flex; flex-direction: column; gap: 28px; }
+                .form-row { display: flex; gap: 20px; }
+                .form-group { flex: 1; display: flex; flex-direction: column; gap: 10px; }
 
                 label {
-                    font-size: 13px;
-                    font-weight: 600;
-                    color: #8e8e93;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    margin-left: 4px; /* Align with input curve */
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: rgba(255, 255, 255, 0.4);
+                    letter-spacing: 1.5px;
+                    margin-left: 2px;
                 }
 
-                .req { color: #ff453a; }
-
                 input, select, textarea {
-                    background: rgba(118, 118, 128, 0.24); /* iOS Fill Color */
-                    border: none;
-                    border-radius: 12px;
-                    padding: 14px 16px;
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 16px;
+                    padding: 16px 20px;
                     color: #fff;
-                    font-family: inherit;
-                    font-size: 17px; /* iOS Body size */
-                    transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+                    font-size: 15px;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                     outline: none;
-                    width: 100%;
-                    box-sizing: border-box;
-                    -webkit-appearance: none;
                 }
 
                 input:focus, select:focus, textarea:focus {
-                    background: rgba(118, 118, 128, 0.36);
-                    box-shadow: 0 0 0 2px #0a84ff; /* iOS Blue Focus */
+                    background: rgba(255, 255, 255, 0.06);
+                    border-color: rgba(255, 255, 255, 0.3);
+                    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
                 }
 
-                /* Custom Select Arrow */
                 select {
-                    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%238e8e93%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+                    -webkit-appearance: none;
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
                     background-repeat: no-repeat;
-                    background-position: right 16px top 50%;
-                    background-size: 12px auto;
-                    padding-right: 40px;
+                    background-position: right 20px center;
+                    background-size: 16px;
+                    padding-right: 50px;
                 }
 
-                .form-actions {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    gap: 16px;
-                    margin-top: 12px;
-                }
-
-                button {
-                    padding: 14px 28px;
-                    border-radius: 100px; /* Pill shape */
-                    font-size: 16px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: transform 0.1s;
-                    border: none;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-
-                button:active {
-                    transform: scale(0.96);
-                }
+                .form-actions { display: flex; gap: 20px; align-items: center; margin-top: 10px; }
 
                 .btn-cancel {
                     background: transparent;
-                    color: #8e8e93;
-                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.4);
+                    padding: 18px 32px;
+                    font-size: 13px;
+                    font-weight: 700;
+                    letter-spacing: 2px;
+                    border-radius: 20px;
+                    transition: all 0.3s;
                 }
-                .btn-cancel:hover { color: #fff; }
+                .btn-cancel:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
 
                 .btn-submit {
+                    flex: 2;
                     background: #fff;
                     color: #000;
-                    flex: 1;
-                    max-width: 200px;
-                    box-shadow: 0 4px 12px rgba(255,255,255,0.15);
+                    padding: 18px 32px;
+                    font-size: 13px;
+                    font-weight: 800;
+                    letter-spacing: 2px;
+                    border-radius: 20px;
+                    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
                 }
-                .btn-submit:hover { 
-                    background: #f2f2f7; 
-                    box-shadow: 0 6px 16px rgba(255,255,255,0.2);
-                }
+                .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 35px rgba(255, 255, 255, 0.3); }
                 .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-                .success-message {
-                    text-align: center;
-                    padding: 60px 0;
-                    animation: fadeIn 0.4s ease;
-                }
-
-                .success-message h2 { 
-                    color: #30d158; 
-                    margin-bottom: 16px; 
-                    font-size: 24px;
-                }
-                .redirect-text { font-size: 13px; color: #8e8e93; margin-top: 24px; }
-                .error-msg { color: #ff453a; font-size: 14px; text-align: center; margin-top: 10px; }
-
-                @keyframes springUp {
-                    from { 
-                        opacity: 0; 
-                        transform: translateY(40px) scale(0.95); 
-                    }
-                    to { 
-                        opacity: 1; 
-                        transform: translateY(0) scale(1); 
-                    }
-                }
-
-                .limit-message {
+                .success-message, .limit-message {
                     text-align: center;
                     padding: 40px 0;
-                    animation: fadeIn 0.4s ease;
-                }
-                .limit-message h2 {
-                    color: #ff9f0a; /* iOS Orange */
-                    margin-bottom: 16px;
-                    font-size: 22px;
-                }
-                .limit-message p {
-                    color: #8e8e93;
-                    margin-bottom: 30px;
-                    line-height: 1.5;
-                }
-                .btn-back {
-                    background: rgba(255,255,255,0.1);
-                    color: #fff;
-                    margin: 0 auto;
-                }
-                .btn-back:hover {
-                    background: rgba(255,255,255,0.2);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 20px;
                 }
 
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
+                .success-icon, .warning-icon {
+                    width: 64px;
+                    height: 64px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                    margin-bottom: 10px;
+                }
+
+                .success-icon { color: #30d158; box-shadow: 0 0 30px rgba(48, 209, 88, 0.2); }
+                .warning-icon { color: #ff9f0a; box-shadow: 0 0 30px rgba(255, 159, 10, 0.2); }
+
+                .loading-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; }
+                .loading-fill { width: 100%; height: 100%; background: #fff; animation: loading 3s linear forwards; }
+
+                @keyframes loading { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(30px) scale(0.98); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+
+                @media (max-width: 600px) {
+                    .report-container { padding: 32px 24px; border-radius: 30px; }
+                    .form-row { flex-direction: column; }
+                    .header h1 { font-size: 28px; }
                 }
             `}</style>
         </div>
