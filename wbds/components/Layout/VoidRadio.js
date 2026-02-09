@@ -4,34 +4,27 @@ import { useState, useEffect, useRef } from 'react';
 import { radioEvents, radioControl } from '../../utils/audioEngine';
 
 const STATIONS = [
-    { id: 'post-rock', name: 'Post-Rock', type: 'youtube', videoId: 'lS7_N085v9Y', label: '🪐 POST-ROCK' },
     { id: 'kexp', name: 'KEXP 90.3', type: 'stream', url: 'https://kexp-mp3-128.streamguys1.com/kexp128.mp3', label: '🎧 KEXP SEATTLE' },
     { id: 'lofi', name: 'Lo-Fi', type: 'youtube', videoId: 'jfKfPfyJRdk', label: '☕ LO-FI GIRL' },
     { id: 'synthwave', name: 'Synthwave', type: 'youtube', videoId: '4xDzrJKXOOY', label: '🌆 SYNTHWAVE' }
-];
-
-const POST_ROCK_POOL = [
-    'lS7_N085v9Y', 'HKFDYdaSyEg', '_F2w61v_5bI', 'l9bW5Qj3v4k', 'c5X7M-y0VpE',
-    'tK1p9y_L7p4', 'aB8g0_q2yE4', 'rX0s9_a3vF2', '_mGUE_f_y-I', '1-SHowSjt-I',
-    'X9K5mD8fFkI', '2-0Y9x6kY7Q', '8pA_E-jC9S8', 'v9_C2L2v6kI', 'lK7j9_x2zP1',
-    'm9_B5L-kP7A', 'jT_R8v_C9S1', 'wT_B5f_K8l2', 'rT_B8f_G9j1', 'bT_R9v_C1l0'
 ];
 
 export default function VoidRadio() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [stationId, setStationId] = useState('post-rock');
+    const [stationId, setStationId] = useState('kexp');
     const [isExpanded, setIsExpanded] = useState(false);
     const [volume, setVolume] = useState(0.5);
     const [isMuted, setIsMuted] = useState(false);
-    const [postRockIdx, setPostRockIdx] = useState(0);
 
-    const playerRef = useRef(null); // YouTube Player
-    const audioRef = useRef(null); // Direct Stream Player
+    // Core Logic Refs
+    const playerRef = useRef(null);
+    const audioRef = useRef(null);
     const youtubeReady = useRef(false);
+    const lastPlayerState = useRef(-1);
 
-    // CRITICAL: Use a ref for stationId to avoid stale closures in YouTube Events
+    // Track stationId to avoid closures
     const stationIdRef = useRef(stationId);
     useEffect(() => { stationIdRef.current = stationId; }, [stationId]);
 
@@ -87,9 +80,12 @@ export default function VoidRadio() {
             if (playerRef.current) return;
             if (!document.getElementById('youtube-ghost-player')) return;
 
+            const initialVid = STATIONS.find(s => s.type === 'youtube').videoId;
+
             playerRef.current = new window.YT.Player('youtube-ghost-player', {
-                height: '1',
-                width: '1',
+                height: '10',
+                width: '10',
+                videoId: initialVid,
                 playerVars: {
                     autoplay: 0,
                     controls: 0,
@@ -99,7 +95,8 @@ export default function VoidRadio() {
                     modestbranding: 1,
                     rel: 0,
                     showinfo: 0,
-                    origin: window.location.origin
+                    origin: window.location.origin,
+                    enablejsapi: 1
                 },
                 events: {
                     onReady: (event) => {
@@ -109,24 +106,33 @@ export default function VoidRadio() {
                     },
                     onError: (event) => {
                         console.error('Radio Engine Error (YT):', event.data);
+                        setError(`PLAYER ERROR ${event.data}`);
                         setIsLoading(false);
                         setIsPlaying(false);
                     },
                     onStateChange: (event) => {
-                        const currentStation = STATIONS.find(s => s.id === stationIdRef.current);
-                        if (!currentStation || currentStation.type !== 'youtube') return;
+                        const newState = event.data;
+                        lastPlayerState.current = newState;
 
-                        if (event.data === window.YT.PlayerState.PLAYING) {
-                            setIsPlaying(true);
-                            setIsLoading(false);
-                            setError(null);
-                        } else if (event.data === window.YT.PlayerState.BUFFERING) {
-                            setIsLoading(true);
-                        } else if (event.data === window.YT.PlayerState.ENDED) {
-                            event.target.playVideo();
-                        } else {
-                            setIsPlaying(false);
-                            setIsLoading(false);
+                        // Atomic State Machine
+                        switch (newState) {
+                            case window.YT.PlayerState.PLAYING:
+                                setIsPlaying(true);
+                                setIsLoading(false);
+                                setError(null);
+                                break;
+                            case window.YT.PlayerState.BUFFERING:
+                                setIsLoading(true);
+                                break;
+                            case window.YT.PlayerState.ENDED:
+                                event.target.playVideo();
+                                break;
+                            case window.YT.PlayerState.PAUSED:
+                                setIsPlaying(false);
+                                setIsLoading(false);
+                                break;
+                            default:
+                                break;
                         }
                     }
                 }
@@ -196,6 +202,22 @@ export default function VoidRadio() {
         };
     }, [isPlaying, isLoading, stationId, volume]);
 
+    // 5. Buffer Timeout Recovery
+    useEffect(() => {
+        if (!isLoading) return;
+
+        const timeout = setTimeout(() => {
+            if (isLoading) {
+                console.warn('Playback hang detected.');
+                setError('LINK STRETCHED... TRY ANOTHER');
+                setIsLoading(false);
+                setIsPlaying(false);
+            }
+        }, 15000); // 15s threshold
+
+        return () => clearTimeout(timeout);
+    }, [isLoading, stationId]);
+
     const togglePlay = () => {
         const station = STATIONS.find(s => s.id === stationId);
         if (!station) return;
@@ -221,6 +243,8 @@ export default function VoidRadio() {
                 } catch (e) {
                     setError('CLICK TO UNMUTE');
                 }
+            } else if (station.type === 'youtube' && !youtubeReady.current) {
+                setError('API LOADING...');
             }
         }
     };
@@ -228,17 +252,6 @@ export default function VoidRadio() {
     const changeStation = (id) => {
         const station = STATIONS.find(s => s.id === id);
         if (!station) return;
-
-        // If clicking Post-Rock again while playing, shuffle!
-        if (id === 'post-rock' && stationId === 'post-rock' && youtubeReady.current) {
-            const nextIdx = (postRockIdx + 1) % POST_ROCK_POOL.length;
-            setPostRockIdx(nextIdx);
-            playerRef.current.loadVideoById(POST_ROCK_POOL[nextIdx]);
-            playerRef.current.playVideo();
-            setIsLoading(true);
-            setError(null);
-            return;
-        }
 
         setIsLoading(true);
         setError(null);
@@ -261,9 +274,9 @@ export default function VoidRadio() {
                 setError('CLICK TO UNMUTE');
             });
         } else if (station.type === 'youtube' && youtubeReady.current) {
-            const vid = id === 'post-rock' ? POST_ROCK_POOL[postRockIdx] : station.videoId;
-            playerRef.current.loadVideoById(vid);
+            playerRef.current.loadVideoById(station.videoId);
             playerRef.current.playVideo();
+        } else {
         }
     };
 
@@ -297,7 +310,6 @@ export default function VoidRadio() {
                             <button
                                 className="play-btn"
                                 onClick={togglePlay}
-                                disabled={isLoading && !isPlaying}
                             >
                                 {isLoading ? '...' : isPlaying ? 'PAUSE' : 'PLAY'}
                             </button>
@@ -329,7 +341,7 @@ export default function VoidRadio() {
 
             <style jsx>{`
                 .void-radio-root { position: fixed; bottom: 40px; right: 24px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none; }
-                .ghost-container { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; visibility: hidden; }
+                .ghost-container { position: absolute; width: 10px; height: 10px; opacity: 0.1; pointer-events: none; }
                 .radio-ui-container { display: flex; flex-direction: column; align-items: flex-end; pointer-events: auto; }
                 .radio-toggle { background: rgba(10, 10, 10, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.5); padding: 10px 24px; border-radius: 50px; cursor: pointer; font-size: 11px; font-weight: 800; letter-spacing: 2px; transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); display: flex; align-items: center; gap: 10px; backdrop-filter: blur(10px); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
                 .radio-toggle:hover { color: #fff; border-color: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
@@ -349,6 +361,8 @@ export default function VoidRadio() {
                 .play-btn { flex: 1; background: #fff; color: #000; border: none; padding: 10px; border-radius: 10px; font-size: 10px; font-weight: 900; letter-spacing: 1px; cursor: pointer; transition: transform 0.2s; }
                 .play-btn:hover { transform: scale(1.02); }
                 .play-btn:disabled { opacity: 0.5; cursor: wait; }
+                .skip-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 10px 15px; border-radius: 10px; font-size: 10px; font-weight: 800; cursor: pointer; }
+                .skip-btn:hover { background: rgba(255, 255, 255, 0.2); }
                 .volume-slider { width: 80px; accent-color: #fff; }
                 .visualizer { display: flex; gap: 2px; height: 10px; align-items: flex-end; }
                 .bar { width: 2px; background: #fff; border-radius: 1px; }
