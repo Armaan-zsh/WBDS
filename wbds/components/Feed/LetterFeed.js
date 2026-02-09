@@ -3,10 +3,40 @@ import ReactMarkdown from 'react-markdown';
 
 import { useState, useEffect } from 'react';
 
-export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onLike, likedLetters, onReport, viewMode }) {
+export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onLike, likedLetters, onReport, viewMode, isAdmin, adminSecret }) {
     const [activeTag, setActiveTag] = useState(null);
     const [pinnedLetters, setPinnedLetters] = useState(new Set());
     const TAGS = ['#Love', '#Hope', '#Regret', '#Anger', '#Grief', '#Joy', '#Fear', '#Void'];
+
+    // --- ADMIN ACTIONS ---
+    const handleAdminAction = async (e, action, letterId, ip, fingerprint) => {
+        e.stopPropagation();
+        if (!confirm(`Confirm ${action}?`)) return;
+
+        try {
+            const res = await fetch('/api/admin/action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action,
+                    letterId,
+                    ip,
+                    fingerprint,
+                    adminSecret
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                // Trigger a refresh or remove from local state
+                window.location.reload();
+            } else {
+                alert(data.error || 'Action failed');
+            }
+        } catch (err) {
+            console.error('Admin Action Error:', err);
+        }
+    };
 
     // Load pinned letters from localStorage
     useEffect(() => {
@@ -381,6 +411,39 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
             transform: scale(1.1);
         }
 
+        .admin-tools {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+            z-index: 20;
+        }
+
+        .admin-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.6);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .admin-btn:hover {
+            transform: scale(1.2);
+            background: #fff;
+            color: #000;
+        }
+
+        .admin-btn.burn:hover { background: #ff453a; color: white; border-color: #ff453a; }
+        .admin-btn.ban:hover { background: #000; color: white; border-color: #fff; }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -597,6 +660,22 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
                             onClick={(e) => { e.stopPropagation(); onReport(letter.id); }}
                             title="Report inappropriate content"
                         >⚠</button>
+                    )}
+
+                    {/* ADMIN TOOLS - Double Locked */}
+                    {isAdmin && (
+                        <div className="admin-tools">
+                            <button
+                                className="admin-btn burn"
+                                onClick={(e) => handleAdminAction(e, 'burn', letter.id)}
+                                title="Burn Letter (Instant Delete)"
+                            >🔥</button>
+                            <button
+                                className="admin-btn ban"
+                                onClick={(e) => handleAdminAction(e, 'shadow_ban', letter.id, letter.ip_address, letter.browser_fingerprint)}
+                                title="Shadow Ban User"
+                            >🚫</button>
+                        </div>
                     )}
                     {myLetterIds && myLetterIds.has(letter.id) && (
                         <button

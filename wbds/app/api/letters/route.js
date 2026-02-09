@@ -59,14 +59,39 @@ export async function POST(req) {
 
         const { content, theme, unlockAt, tags, recipient_type } = result.data;
 
+        // 1. Get Identifiers (IP & Fingerprint)
+        const headersList = headers();
+        const forwardedFor = headersList.get('x-forwarded-for');
+        const ip = forwardedFor ? forwardedFor.split(',')[0] : '127.0.0.1';
+        const fingerprint = headersList.get('x-fingerprint') || 'unknown';
+
+        // 2. CHECK TRUST & REPUTATION (Bans/Shadow Bans)
+        const { data: reputation } = await supabaseAdmin
+            .from('ip_reputation')
+            .select('*')
+            .or(`ip.eq.${ip},browser_fingerprint.eq.${fingerprint}`)
+            .single();
+
+        const isBanned = reputation?.is_banned || false;
+
+        // [SHADOW BAN LOGIC]
+        // If they are banned, we still "proceed" to save it as shadow-banned
+        // to keep them in the dark (Bluffing).
+        let isShadowBanned = isBanned;
+
         // CONTENT MODERATION CHECK (8 layers)
         const moderation = moderateContent(content);
         if (moderation.blocked) {
-            return NextResponse.json({
-                error: 'Content not allowed',
-                message: moderation.blockMessage,
-                reason: moderation.blockReason
-            }, { status: 400 });
+            // If they are shadow-banned, we don't even give them moderation errors
+            if (isShadowBanned) {
+                // Proceed to save but hide
+            } else {
+                return NextResponse.json({
+                    error: 'Content not allowed',
+                    message: moderation.blockMessage,
+                    reason: moderation.blockReason
+                }, { status: 400 });
+            }
         }
 
         // Sanitize HTML/JS if detected
@@ -79,11 +104,15 @@ export async function POST(req) {
         const aiResult = await analyzeWithAI(processedContent);
         if (!aiResult.skip) {
             if (aiResult.flagged || aiResult.maxScore > 0.85) {
-                return NextResponse.json({
-                    error: 'Content not allowed',
-                    message: "The void senses something off. Try rephrasing.",
-                    reason: 'ai_flagged'
-                }, { status: 400 });
+                if (isShadowBanned) {
+                    // Silently accept
+                } else {
+                    return NextResponse.json({
+                        error: 'Content not allowed',
+                        message: "The void senses something off. Try rephrasing.",
+                        reason: 'ai_flagged'
+                    }, { status: 400 });
+                }
             }
         }
 
@@ -93,11 +122,6 @@ export async function POST(req) {
 
         // SERVER-SIDE PRIVACY ENFORCEMENT
         const safeContent = maskPrivateInfo(processedContent);
-
-        // 1. Get IP
-        const headersList = headers();
-        const forwardedFor = headersList.get('x-forwarded-for');
-        const ip = forwardedFor ? forwardedFor.split(',')[0] : '127.0.0.1';
 
         // 2. Rate Limiting (Simple hashed check)
         let isDev = ip === '127.0.0.1' || ip === '::1';
@@ -116,7 +140,7 @@ export async function POST(req) {
                 currentCount = 0;
             }
 
-            if (currentCount >= 7) { // Increased for "Archive Growth" phase
+            if (currentCount >= 15) { // Relaxed for trusted users?
                 return NextResponse.json(
                     { error: 'Daily limit reached. The void needs rest.' },
                     { status: 429 }
@@ -164,7 +188,8 @@ export async function POST(req) {
                     is_purpose_match: isLetter,
                     has_crisis_flag: isCrisis,
                     ai_toxicity_score: aiResult.skip ? null : aiResult.maxScore,
-                    needs_review: aiResult.needsReview || false,
+                    needs_review: (aiResult.needsReview || isShadowBanned),
+                    is_shadow_banned: isShadowBanned, // [NEW] The Silent Flag
                 }
             ])
             .select()
@@ -172,11 +197,23 @@ export async function POST(req) {
 
         if (insertError) throw insertError;
 
+        // 5. Update Reputation (Increment post count)
+        if (ip && fingerprint !== 'unknown') {
+            await supabaseAdmin.from('ip_reputation').upsert({
+                ip,
+                browser_fingerprint: fingerprint,
+                total_posts: (reputation?.total_posts || 0) + 1,
+                last_action: new Date().toISOString()
+            }, { onConflict: 'ip' });
+        }
+
+        // 6. SUCCESS BLUFFING
+        // Return success even if shadow-banned
         return NextResponse.json({
             success: true,
             letter,
-            guidance_needed: !isLetter,
-            crisis_detected: isCrisis
+            guidance_needed: isShadowBanned ? false : !isLetter,
+            crisis_detected: isShadowBanned ? false : isCrisis
         });
 
     } catch (error) {

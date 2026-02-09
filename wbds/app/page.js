@@ -13,6 +13,7 @@ import GalaxyBackground from '../components/Layout/GalaxyBackground';
 import StandardFooter from '../components/Layout/StandardFooter';
 import VoidWhisper from '../components/Layout/VoidWhisper';
 import CustomWallpaper from '../components/Layout/CustomWallpaper';
+import { getFingerprint } from '../utils/trust';
 import dynamic from 'next/dynamic';
 
 const Link = dynamic(() => import('next/link'), { ssr: false }); // Example fallback if needed, but we need GlobalGraph
@@ -48,6 +49,8 @@ export default function Home() {
     const [showSplash, setShowSplash] = useState(true); // Splash screen state
     const [lastBottleTime, setLastBottleTime] = useState(0); // [NEW] Bottle Cooldown
     const [showShortcuts, setShowShortcuts] = useState(false); // Shortcuts modal
+    const [isAdmin, setIsAdmin] = useState(false); // [NEW] Admin Toggle
+    const [adminSecret, setAdminSecret] = useState(null); // [NEW] Admin Token
 
     // Keyboard Shortcuts
     useEffect(() => {
@@ -159,43 +162,61 @@ export default function Home() {
 
         setNotification({ message: unlockDate ? 'Capsule Sealed. See you in the future.' : 'Letter released into the void.', type: 'success' });
 
-        // 2. Async Backend Save
-        const { data, error } = await supabase
-            .from('letters')
-            .insert([{
-                content,
-                theme: newLetter.theme,
-                font: newLetter.font,
-                unlock_at: newLetter.unlock_at,
-                parent_id: parentId // DB Link
-            }])
-            .select()
-            .single();
+        // 2. Async Backend Save (Using Secure API)
+        try {
+            const fingerprint = await getFingerprint();
+            const res = await fetch('/api/letters', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-fingerprint': fingerprint
+                },
+                body: JSON.stringify({
+                    content,
+                    theme: newLetter.theme,
+                    font: newLetter.font,
+                    unlockAt: newLetter.unlock_at,
+                    tags: Array.from(newLetter.tags || []),
+                    recipient_type: newLetter.recipient_type || 'unknown'
+                })
+            });
 
-        if (error) {
-            console.error('Send Error:', error);
-            handleError("Transmission failed. The void rejected your message.");
-            // Rollback optimistic update
+            const response = await res.json();
+
+            if (!res.ok || response.error) {
+                console.error('Send Error:', response.error);
+                handleError(response.message || "Transmission failed. The void rejected your message.");
+                // Rollback optimistic update
+                setLetters(prev => prev.filter(l => l.id !== tempId));
+                return response; // Return for LetterComposer to handle
+            }
+
+            const { letter: data } = response;
+
+            if (data) {
+                // Replace temp ID with real ID, avoiding duplicates
+                setLetters(prev => {
+                    const realIdExists = prev.some(l => l.id === data.id);
+                    if (realIdExists) {
+                        return prev.filter(l => l.id !== tempId);
+                    }
+                    return prev.map(l => l.id === tempId ? { ...l, id: data.id } : l);
+                });
+
+                // Update Auth Set
+                setMyLetterIds(prev => {
+                    const next = new Set(prev);
+                    next.delete(tempId);
+                    next.add(data.id);
+                    return next;
+                });
+            }
+            return response;
+        } catch (err) {
+            console.error('Fetch Error:', err);
+            handleError("The void is unstable. Try again.");
             setLetters(prev => prev.filter(l => l.id !== tempId));
-        } else if (data) {
-            // Replace temp ID with real ID, avoiding duplicates
-            setLetters(prev => {
-                const realIdExists = prev.some(l => l.id === data.id);
-                if (realIdExists) {
-                    // Realtime beat us to it; just remove temp
-                    return prev.filter(l => l.id !== tempId);
-                }
-                // Swap temp -> real
-                return prev.map(l => l.id === tempId ? { ...l, id: data.id } : l);
-            });
-
-            // Update Auth Set
-            setMyLetterIds(prev => {
-                const next = new Set(prev);
-                next.delete(tempId);
-                next.add(data.id);
-                return next;
-            });
+            throw err;
         }
     };
 
@@ -287,6 +308,38 @@ export default function Home() {
     useEffect(() => {
         localStorage.setItem('wbds_likes', JSON.stringify([...likedLetters]));
     }, [likedLetters]);
+
+    // --- ADMIN MODE HANDSHAKE ---
+    useEffect(() => {
+        const handleAdminKey = async (e) => {
+            // Shift + Alt + A triggers Admin Auth
+            if (e.shiftKey && e.altKey && e.code === 'KeyA') {
+                const pass = prompt("The void requires a key:");
+                if (!pass) return;
+
+                try {
+                    const res = await fetch('/api/admin/auth', {
+                        method: 'POST',
+                        body: JSON.stringify({ password: pass })
+                    });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        setIsAdmin(true);
+                        setAdminSecret(pass); // Store locally for session
+                        setNotification({ message: 'The gate is open. Admin Mode Active.', type: 'success' });
+                    } else {
+                        setNotification({ message: 'The void rejects your key.', type: 'error' });
+                    }
+                } catch (err) {
+                    console.error('Auth Error:', err);
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleAdminKey);
+        return () => window.removeEventListener('keydown', handleAdminKey);
+    }, []);
 
     // Load letters from Supabase (Dynamic based on View)
     // Load letters from Supabase (re-run when view changes)
@@ -868,6 +921,8 @@ export default function Home() {
                             onLike={handleLike}
                             likedLetters={likedLetters}
                             onReport={handleReport}
+                            isAdmin={isAdmin} // [NEW]
+                            adminSecret={adminSecret} // [NEW]
                         />
                     </div>
                 )}
