@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { radioEvents, radioControl } from '../../utils/audioEngine';
 
 const STATIONS = [
-    { id: 'post-rock', name: 'Post-Rock', videoId: 'f02mOEt18O4', label: '🪐 POST-ROCK' },
+    { id: 'post-rock', name: 'Post-Rock', videoId: '3As87Y8Jit8', label: '🪐 POST-ROCK' },
     { id: 'lofi', name: 'Lo-Fi', videoId: 'jfKfPfyJRdk', label: '☕ LO-FI' },
     { id: 'synthwave', name: 'Synthwave', videoId: '4xDzrJKXOOY', label: '🌆 SYNTHWAVE' }
 ];
@@ -21,25 +21,23 @@ export default function VoidRadio() {
     const youtubeReady = useRef(false);
 
     // Initialize YouTube API
+    // 1. Load YouTube API Script (Once)
     useEffect(() => {
         if (typeof window === 'undefined') return;
-
-        // Load YouTube API Script
         if (!window.YT) {
             const tag = document.createElement('script');
             tag.src = "https://www.youtube.com/iframe_api";
             const firstScriptTag = document.getElementsByTagName('script')[0];
             firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-            window.onYouTubeIframeAPIReady = () => {
-                initPlayer();
-            };
-        } else {
-            initPlayer();
         }
+    }, []);
 
-        function initPlayer() {
-            // Check if element exists before initializing
+    // 2. Initialize Player (Once YT is ready)
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const initPlayer = () => {
+            if (playerRef.current) return; // Already initialized
             if (!document.getElementById('youtube-ghost-player')) return;
 
             const currentStation = STATIONS.find(s => s.id === stationId);
@@ -62,10 +60,13 @@ export default function VoidRadio() {
                         youtubeReady.current = true;
                         event.target.setVolume(volume * 100);
                         if (isMuted) event.target.mute();
-                        syncState();
+                    },
+                    onError: (event) => {
+                        console.error('Radio Engine Error:', event.data);
+                        setIsLoading(false);
+                        setIsPlaying(false);
                     },
                     onStateChange: (event) => {
-                        // YT.PlayerState.PLAYING = 1, BUFFERING = 3
                         if (event.data === window.YT.PlayerState.PLAYING) {
                             setIsPlaying(true);
                             setIsLoading(false);
@@ -75,44 +76,51 @@ export default function VoidRadio() {
                             setIsPlaying(false);
                             setIsLoading(false);
                         }
-                        syncState();
                     }
                 }
             });
-        }
+        };
 
+        if (window.YT && window.YT.Player) {
+            initPlayer();
+        } else {
+            window.onYouTubeIframeAPIReady = initPlayer;
+        }
+    }, []);
+
+    // 3. Sync Volume & Mute Changes
+    useEffect(() => {
+        if (youtubeReady.current && playerRef.current && playerRef.current.setVolume) {
+            playerRef.current.setVolume(volume * 100);
+            if (isMuted) playerRef.current.mute();
+            else playerRef.current.unMute();
+        }
+    }, [volume, isMuted]);
+
+    // 4. Handle Remote Controls & State Broadcasting
+    useEffect(() => {
         const syncState = () => {
             radioControl.emitState({
-                isPlaying: isPlaying,
-                isLoading: isLoading,
+                isPlaying,
+                isLoading,
                 station: STATIONS.find(s => s.id === stationId),
-                volume: volume
+                volume
             });
         };
 
-        // Remote Controls
         const handleToggle = () => {
-            if (!youtubeReady.current) return;
+            if (!youtubeReady.current || !playerRef.current) return;
             if (isPlaying) playerRef.current.pauseVideo();
             else playerRef.current.playVideo();
         };
+
         const handleNext = () => {
             const nextIdx = (STATIONS.findIndex(s => s.id === stationId) + 1) % STATIONS.length;
             changeStation(STATIONS[nextIdx].id);
         };
-        const handleVolume = (e) => {
-            const newVol = e.detail;
-            setVolume(newVol);
-            if (youtubeReady.current) playerRef.current.setVolume(newVol * 100);
-        };
-        const handleMute = (e) => {
-            const mute = e.detail;
-            setIsMuted(mute);
-            if (youtubeReady.current) {
-                if (mute) playerRef.current.mute();
-                else playerRef.current.unMute();
-            }
-        };
+
+        const handleVolume = (e) => setVolume(e.detail);
+        const handleMute = (e) => setIsMuted(e.detail);
 
         if (radioEvents) {
             radioEvents.addEventListener('RADIO_TOGGLE', handleToggle);
@@ -121,6 +129,8 @@ export default function VoidRadio() {
             radioEvents.addEventListener('RADIO_SET_MUTED', handleMute);
             radioEvents.addEventListener('RADIO_REQUEST_STATE', syncState);
         }
+
+        syncState(); // Initial sync
 
         return () => {
             if (radioEvents) {
@@ -131,10 +141,10 @@ export default function VoidRadio() {
                 radioEvents.removeEventListener('RADIO_REQUEST_STATE', syncState);
             }
         };
-    }, [stationId, isPlaying, isLoading, volume, isMuted]);
+    }, [isPlaying, isLoading, stationId, volume]);
 
     const togglePlay = () => {
-        if (!youtubeReady.current) return;
+        if (!youtubeReady.current || !playerRef.current || !playerRef.current.playVideo) return;
         if (isPlaying) {
             playerRef.current.pauseVideo();
         } else {
@@ -144,7 +154,7 @@ export default function VoidRadio() {
 
     const changeStation = (id) => {
         const station = STATIONS.find(s => s.id === id);
-        if (!station || !youtubeReady.current) return;
+        if (!station || !youtubeReady.current || !playerRef.current || !playerRef.current.loadVideoById) return;
 
         setStationId(id);
         setIsLoading(true);

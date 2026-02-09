@@ -132,21 +132,6 @@ export default function AppearancePanel({ onClose, isOpen, onToggle, letters = [
         localStorage.setItem('wbds_audio_profile', profile);
     };
 
-    const handleAmbienceSelect = (profile) => {
-        if (isAmbienceOn && currentAmbience === profile) {
-            setIsAmbienceOn(false);
-            localStorage.setItem('wbds_ambience', 'false');
-            toggleAmbience(false);
-            return;
-        }
-
-        setCurrentAmbience(profile);
-        setIsAmbienceOn(true);
-        localStorage.setItem('wbds_ambience', 'true');
-        localStorage.setItem('wbds_ambience_profile', profile);
-        setAmbienceProfile(profile);
-        toggleAmbience(true);
-    };
 
     const handleCustomBgUpload = (e, type) => {
         const file = e.target.files[0];
@@ -403,12 +388,6 @@ export default function AppearancePanel({ onClose, isOpen, onToggle, letters = [
                         <button className={`option-btn ${audioProfile === 'silent' ? 'active' : ''}`} onClick={() => applyAudio('silent')}>Silent</button>
                     </div>
 
-                    <div className="section-title" style={{ marginTop: '20px' }}>Atmosphere</div>
-                    <div className="option-grid">
-                        <button className={`option-btn ${isAmbienceOn && currentAmbience === 'deep_space' ? 'active' : ''}`} onClick={() => handleAmbienceSelect('deep_space')}>Deep Space</button>
-                        <button className={`option-btn ${isAmbienceOn && currentAmbience === 'interstellar' ? 'active' : ''}`} onClick={() => handleAmbienceSelect('interstellar')}>Interstellar</button>
-                        <button className={`option-btn ${isAmbienceOn && currentAmbience === 'cosmic_ocean' ? 'active' : ''}`} onClick={() => handleAmbienceSelect('cosmic_ocean')}>Cosmic Ocean</button>
-                    </div>
                 </div>
 
                 {/* DATA & PRIVACY */}
