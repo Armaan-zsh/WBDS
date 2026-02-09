@@ -1,5 +1,5 @@
 import './globals.css';
-import SynthwaveRadio from '../components/Layout/SynthwaveRadio';
+import VoidRadio from '../components/Layout/VoidRadio';
 import AntiScrapingWrapper from '../components/Security/AntiScrapingWrapper';
 
 export const metadata = {
@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
                     <main className="viewport">
                         {children}
                     </main>
-                    <SynthwaveRadio />
+                    <VoidRadio />
                 </AntiScrapingWrapper>
             </body>
         </html>

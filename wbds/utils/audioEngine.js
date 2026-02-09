@@ -313,11 +313,22 @@ export const toggleAmbience = (shouldPlay) => {
 export const radioEvents = typeof window !== 'undefined' ? new EventTarget() : null;
 
 export const radioControl = {
+    // Radio Control Methods
     play: () => radioEvents?.dispatchEvent(new Event('RADIO_PLAY')),
     pause: () => radioEvents?.dispatchEvent(new Event('RADIO_PAUSE')),
     toggle: () => radioEvents?.dispatchEvent(new Event('RADIO_TOGGLE')),
     next: () => radioEvents?.dispatchEvent(new Event('RADIO_NEXT')),
     prev: () => radioEvents?.dispatchEvent(new Event('RADIO_PREV')),
+    setVolume: (vol) => {
+        if (!radioEvents) return;
+        const e = new CustomEvent('RADIO_SET_VOLUME', { detail: vol });
+        radioEvents.dispatchEvent(e);
+    },
+    setMuted: (mute) => {
+        if (!radioEvents) return;
+        const e = new CustomEvent('RADIO_SET_MUTED', { detail: mute });
+        radioEvents.dispatchEvent(e);
+    },
 
     // Sync Mechanism: Components ask for state, Radio answers
     requestState: () => radioEvents?.dispatchEvent(new Event('RADIO_REQUEST_STATE')),

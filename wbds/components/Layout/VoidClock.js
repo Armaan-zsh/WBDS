@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { setAudioProfile, playTypeSound } from '../../utils/audioEngine';
+import { setAudioProfile, playTypeSound, radioControl } from '../../utils/audioEngine';
 
 export default function VoidClock() {
     const [time, setTime] = useState(null);
@@ -75,6 +75,8 @@ export default function VoidClock() {
                 const savedProfile = localStorage.getItem('wbds_audio') || 'mechanical';
                 setAudioProfile(savedProfile);
             }
+            // Sync with radio
+            radioControl.setMuted(newValue);
             return newValue;
         });
     };
