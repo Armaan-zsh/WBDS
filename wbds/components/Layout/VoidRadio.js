@@ -4,23 +4,56 @@ import { useState, useEffect, useRef } from 'react';
 import { radioEvents, radioControl } from '../../utils/audioEngine';
 
 const STATIONS = [
-    { id: 'post-rock', name: 'Post-Rock', videoId: '3As87Y8Jit8', label: '🪐 POST-ROCK' },
-    { id: 'lofi', name: 'Lo-Fi', videoId: 'jfKfPfyJRdk', label: '☕ LO-FI' },
-    { id: 'synthwave', name: 'Synthwave', videoId: '4xDzrJKXOOY', label: '🌆 SYNTHWAVE' }
+    { id: 'kexp', name: 'KEXP 90.3', type: 'stream', url: 'https://kexp-mp3-128.streamguys1.com/kexp128.mp3', label: '🎧 KEXP SEATTLE' },
+    { id: 'post-rock', name: 'Post-Rock', type: 'stream', url: 'https://ice6.somafm.com/deepspaceone-128-mp3', label: '🪐 POST-ROCK' },
+    { id: 'lofi', name: 'Lo-Fi', type: 'youtube', videoId: 'jfKfPfyJRdk', label: '☕ LO-FI GIRL' },
+    { id: 'synthwave', name: 'Synthwave', type: 'youtube', videoId: '4xDzrJKXOOY', label: '🌆 SYNTHWAVE' }
 ];
 
 export default function VoidRadio() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [stationId, setStationId] = useState('synthwave');
+    const [stationId, setStationId] = useState('kexp');
     const [isExpanded, setIsExpanded] = useState(false);
     const [volume, setVolume] = useState(0.5);
     const [isMuted, setIsMuted] = useState(false);
 
-    const playerRef = useRef(null);
+    const playerRef = useRef(null); // YouTube Player
+    const audioRef = useRef(null); // Direct Stream Player
     const youtubeReady = useRef(false);
 
-    // Initialize YouTube API
+    // Initial Audio Setup
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        audioRef.current = new Audio();
+        audioRef.current.crossOrigin = 'anonymous';
+
+        const onAudioPlay = () => { setIsPlaying(true); setIsLoading(false); };
+        const onAudioPause = () => setIsPlaying(false);
+        const onAudioWaiting = () => setIsLoading(true);
+        const onAudioError = (e) => {
+            console.error('Direct Stream Error:', e);
+            setIsLoading(false);
+            setIsPlaying(false);
+        };
+
+        audioRef.current.addEventListener('playing', onAudioPlay);
+        audioRef.current.addEventListener('pause', onAudioPause);
+        audioRef.current.addEventListener('waiting', onAudioWaiting);
+        audioRef.current.addEventListener('error', onAudioError);
+
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.src = "";
+                audioRef.current.removeEventListener('playing', onAudioPlay);
+                audioRef.current.removeEventListener('pause', onAudioPause);
+                audioRef.current.removeEventListener('waiting', onAudioWaiting);
+                audioRef.current.removeEventListener('error', onAudioError);
+            }
+        };
+    }, []);
+
     // 1. Load YouTube API Script (Once)
     useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -32,19 +65,17 @@ export default function VoidRadio() {
         }
     }, []);
 
-    // 2. Initialize Player (Once YT is ready)
+    // 2. Initialize YouTube Player (Once YT is ready)
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
         const initPlayer = () => {
-            if (playerRef.current) return; // Already initialized
+            if (playerRef.current) return;
             if (!document.getElementById('youtube-ghost-player')) return;
 
-            const currentStation = STATIONS.find(s => s.id === stationId);
             playerRef.current = new window.YT.Player('youtube-ghost-player', {
                 height: '1',
                 width: '1',
-                videoId: currentStation.videoId,
                 playerVars: {
                     autoplay: 0,
                     controls: 0,
@@ -62,11 +93,14 @@ export default function VoidRadio() {
                         if (isMuted) event.target.mute();
                     },
                     onError: (event) => {
-                        console.error('Radio Engine Error:', event.data);
+                        console.error('Radio Engine Error (YT):', event.data);
                         setIsLoading(false);
                         setIsPlaying(false);
                     },
                     onStateChange: (event) => {
+                        const station = STATIONS.find(s => s.id === stationId);
+                        if (!station || station.type !== 'youtube') return;
+
                         if (event.data === window.YT.PlayerState.PLAYING) {
                             setIsPlaying(true);
                             setIsLoading(false);
@@ -86,10 +120,17 @@ export default function VoidRadio() {
         } else {
             window.onYouTubeIframeAPIReady = initPlayer;
         }
-    }, []);
+    }, [stationId]); // Track stationId to ensure onStateChange has right context
 
     // 3. Sync Volume & Mute Changes
     useEffect(() => {
+        if (typeof window === 'undefined') return;
+        // Sync Audio Tag
+        if (audioRef.current) {
+            audioRef.current.volume = volume;
+            audioRef.current.muted = isMuted;
+        }
+        // Sync YouTube
         if (youtubeReady.current && playerRef.current && playerRef.current.setVolume) {
             playerRef.current.setVolume(volume * 100);
             if (isMuted) playerRef.current.mute();
@@ -108,11 +149,7 @@ export default function VoidRadio() {
             });
         };
 
-        const handleToggle = () => {
-            if (!youtubeReady.current || !playerRef.current) return;
-            if (isPlaying) playerRef.current.pauseVideo();
-            else playerRef.current.playVideo();
-        };
+        const handleToggle = () => togglePlay();
 
         const handleNext = () => {
             const nextIdx = (STATIONS.findIndex(s => s.id === stationId) + 1) % STATIONS.length;
@@ -144,26 +181,55 @@ export default function VoidRadio() {
     }, [isPlaying, isLoading, stationId, volume]);
 
     const togglePlay = () => {
-        if (!youtubeReady.current || !playerRef.current || !playerRef.current.playVideo) return;
+        const station = STATIONS.find(s => s.id === stationId);
+        if (!station) return;
+
         if (isPlaying) {
-            playerRef.current.pauseVideo();
+            if (station.type === 'stream' && audioRef.current) {
+                audioRef.current.pause();
+                // To prevent buffering old data when resuming, some people clear src, 
+                // but for radio, just pausing is usually okay unless it's a very long pause.
+            } else if (station.type === 'youtube' && youtubeReady.current) {
+                playerRef.current.pauseVideo();
+            }
         } else {
-            playerRef.current.playVideo();
+            if (station.type === 'stream' && audioRef.current) {
+                if (!audioRef.current.src) audioRef.current.src = station.url;
+                audioRef.current.play().catch(e => console.error("Playback failed:", e));
+            } else if (station.type === 'youtube' && youtubeReady.current) {
+                playerRef.current.playVideo();
+            }
         }
     };
 
     const changeStation = (id) => {
         const station = STATIONS.find(s => s.id === id);
-        if (!station || !youtubeReady.current || !playerRef.current || !playerRef.current.loadVideoById) return;
+        if (!station) return;
+
+        // Stop whatever is currently playing
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.src = "";
+        }
+        if (youtubeReady.current && playerRef.current) {
+            playerRef.current.stopVideo();
+        }
 
         setStationId(id);
         setIsLoading(true);
-        playerRef.current.loadVideoById(station.videoId);
+
+        if (station.type === 'stream') {
+            audioRef.current.src = station.url;
+            audioRef.current.play().catch(e => console.error("Stream switch failed:", e));
+        } else if (station.type === 'youtube' && youtubeReady.current) {
+            playerRef.current.loadVideoById(station.videoId);
+            playerRef.current.playVideo(); // Ensure it starts after loading
+        }
     };
 
     return (
         <div className="void-radio-root">
-            {/* THE GHOST PLAYER CONTAINER */}
+            {/* THE GHOST PLAYER CONTAINER (HYBRID) */}
             <div id="youtube-ghost-player" className="ghost-container"></div>
 
             <div className={`radio-ui-container ${isExpanded ? 'expanded' : ''}`}>
@@ -192,7 +258,7 @@ export default function VoidRadio() {
                             <button
                                 className="play-btn"
                                 onClick={togglePlay}
-                                disabled={isLoading}
+                                disabled={isLoading && !isPlaying}
                             >
                                 {isLoading ? '...' : isPlaying ? 'PAUSE' : 'PLAY'}
                             </button>
@@ -203,7 +269,6 @@ export default function VoidRadio() {
                                 onChange={(e) => {
                                     const v = parseFloat(e.target.value);
                                     setVolume(v);
-                                    if (youtubeReady.current) playerRef.current.setVolume(v * 100);
                                 }}
                                 className="volume-slider"
                             />
@@ -297,13 +362,6 @@ export default function VoidRadio() {
                     animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                 }
 
-                .card-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 20px;
-                }
-
                 .status-indicator {
                     font-size: 9px;
                     font-weight: 900;
@@ -349,11 +407,6 @@ export default function VoidRadio() {
                     transition: all 0.2s;
                 }
 
-                .station-btn:hover {
-                    background: rgba(255, 255, 255, 0.08);
-                    color: #fff;
-                }
-
                 .station-btn.active {
                     background: rgba(255, 255, 255, 0.1);
                     border-color: rgba(255, 255, 255, 0.2);
@@ -378,15 +431,6 @@ export default function VoidRadio() {
                     letter-spacing: 1px;
                     cursor: pointer;
                     transition: transform 0.2s;
-                }
-
-                .play-btn:hover {
-                    transform: scale(1.02);
-                }
-
-                .play-btn:disabled {
-                    opacity: 0.5;
-                    cursor: wait;
                 }
 
                 .volume-slider {
