@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { setAudioProfile, playTypeSound, toggleAmbience, setAmbienceProfile, radioControl, radioEvents } from '../../utils/audioEngine';
 import { saveImage, getImage } from '../../utils/db';
 
-export default function AppearancePanel({ onClose, isOpen, onToggle, letters = [], onOpenLetter, onShowSaved, currentView }) {
+export default function AppearancePanel({ onClose, isOpen, onToggle, letters = [], onOpenLetter, onShowSaved, currentView, triggerModal }) {
     const [theme, setTheme] = useState('void');
     const [font, setFont] = useState('serif');
     const [audioProfile, setLocalAudioProfile] = useState('mechanical');
@@ -154,7 +154,13 @@ export default function AppearancePanel({ onClose, isOpen, onToggle, letters = [
 
         // Increased to 10MB! Supported by IndexedDB without slowing down.
         if (file.size > 10 * 1024 * 1024) {
-            alert("Image too large. Even for the void, 10MB is the limit for stability.");
+            triggerModal({
+                isOpen: true,
+                type: 'alert',
+                title: 'Limit Exceeded',
+                message: 'Image too large. Even for the void, 10MB is the limit for stability.',
+                onConfirm: () => triggerModal(prev => ({ ...prev, isOpen: false }))
+            });
             return;
         }
 
@@ -182,10 +188,22 @@ export default function AppearancePanel({ onClose, isOpen, onToggle, letters = [
                 localStorage.setItem('wbds_owned', JSON.stringify(parsed));
                 window.location.reload();
             } else {
-                alert('Invalid Key Format (Must be an array)');
+                triggerModal({
+                    isOpen: true,
+                    type: 'alert',
+                    title: 'Invalid Key',
+                    message: 'Invalid Key Format (Must be an array)',
+                    onConfirm: () => triggerModal(prev => ({ ...prev, isOpen: false }))
+                });
             }
         } catch (e) {
-            alert('Invalid Key Data');
+            triggerModal({
+                isOpen: true,
+                type: 'alert',
+                title: 'Invalid Key',
+                message: 'Invalid Key Data',
+                onConfirm: () => triggerModal(prev => ({ ...prev, isOpen: false }))
+            });
         }
     };
 
@@ -399,7 +417,19 @@ export default function AppearancePanel({ onClose, isOpen, onToggle, letters = [
                     <div className="option-grid">
                         <button className="option-btn" onClick={() => { setCopyInput(localStorage.getItem('wbds_owned') || '[]'); setShowCopyModal(true); }}>View & Copy Key</button>
                         <button className="option-btn" onClick={() => setShowRestoreModal(true)}>Restore Backup</button>
-                        <button className="option-btn" style={{ color: '#ff453a', borderColor: 'rgba(255, 69, 58, 0.3)' }} onClick={() => { if (confirm('Wipe history?')) { localStorage.removeItem('wbds_owned'); window.location.reload(); } }}>Clear History</button>
+                        <button className="option-btn" style={{ color: '#ff453a', borderColor: 'rgba(255, 69, 58, 0.3)' }} onClick={() => {
+                            triggerModal({
+                                isOpen: true,
+                                type: 'confirm',
+                                title: 'Wipe History',
+                                message: 'Are you sure you want to clear your entire history? This cannot be undone.',
+                                onConfirm: () => {
+                                    localStorage.removeItem('wbds_owned');
+                                    window.location.reload();
+                                },
+                                onCancel: () => triggerModal(prev => ({ ...prev, isOpen: false }))
+                            });
+                        }}>Clear History</button>
                     </div>
                 </div>
             </div>

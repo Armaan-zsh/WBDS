@@ -13,6 +13,7 @@ import GalaxyBackground from '../components/Layout/GalaxyBackground';
 import StandardFooter from '../components/Layout/StandardFooter';
 import VoidWhisper from '../components/Layout/VoidWhisper';
 import CustomWallpaper from '../components/Layout/CustomWallpaper';
+import VoidModal from '../components/Layout/VoidModal';
 import { getFingerprint } from '../utils/trust';
 import dynamic from 'next/dynamic';
 
@@ -51,6 +52,7 @@ export default function Home() {
     const [showShortcuts, setShowShortcuts] = useState(false); // Shortcuts modal
     const [isAdmin, setIsAdmin] = useState(false); // [NEW] Admin Toggle
     const [adminSecret, setAdminSecret] = useState(null); // [NEW] Admin Token
+    const [modal, setModal] = useState({ isOpen: false, type: 'alert', title: '', message: '', onConfirm: () => { }, onCancel: () => { } }); // [NEW] Custom Modal
 
     // Keyboard Shortcuts
     useEffect(() => {
@@ -314,8 +316,36 @@ export default function Home() {
         const handleAdminKey = async (e) => {
             // Shift + Alt + A triggers Admin Auth
             if (e.shiftKey && e.altKey && e.code === 'KeyA') {
-                const pass = prompt("The void requires a key:");
-                if (!pass) return;
+                setModal({
+                    isOpen: true,
+                    type: 'prompt',
+                    title: 'The void requires a key',
+                    message: 'Enter your administrator secret to unlock moderation tools.',
+                    placeholder: 'Secret Passcode...',
+                    onConfirm: async (pass) => {
+                        try {
+                            const res = await fetch('/api/admin/auth', {
+                                method: 'POST',
+                                body: JSON.stringify({ password: pass })
+                            });
+                            const data = await res.json();
+
+                            if (data.success) {
+                                setIsAdmin(true);
+                                setAdminSecret(pass);
+                                setNotification({ message: 'The gate is open. Admin Mode Active.', type: 'success' });
+                            } else {
+                                setNotification({ message: 'The void rejects your key.', type: 'error' });
+                            }
+                        } catch (err) {
+                            console.error('Auth Error:', err);
+                        } finally {
+                            setModal(prev => ({ ...prev, isOpen: false }));
+                        }
+                    },
+                    onCancel: () => setModal(prev => ({ ...prev, isOpen: false }))
+                });
+                return; // Exit earlier
 
                 try {
                     const res = await fetch('/api/admin/auth', {
@@ -923,6 +953,7 @@ export default function Home() {
                             onReport={handleReport}
                             isAdmin={isAdmin} // [NEW]
                             adminSecret={adminSecret} // [NEW]
+                            triggerModal={setModal} // [NEW]
                         />
                     </div>
                 )}
@@ -1103,6 +1134,7 @@ export default function Home() {
                 onOpenLetter={(letter) => setSelectedLetter(letter)}
                 onShowSaved={() => setView('saved')}
                 currentView={view}
+                triggerModal={setModal} // [NEW] Pass modal trigger
             />
 
             {/* Daily Whisper Prompt */}
@@ -1181,6 +1213,10 @@ export default function Home() {
                     </div>
                 </div>
             )}
+            {/* CUSTOM VOID MODAL */}
+            <VoidModal
+                {...modal}
+            />
         </div>
     );
 }

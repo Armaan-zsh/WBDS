@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 
 import { useState, useEffect } from 'react';
 
-export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onLike, likedLetters, onReport, viewMode, isAdmin, adminSecret }) {
+export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onLike, likedLetters, onReport, viewMode, isAdmin, adminSecret, triggerModal }) {
     const [activeTag, setActiveTag] = useState(null);
     const [pinnedLetters, setPinnedLetters] = useState(new Set());
     const TAGS = ['#Love', '#Hope', '#Regret', '#Anger', '#Grief', '#Joy', '#Fear', '#Void'];
@@ -11,31 +11,52 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
     // --- ADMIN ACTIONS ---
     const handleAdminAction = async (e, action, letterId, ip, fingerprint) => {
         e.stopPropagation();
-        if (!confirm(`Confirm ${action}?`)) return;
 
-        try {
-            const res = await fetch('/api/admin/action', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action,
-                    letterId,
-                    ip,
-                    fingerprint,
-                    adminSecret
-                })
-            });
-            const data = await res.json();
-            if (data.success) {
-                alert(data.message);
-                // Trigger a refresh or remove from local state
-                window.location.reload();
-            } else {
-                alert(data.error || 'Action failed');
-            }
-        } catch (err) {
-            console.error('Admin Action Error:', err);
-        }
+        triggerModal({
+            isOpen: true,
+            type: 'confirm',
+            title: 'Moderation Action',
+            message: `Are you sure you want to ${action === 'burn' ? 'delete this letter forever' : 'shadow-ban this user'}?`,
+            onConfirm: async () => {
+                try {
+                    const res = await fetch('/api/admin/action', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action,
+                            letterId,
+                            ip,
+                            fingerprint,
+                            adminSecret
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        triggerModal({
+                            isOpen: true,
+                            type: 'alert',
+                            title: 'Success',
+                            message: data.message,
+                            onConfirm: () => {
+                                triggerModal(prev => ({ ...prev, isOpen: false }));
+                                window.location.reload();
+                            },
+                        });
+                    } else {
+                        triggerModal({
+                            isOpen: true,
+                            type: 'alert',
+                            title: 'Failed',
+                            message: data.error || 'Action failed',
+                            onConfirm: () => triggerModal(prev => ({ ...prev, isOpen: false })),
+                        });
+                    }
+                } catch (err) {
+                    console.error('Admin Action Error:', err);
+                }
+            },
+            onCancel: () => triggerModal(prev => ({ ...prev, isOpen: false }))
+        });
     };
 
     // Load pinned letters from localStorage
