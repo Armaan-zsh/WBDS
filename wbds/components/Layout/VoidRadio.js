@@ -27,25 +27,22 @@ export default function VoidRadio() {
     const youtubeReady = useRef(false);
     const lastPlayerState = useRef(-1);
 
-    // Ambiance Refs
-    const rainRef = useRef(null);
-    const thunderRef = useRef(null);
+    // Ambiance Refs (isolated Web Audio context)
+    const ambiCtxRef = useRef(null);
+    const rainNodeRef = useRef(null);
+    const rainGainRef = useRef(null);
+    const thunderGainRef = useRef(null);
+    const thunderIntervalRef = useRef(null);
 
     // Track stationId to avoid closures
     const stationIdRef = useRef(stationId);
     useEffect(() => { stationIdRef.current = stationId; }, [stationId]);
 
-    // Initial Audio & Ambiance Setup
+    // Initial Audio Setup
     useEffect(() => {
         if (typeof window === 'undefined') return;
         audioRef.current = new Audio();
         audioRef.current.crossOrigin = 'anonymous';
-
-        // Ambiance Setup
-        rainRef.current = new Audio('https://www.soundjay.com/nature/rain-07.mp3');
-        rainRef.current.loop = true;
-        thunderRef.current = new Audio('https://www.soundjay.com/nature/thunder-strike-1.mp3');
-        thunderRef.current.loop = false; // Thunder strike, we can randomize it
 
         const onAudioPlay = () => { setIsPlaying(true); setIsLoading(false); setError(null); };
         const onAudioPause = () => setIsPlaying(false);
@@ -66,9 +63,11 @@ export default function VoidRadio() {
             if (audioRef.current) {
                 audioRef.current.pause();
                 audioRef.current.src = "";
+                audioRef.current.removeEventListener('playing', onAudioPlay);
+                audioRef.current.removeEventListener('pause', onAudioPause);
+                audioRef.current.removeEventListener('waiting', onAudioWaiting);
+                audioRef.current.removeEventListener('error', onAudioError);
             }
-            if (rainRef.current) rainRef.current.pause();
-            if (thunderRef.current) thunderRef.current.pause();
         };
     }, []);
 
@@ -170,9 +169,10 @@ export default function VoidRadio() {
             if (isMuted) playerRef.current.mute();
             else playerRef.current.unMute();
         }
-        if (rainRef.current) rainRef.current.volume = v * 0.4;
-        if (thunderRef.current) thunderRef.current.volume = v * 0.6;
-    }, [volume, isMuted]);
+        // Sync ambiance volume
+        if (rainGainRef.current) rainGainRef.current.gain.setTargetAtTime(isRainy ? v * 0.5 : 0, ambiCtxRef.current?.currentTime || 0, 0.1);
+        if (thunderGainRef.current) thunderGainRef.current.gain.setTargetAtTime(isThundery ? v * 0.7 : 0, ambiCtxRef.current?.currentTime || 0, 0.1);
+    }, [volume, isMuted, isRainy, isThundery]);
 
     // 4. Handle Remote Controls & State Broadcasting
     useEffect(() => {
@@ -262,29 +262,119 @@ export default function VoidRadio() {
         return () => clearInterval(interval);
     }, [stationId]);
 
-    // 7. Ambiance Toggles
-    useEffect(() => {
-        if (!rainRef.current) return;
-        if (isRainy) rainRef.current.play().catch(() => { });
-        else rainRef.current.pause();
-    }, [isRainy]);
+    // 7. Procedural Ambiance Engine (isolated AudioContext)
+    const initAmbiCtx = () => {
+        if (ambiCtxRef.current) return;
+        const AC = window.AudioContext || window.webkitAudioContext;
+        ambiCtxRef.current = new AC();
 
+        // Rain gain node
+        rainGainRef.current = ambiCtxRef.current.createGain();
+        rainGainRef.current.gain.value = 0;
+        rainGainRef.current.connect(ambiCtxRef.current.destination);
+
+        // Thunder gain node
+        thunderGainRef.current = ambiCtxRef.current.createGain();
+        thunderGainRef.current.gain.value = 0;
+        thunderGainRef.current.connect(ambiCtxRef.current.destination);
+    };
+
+    // Rain: looped brown noise through a lowpass filter
     useEffect(() => {
-        if (!thunderRef.current) return;
-        let interval;
-        if (isThundery) {
-            const strike = () => {
-                thunderRef.current.currentTime = 0;
-                thunderRef.current.play().catch(() => { });
-                const next = Math.random() * 30000 + 10000;
-                interval = setTimeout(strike, next);
-            };
-            strike();
-        } else {
-            thunderRef.current.pause();
+        if (stationId === 'kexp') return;
+        if (!isRainy) {
+            if (rainNodeRef.current) { try { rainNodeRef.current.stop(); } catch (e) { } rainNodeRef.current = null; }
+            if (rainGainRef.current) rainGainRef.current.gain.setTargetAtTime(0, ambiCtxRef.current?.currentTime || 0, 0.1);
+            return;
         }
-        return () => clearTimeout(interval);
-    }, [isThundery]);
+
+        initAmbiCtx();
+        if (ambiCtxRef.current.state === 'suspended') ambiCtxRef.current.resume();
+
+        const ctx = ambiCtxRef.current;
+        const bufferSize = ctx.sampleRate * 4;
+        const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
+
+        // Generate brown noise for rain
+        for (let ch = 0; ch < 2; ch++) {
+            const data = buffer.getChannelData(ch);
+            let lastOut = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                lastOut = (lastOut + (0.02 * white)) / 1.02;
+                data[i] = lastOut * 3.5;
+            }
+        }
+
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 400;
+
+        source.connect(filter);
+        filter.connect(rainGainRef.current);
+
+        const v = isMuted ? 0 : volume;
+        rainGainRef.current.gain.setTargetAtTime(v * 0.5, ctx.currentTime, 0.3);
+        source.start();
+        rainNodeRef.current = source;
+
+        return () => { try { source.stop(); } catch (e) { } };
+    }, [isRainy, stationId]);
+
+    // Thunder: random burst strikes
+    useEffect(() => {
+        if (stationId === 'kexp') return;
+        if (!isThundery) {
+            if (thunderGainRef.current) thunderGainRef.current.gain.setTargetAtTime(0, ambiCtxRef.current?.currentTime || 0, 0.1);
+            clearTimeout(thunderIntervalRef.current);
+            return;
+        }
+
+        initAmbiCtx();
+        if (ambiCtxRef.current.state === 'suspended') ambiCtxRef.current.resume();
+
+        const ctx = ambiCtxRef.current;
+        const v = isMuted ? 0 : volume;
+
+        const strike = () => {
+            // Create a short burst of filtered noise for thunder
+            const len = ctx.sampleRate * (1.5 + Math.random() * 2);
+            const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < len; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+            }
+
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+
+            const lp = ctx.createBiquadFilter();
+            lp.type = 'lowpass';
+            lp.frequency.value = 150 + Math.random() * 100;
+
+            src.connect(lp);
+            lp.connect(thunderGainRef.current);
+            thunderGainRef.current.gain.setTargetAtTime(v * 0.7, ctx.currentTime, 0.05);
+            src.start();
+
+            // Schedule next strike randomly (8-25s)
+            thunderIntervalRef.current = setTimeout(strike, 8000 + Math.random() * 17000);
+        };
+
+        strike();
+        return () => clearTimeout(thunderIntervalRef.current);
+    }, [isThundery, stationId]);
+
+    // 8. Enforce KEXP no-ambience rule
+    useEffect(() => {
+        if (stationId !== 'kexp') return;
+        if (isRainy) setIsRainy(false);
+        if (isThundery) setIsThundery(false);
+    }, [stationId]);
 
     const togglePlay = () => {
         const station = STATIONS.find(s => s.id === stationId);
@@ -366,6 +456,16 @@ export default function VoidRadio() {
         }, 500);
     };
 
+    const handleToggleRain = () => {
+        if (stationId === 'kexp') return;
+        setIsRainy(prev => !prev);
+    };
+
+    const handleToggleThunder = () => {
+        if (stationId === 'kexp') return;
+        setIsThundery(prev => !prev);
+    };
+
     return (
         <div className="void-radio-root">
             <div id="youtube-ghost-player" className="ghost-container"></div>
@@ -402,20 +502,22 @@ export default function VoidRadio() {
                             ))}
                         </div>
 
-                        <div className="ambient-toggles">
-                            <button
-                                className={`ambient-btn ${isRainy ? 'active' : ''}`}
-                                onClick={() => setIsRainy(!isRainy)}
-                            >
-                                🌧️ RAIN
-                            </button>
-                            <button
-                                className={`ambient-btn ${isThundery ? 'active' : ''}`}
-                                onClick={() => setIsThundery(!isThundery)}
-                            >
-                                ⚡ THUNDER
-                            </button>
-                        </div>
+                        {stationId !== 'kexp' && (
+                            <div className="ambient-toggles">
+                                <button
+                                    className={`ambient-btn ${isRainy ? 'active' : ''}`}
+                                    onClick={handleToggleRain}
+                                >
+                                    🌧️ RAIN
+                                </button>
+                                <button
+                                    className={`ambient-btn ${isThundery ? 'active' : ''}`}
+                                    onClick={handleToggleThunder}
+                                >
+                                    ⚡ THUNDER
+                                </button>
+                            </div>
+                        )}
 
                         <div className="card-controls">
                             <button
