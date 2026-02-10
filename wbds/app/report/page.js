@@ -75,17 +75,18 @@ export default function ReportPage() {
     };
 
     return (
-        <div className="report-page">
+        <div className="report-page report-page-root" style={{ background: '#000000', color: '#ffffff' }}>
             <div className="void-background">
                 <div className="void-glow g1" />
                 <div className="void-glow g2" />
             </div>
 
-            <div className="report-container">
+            <div className="report-container report-container-loading">
                 <div className="header">
                     <span className="system-tag">SYSTEM // REPORT_BUG</span>
                     <h1>Transmit Feedback</h1>
                     <p>Encountered a glitch in the void? Log your findings below.</p>
+                    <p className="direct-contact">Or reach the source directly: <a href="mailto:33916@proton.me">33916@proton.me</a></p>
                 </div>
 
                 {isRateLimited ? (
@@ -138,7 +139,7 @@ export default function ReportPage() {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    placeholder="contact@void.net"
+                                    placeholder="33916@proton.me"
                                 />
                             </div>
                         </div>
@@ -168,18 +169,69 @@ export default function ReportPage() {
                             </div>
                         )}
 
-                        <div className="form-actions">
-                            <Link href="/">
-                                <button type="button" className="btn-cancel">ABORT</button>
-                            </Link>
+                        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '20px', width: '100%' }}>
+                            <button
+                                type="button"
+                                onClick={() => router.push('/')}
+                                style={{
+                                    all: 'unset',
+                                    flex: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '18px 32px',
+                                    fontSize: '11px',
+                                    fontWeight: 800,
+                                    letterSpacing: '2px',
+                                    borderRadius: '16px',
+                                    cursor: 'pointer',
+                                    textAlign: 'center',
+                                    boxSizing: 'border-box',
+                                    whiteSpace: 'nowrap',
+                                    background: 'rgba(255, 255, 255, 0.03)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    color: 'rgba(255, 255, 255, 0.4)',
+                                    backdropFilter: 'blur(10px)',
+                                    transition: 'all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)',
+                                    fontFamily: 'Inter, -apple-system, sans-serif'
+                                }}
+                                onMouseEnter={e => { e.target.style.background = 'rgba(255,255,255,0.08)'; e.target.style.color = '#fff'; e.target.style.borderColor = 'rgba(255,255,255,0.2)'; e.target.style.transform = 'translateY(-2px)'; }}
+                                onMouseLeave={e => { e.target.style.background = 'rgba(255,255,255,0.03)'; e.target.style.color = 'rgba(255,255,255,0.4)'; e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.transform = 'none'; }}
+                            >
+                                ABORT
+                            </button>
                             <button
                                 type="submit"
-                                className="btn-submit"
                                 disabled={status === 'submitting'}
+                                style={{
+                                    all: 'unset',
+                                    flex: 2,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '18px 32px',
+                                    fontSize: '11px',
+                                    fontWeight: 800,
+                                    letterSpacing: '2px',
+                                    borderRadius: '16px',
+                                    cursor: status === 'submitting' ? 'not-allowed' : 'pointer',
+                                    textAlign: 'center',
+                                    boxSizing: 'border-box',
+                                    whiteSpace: 'nowrap',
+                                    background: '#ffffff',
+                                    color: '#000000',
+                                    boxShadow: '0 10px 30px rgba(255, 255, 255, 0.1)',
+                                    transition: 'all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)',
+                                    opacity: status === 'submitting' ? 0.3 : 1,
+                                    fontFamily: 'Inter, -apple-system, sans-serif'
+                                }}
+                                onMouseEnter={e => { if (status !== 'submitting') { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 15px 40px rgba(255,255,255,0.2)'; e.target.style.background = '#f0f0f0'; } }}
+                                onMouseLeave={e => { e.target.style.transform = 'none'; e.target.style.boxShadow = '0 10px 30px rgba(255,255,255,0.1)'; e.target.style.background = '#ffffff'; }}
                             >
                                 {status === 'submitting' ? 'TRANSMITTING...' : 'TRANSMIT SIGNAL'}
                             </button>
                         </div>
+
 
                         {status === 'error' && (
                             <p className="error-msg">CONNECTION LOST. RETRY TRANSMISSION.</p>
@@ -264,7 +316,10 @@ export default function ReportPage() {
                     -webkit-text-fill-color: transparent;
                 }
 
-                .header p { color: rgba(255, 255, 255, 0.5); font-size: 16px; line-height: 1.5; }
+                .header p { color: rgba(255, 255, 255, 0.5); font-size: 16px; line-height: 1.5; margin-bottom: 8px; }
+                .direct-contact { font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.3); letter-spacing: 1px; }
+                .direct-contact a { color: #fff; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.2); transition: all 0.3s; }
+                .direct-contact a:hover { color: #3aedff; border-color: #3aedff; }
 
                 .report-form { display: flex; flex-direction: column; gap: 28px; }
                 .form-row { display: flex; gap: 20px; }
@@ -304,33 +359,7 @@ export default function ReportPage() {
                     padding-right: 50px;
                 }
 
-                .form-actions { display: flex; gap: 20px; align-items: center; margin-top: 10px; }
 
-                .btn-cancel {
-                    background: transparent;
-                    color: rgba(255, 255, 255, 0.4);
-                    padding: 18px 32px;
-                    font-size: 13px;
-                    font-weight: 700;
-                    letter-spacing: 2px;
-                    border-radius: 20px;
-                    transition: all 0.3s;
-                }
-                .btn-cancel:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
-
-                .btn-submit {
-                    flex: 2;
-                    background: #fff;
-                    color: #000;
-                    padding: 18px 32px;
-                    font-size: 13px;
-                    font-weight: 800;
-                    letter-spacing: 2px;
-                    border-radius: 20px;
-                    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
-                }
-                .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 35px rgba(255, 255, 255, 0.3); }
-                .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
                 .success-message, .limit-message {
                     text-align: center;

@@ -25,6 +25,20 @@ body {
   color: white;
 }
 
+/* === REPORT PAGE STABILITY === */
+.report-page-root {
+  background: #000000 !important;
+  color: #ffffff !important;
+  min-height: 100vh;
+  width: 100vw;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+}
+
+.report-container-loading {
+  background: rgba(10, 10, 10, 0.4);
+  backdrop-filter: blur(40px) saturate(180%);
+}
+
 :root {
   /* DEFAULTS (THE VOID) - Premium Minimal Refinement */
   --bg-depth: #000000;

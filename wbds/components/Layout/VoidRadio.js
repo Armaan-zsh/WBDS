@@ -403,7 +403,7 @@ export default function VoidRadio() {
 
             <style jsx>{`
                 .void-radio-root { position: fixed; bottom: 40px; right: 24px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none; }
-                .ghost-container { position: absolute; width: 10px; height: 10px; opacity: 0.1; pointer-events: none; }
+                .ghost-container { position: fixed; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 0; pointer-events: none; z-index: -1; overflow: hidden; }
                 .radio-ui-container { display: flex; flex-direction: column; align-items: flex-end; pointer-events: auto; }
                 .radio-toggle { background: rgba(10, 10, 10, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.5); padding: 10px 24px; border-radius: 50px; cursor: pointer; font-size: 11px; font-weight: 800; letter-spacing: 2px; transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); display: flex; align-items: center; gap: 10px; backdrop-filter: blur(10px); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
                 .radio-toggle:hover { color: #fff; border-color: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
