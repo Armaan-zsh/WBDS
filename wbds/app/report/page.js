@@ -262,13 +262,13 @@ export default function ReportPage() {
 
                 .report-container {
                     width: 100%;
-                    max-width: 480px;
+                    max-width: 420px;
                     background: rgba(10, 10, 10, 0.4);
                     backdrop-filter: blur(40px) saturate(180%);
                     -webkit-backdrop-filter: blur(40px) saturate(180%);
                     border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 32px;
-                    padding: 40px;
+                    border-radius: 24px;
+                    padding: 32px;
                     box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
                     position: relative;
                     z-index: 2;
@@ -284,41 +284,41 @@ export default function ReportPage() {
                     display: block;
                 }
 
-                .header { margin-bottom: 32px; text-align: left; }
+                .header { margin-bottom: 24px; text-align: left; }
                 .header h1 {
-                    font-size: 28px;
+                    font-size: 22px;
                     font-weight: 800;
-                    margin: 0 0 10px 0;
-                    letter-spacing: -1px;
+                    margin: 0 0 6px 0;
+                    letter-spacing: -0.5px;
                     background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.5) 100%);
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                 }
 
-                .header p { color: rgba(255, 255, 255, 0.5); font-size: 16px; line-height: 1.5; margin-bottom: 8px; }
+                .header p { color: rgba(255, 255, 255, 0.5); font-size: 13px; line-height: 1.4; margin-bottom: 6px; }
                 .direct-contact { font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.3); letter-spacing: 1px; }
                 .direct-contact a { color: #fff; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.2); transition: all 0.3s; }
                 .direct-contact a:hover { color: #3aedff; border-color: #3aedff; }
 
-                .report-form { display: flex; flex-direction: column; gap: 24px; }
-                .form-row { display: flex; flex-direction: column; gap: 24px; }
-                .form-group { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+                .report-form { display: flex; flex-direction: column; gap: 16px; }
+                .form-row { display: flex; flex-direction: row; gap: 12px; }
+                .form-group { flex: 1; display: flex; flex-direction: column; gap: 6px; }
 
                 label {
-                    font-size: 11px;
-                    font-weight: 700;
-                    color: rgba(255, 255, 255, 0.4);
-                    letter-spacing: 1.5px;
+                    font-size: 9px;
+                    font-weight: 800;
+                    color: rgba(255, 255, 255, 0.3);
+                    letter-spacing: 1px;
                     margin-left: 2px;
                 }
 
                 input, select, textarea {
                     background: rgba(255, 255, 255, 0.03);
                     border: 1px solid rgba(255, 255, 255, 0.08);
-                    border-radius: 16px;
-                    padding: 16px 20px;
+                    border-radius: 12px;
+                    padding: 12px 14px;
                     color: #fff;
-                    font-size: 15px;
+                    font-size: 13px;
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                     outline: none;
                     width: 100%;
