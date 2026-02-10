@@ -76,10 +76,7 @@ export default function ReportPage() {
 
     return (
         <div className="report-page report-page-root" style={{ background: '#000000', color: '#ffffff' }}>
-            <div className="void-background">
-                <div className="void-glow g1" />
-                <div className="void-glow g2" />
-            </div>
+            <div className="void-background" />
 
             <div className="report-container report-container-loading">
                 <div className="header">
@@ -261,24 +258,6 @@ export default function ReportPage() {
                     top: 0; left: 0; right: 0; bottom: 0;
                     z-index: 1;
                     overflow: hidden;
-                }
-
-                .void-glow {
-                    position: absolute;
-                    width: 600px;
-                    height: 600px;
-                    border-radius: 50%;
-                    filter: blur(120px);
-                    opacity: 0.15;
-                    pointer-events: none;
-                }
-
-                .g1 { top: -200px; right: -100px; background: #3aedff; animation: float 15s infinite alternate; }
-                .g2 { bottom: -200px; left: -100px; background: #7000ff; animation: float 18s infinite alternate-reverse; }
-
-                @keyframes float {
-                    from { transform: translate(0, 0); }
-                    to { transform: translate(100px, 50px); }
                 }
 
                 .report-container {
