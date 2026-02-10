@@ -262,13 +262,13 @@ export default function ReportPage() {
 
                 .report-container {
                     width: 100%;
-                    max-width: 600px;
+                    max-width: 480px;
                     background: rgba(10, 10, 10, 0.4);
                     backdrop-filter: blur(40px) saturate(180%);
                     -webkit-backdrop-filter: blur(40px) saturate(180%);
                     border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 40px;
-                    padding: 48px;
+                    border-radius: 32px;
+                    padding: 40px;
                     box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
                     position: relative;
                     z-index: 2;
@@ -284,12 +284,12 @@ export default function ReportPage() {
                     display: block;
                 }
 
-                .header { margin-bottom: 40px; text-align: left; }
+                .header { margin-bottom: 32px; text-align: left; }
                 .header h1 {
-                    font-size: 36px;
+                    font-size: 28px;
                     font-weight: 800;
-                    margin: 0 0 12px 0;
-                    letter-spacing: -1.5px;
+                    margin: 0 0 10px 0;
+                    letter-spacing: -1px;
                     background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.5) 100%);
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
@@ -300,9 +300,9 @@ export default function ReportPage() {
                 .direct-contact a { color: #fff; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.2); transition: all 0.3s; }
                 .direct-contact a:hover { color: #3aedff; border-color: #3aedff; }
 
-                .report-form { display: flex; flex-direction: column; gap: 28px; }
-                .form-row { display: flex; gap: 20px; }
-                .form-group { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+                .report-form { display: flex; flex-direction: column; gap: 24px; }
+                .form-row { display: flex; flex-direction: column; gap: 24px; }
+                .form-group { width: 100%; display: flex; flex-direction: column; gap: 10px; }
 
                 label {
                     font-size: 11px;
@@ -321,6 +321,8 @@ export default function ReportPage() {
                     font-size: 15px;
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                     outline: none;
+                    width: 100%;
+                    box-sizing: border-box;
                 }
 
                 input:focus, select:focus, textarea:focus {
