@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Try both public and private names (Cloudflare sometimes treats them differently during build)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey) {
-    // This often happens during pre-rendering/build
-    console.warn(`Supabase Admin: Missing ${!supabaseUrl ? 'URL' : ''} ${!supabaseServiceKey ? 'Service Key' : ''}. Connection skipped.`);
+    console.warn(`Supabase Admin Error: ${!supabaseUrl ? '[URL MISSING]' : ''} ${!supabaseServiceKey ? '[SERVICE KEY MISSING]' : ''}`);
 }
 
 // Build-safe initialization: only create client if URL and Key exist
