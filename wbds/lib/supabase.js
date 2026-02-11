@@ -1,15 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 
-// These are baked in at build time
-const buildUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const buildKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+let supabaseInstance = null;
 
-// Build-safe initialization: only create client if URL and Key exist
-// We export a getter to allow for potential runtime injection if needed
-export const supabase = (buildUrl && buildKey)
-    ? createClient(buildUrl, buildKey)
-    : null;
+export const getSupabase = () => {
+    if (supabaseInstance) return supabaseInstance;
 
-if (!supabase) {
-    console.warn("Supabase: Client initialized as null. Check build-time environment variables.");
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+
+    if (!url || !key) {
+        console.warn("Supabase: Environment variables missing during lazy init.");
+        return null;
+    }
+
+    supabaseInstance = createClient(url, key);
+    return supabaseInstance;
+};
+
+// Log a warning if variables are missing at the top level (for debugging)
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    console.warn("Supabase: URL missing at top-level scope.");
 }
+
+// Keep the old export for backward compatibility but use the getter internally where possible
+export const supabase = getSupabase();

@@ -1,19 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Try both public and private names (Cloudflare sometimes treats them differently during build)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+let adminInstance = null;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-    console.warn(`Supabase Admin Error: ${!supabaseUrl ? '[URL MISSING]' : ''} ${!supabaseServiceKey ? '[SERVICE KEY MISSING]' : ''}`);
-}
+export const getSupabaseAdmin = () => {
+    if (adminInstance) return adminInstance;
 
-// Build-safe initialization: only create client if URL and Key exist
-export const supabaseAdmin = (supabaseUrl && supabaseServiceKey)
-    ? createClient(supabaseUrl, supabaseServiceKey, {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+
+    if (!url || !key) {
+        console.error("Supabase Admin: Environment variables missing during lazy init.");
+        return null;
+    }
+
+    adminInstance = createClient(url, key, {
         auth: {
             autoRefreshToken: false,
             persistSession: false
         }
-    })
-    : null;
+    });
+    return adminInstance;
+};
+
+// Keep for backward compatibility
+export const supabaseAdmin = getSupabaseAdmin();
