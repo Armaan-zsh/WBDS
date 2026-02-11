@@ -1,6 +1,16 @@
 'use client';
 
+import { useState } from 'react';
+
 export default function AboutPage() {
+    const [copied, setCopied] = useState(null);
+
+    const copyAddress = (type, address) => {
+        navigator.clipboard.writeText(address);
+        setCopied(type);
+        setTimeout(() => setCopied(null), 2000);
+    };
+
     return (
         <div className="about-page-overlay">
             <div className="scroll-container">
@@ -64,6 +74,36 @@ export default function AboutPage() {
                             <p>
                                 My dream is to move beyond them. To build our own heart: a custom database paired with <strong>IPFS</strong>. A future where WBDS doesn't live on a corporate server, but drifts across the decentralized web. A future where, even if the world's major networks fail, the Void remains open. Independent. Unstoppable.
                             </p>
+                        </div>
+                    </section>
+
+                    <section className="about-section" id="donate">
+                        <h2>☕ FUEL THE VOID</h2>
+                        <div className="about-content">
+                            <p className="anon-quote">
+                                <em>"I should have dropped my PayPal here, but I chose anonymity."</em>
+                            </p>
+                            <p>
+                                If the Void has been a home for your unspoken words, you can help keep it alive. Every donation fuels hosting, development, and the dream of a truly independent sanctuary.
+                            </p>
+                        </div>
+                        <div className="wallet-cards">
+                            <button
+                                className={`wallet-card ${copied === 'sol' ? 'copied' : ''}`}
+                                onClick={() => copyAddress('sol', 'EGr5ZvhtTb7nqczg5VZfH7CR9jhcQ9rwBhvnydfDcAkk')}
+                            >
+                                <span className="wallet-chain">◎ SOLANA</span>
+                                <span className="wallet-addr">EGr5Zvh...DcAkk</span>
+                                <span className="wallet-action">{copied === 'sol' ? '✓ COPIED' : 'CLICK TO COPY'}</span>
+                            </button>
+                            <button
+                                className={`wallet-card ${copied === 'eth' ? 'copied' : ''}`}
+                                onClick={() => copyAddress('eth', '0x666DA238E89fbf3293aF8fe723fC22C0D5e208EE')}
+                            >
+                                <span className="wallet-chain">⟠ ETHEREUM</span>
+                                <span className="wallet-addr">0x666DA...208EE</span>
+                                <span className="wallet-action">{copied === 'eth' ? '✓ COPIED' : 'CLICK TO COPY'}</span>
+                            </button>
                         </div>
                     </section>
 
@@ -202,6 +242,76 @@ export default function AboutPage() {
                 }
 
                 .back-link:hover { color: #fff; transform: translateY(-2px); }
+
+                .anon-quote {
+                    font-size: 15px;
+                    color: rgba(255, 255, 255, 0.25);
+                    border-left: 2px solid rgba(255, 255, 255, 0.1);
+                    padding-left: 16px;
+                    margin-bottom: 8px;
+                }
+
+                .wallet-cards {
+                    display: flex;
+                    gap: 12px;
+                    margin-top: 8px;
+                }
+
+                .wallet-card {
+                    all: unset;
+                    flex: 1;
+                    background: rgba(255, 255, 255, 0.02);
+                    border: 1px solid rgba(255, 255, 255, 0.06);
+                    border-radius: 16px;
+                    padding: 20px;
+                    cursor: pointer;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    text-align: left;
+                }
+
+                .wallet-card:hover {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-color: rgba(255, 255, 255, 0.15);
+                    transform: translateY(-2px);
+                }
+
+                .wallet-card.copied {
+                    border-color: rgba(255, 255, 255, 0.3);
+                    background: rgba(255, 255, 255, 0.06);
+                }
+
+                .wallet-chain {
+                    font-size: 10px;
+                    font-weight: 800;
+                    letter-spacing: 2px;
+                    color: rgba(255, 255, 255, 0.5);
+                }
+
+                .wallet-addr {
+                    font-family: 'SF Mono', 'Menlo', 'Fira Code', monospace;
+                    font-size: 13px;
+                    color: rgba(255, 255, 255, 0.7);
+                    word-break: break-all;
+                }
+
+                .wallet-action {
+                    font-size: 9px;
+                    font-weight: 800;
+                    letter-spacing: 1.5px;
+                    color: rgba(255, 255, 255, 0.25);
+                    margin-top: 4px;
+                }
+
+                .wallet-card.copied .wallet-action {
+                    color: #fff;
+                }
+
+                @media (max-width: 768px) {
+                    .wallet-cards { flex-direction: column; }
+                }
             `}</style>
         </div>
     );
