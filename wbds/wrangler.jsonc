@@ -1,0 +1,18 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "main": ".open-next/worker.js",
+    "name": "wbds",
+    "compatibility_date": "2024-12-30",
+    "compatibility_flags": [
+        "nodejs_compat"
+    ],
+    "assets": {
+        "directory": ".open-next/assets",
+        "binding": "ASSETS"
+    },
+    "vars": {
+        "NEXT_PUBLIC_SUPABASE_URL": "https://tsytbdnbevscxhrcccvq.supabase.co",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzeXRiZG5iZXZzY3hocmNjY3ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyODQ2MTgsImV4cCI6MjA4Mzg2MDYxOH0.LcVorouHvEugFR4t_bsYzpFNRNzovuRGZBAAd59-qpc",
+        "NODE_VERSION": "20"
+    }
+}

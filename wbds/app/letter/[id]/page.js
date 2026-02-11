@@ -1,6 +1,5 @@
 import { getSupabaseAdmin } from '../../../lib/supabase-admin';
 
-export const runtime = 'edge';
 
 export default async function LetterPage({ params }) {
     const { id } = params;

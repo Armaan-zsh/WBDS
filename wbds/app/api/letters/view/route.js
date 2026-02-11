@@ -3,7 +3,6 @@ import { getSupabaseAdmin } from '../../../../lib/supabase-admin';
 import { headers } from 'next/headers';
 import { hashIp } from '../../../../lib/edge-crypto';
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req) {

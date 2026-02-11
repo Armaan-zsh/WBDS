@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../lib/supabase-admin';
 
-export const runtime = 'edge';
 import { headers } from 'next/headers';
 import { maskPrivateInfo } from '../../../utils/privacyShield';
 import { moderateContent, sanitizeContent } from '../../../utils/contentFilters';
