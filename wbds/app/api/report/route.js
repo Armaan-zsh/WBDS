@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
+export const runtime = 'edge';
+
 // Create a separate client for the API route if needed, or use the standard one
 // leveraging the environment variables already set for the app
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabase-admin';
+
+export const runtime = 'edge';
 import { headers } from 'next/headers';
 import { z } from 'zod';
 
