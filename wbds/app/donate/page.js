@@ -20,10 +20,10 @@ export default function DonatePage() {
                         <h2>FUEL THE VOID</h2>
                         <div className="donate-content">
                             <p className="anon-quote">
-                                <em>"I should have dropped my PayPal here, but I chose anonymity."</em>
+                                <em>Yeah, I could have just linked my PayPal here. But that felt wrong for a place built on anonymity. So here we are crypto only.</em>
                             </p>
                             <p>
-                                If the Void has been a home for your unspoken words, you can help keep it alive. Every donation fuels hosting, development, and the dream of a truly independent sanctuary.
+                                WBDS runs on real servers that cost real money. If this space has meant something to you, even a small contribution helps cover hosting and keeps the project independent. No middlemen, no accounts, no strings attached.
                             </p>
                         </div>
                         <div className="wallet-cards">
