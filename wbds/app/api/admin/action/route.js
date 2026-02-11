@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '../../../../lib/supabase-admin';
+import { getSupabaseAdmin } from '../../../../lib/supabase-admin';
 
 export const runtime = 'edge';
 
 export async function POST(req) {
+    const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) {
+        return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+    }
     try {
         const { action, letterId, ip, fingerprint, adminSecret } = await req.json();
         const PRIVATE_SECRET = process.env.ADMIN_SECRET;

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '../../../../lib/supabase-admin';
+import { getSupabaseAdmin } from '../../../../lib/supabase-admin';
 import { headers } from 'next/headers';
 import { hashIp } from '../../../../lib/edge-crypto';
 
@@ -7,6 +7,7 @@ export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req) {
+    const supabaseAdmin = getSupabaseAdmin();
     if (!supabaseAdmin) {
         return NextResponse.json({ error: 'Server Config Error' }, { status: 500 });
     }

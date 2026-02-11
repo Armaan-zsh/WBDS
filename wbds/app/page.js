@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '../lib/supabase'; // Import Supabase
+import { getSupabase } from '../lib/supabase'; // Import Supabase
 import LetterComposer from '../components/Editor/LetterComposer';
 import LetterFeed from '../components/Feed/LetterFeed';
 import VoidNotification from '../components/Layout/VoidNotification';
@@ -232,8 +232,9 @@ export default function Home() {
     const confirmDelete = async () => {
         if (!deleteTargetId) return;
 
+        const supabase = getSupabase();
         if (!supabase) {
-            handleError("The void is disconnected. Please check environment variables.");
+            setNotification({ type: 'error', message: 'Connection Error' });
             return;
         }
 
@@ -381,9 +382,10 @@ export default function Home() {
     useEffect(() => {
         const fetchLetters = async () => {
             let data, error;
+            const supabase = getSupabase();
 
             if (!supabase) {
-                console.warn('Supabase client not initialized. Pulse skipped.');
+                console.warn('Supabase client not initialized. Skipping fetchLetters.');
                 return;
             }
 
@@ -404,8 +406,6 @@ export default function Home() {
                 // If in 'chain' (Graph) mode, we fetch MORE (500) to populate the sky.
                 // If in 'read' (Feed) mode, we fetch LESS (50) for speed.
                 const limit = (view === 'chain' || view === 'personal') ? 500 : 50;
-
-                if (!supabase) return;
 
                 const result = await supabase
                     .from('letters')
@@ -430,260 +430,245 @@ export default function Home() {
         fetchLetters();
     }, [view]); // Re-fetch when view changes (e.g. Feed -> Graph)
 
-    // Realtime Subscription (Run Once)
-    useEffect(() => {
-        if (!supabase) return;
+    // Update Total Count [NEW]
+    setTotalCount(prev => prev + 1);
 
-        const channel = supabase
-            .channel('public:letters')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'letters' }, (payload) => {
-                const newLetter = {
-                    ...payload.new,
-                    timestamp: payload.new.created_at
-                };
-                setLetters(current => {
-                    // Deduplicate
-                    if (current.some(l => l.id === newLetter.id)) return current;
-
-                    // Update Total Count [NEW]
-                    setTotalCount(prev => prev + 1);
-
-                    // Safety Valve: Cap at 100 items to prevent memory overflow during viral spikes
-                    const updated = [newLetter, ...current];
-                    if (updated.length > 100) {
-                        return updated.slice(0, 100);
-                    }
-                    return updated;
-                });
+    // Safety Valve: Cap at 100 items to prevent memory overflow during viral spikes
+    const updated = [newLetter, ...current];
+    if (updated.length > 100) {
+        return updated.slice(0, 100);
+    }
+    return updated;
+});
             })
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'letters' }, (payload) => {
-                setLetters(current => current.map(l =>
-                    l.id === payload.new.id ? { ...l, ...payload.new } : l
-                ));
-            })
-            .subscribe();
+    setLetters(current => current.map(l =>
+        l.id === payload.new.id ? { ...l, ...payload.new } : l
+    ));
+})
+    .subscribe();
 
-        return () => {
-            if (supabase) supabase.removeChannel(channel);
-        };
+return () => {
+    if (supabase) supabase.removeChannel(channel);
+};
     }, []);
 
-    const handleError = (message) => {
-        setNotification({ message, type: 'error' });
-    };
+const handleError = (message) => {
+    setNotification({ message, type: 'error' });
+};
 
-    const handleLetterSent = async (text, unlockAt, parentId = null, tags = [], recipientType = 'unknown', forced = false) => {
-        // Basic Spam Prevention (Cooldown)
-        const lastSent = localStorage.getItem('wbds_last_sent');
-        if (lastSent && Date.now() - parseInt(lastSent) < 10000) { // Reduced to 10s for testing/growth
-            handleError("You're writing too fast. Take a deep breath.");
-            return;
+const handleLetterSent = async (text, unlockAt, parentId = null, tags = [], recipientType = 'unknown', forced = false) => {
+    // Basic Spam Prevention (Cooldown)
+    const lastSent = localStorage.getItem('wbds_last_sent');
+    if (lastSent && Date.now() - parseInt(lastSent) < 10000) { // Reduced to 10s for testing/growth
+        handleError("You're writing too fast. Take a deep breath.");
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/letters', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                content: text,
+                theme: currentTheme || 'default',
+                font: typeof document !== 'undefined' ? document.documentElement.getAttribute('data-font') || 'sans' : 'sans',
+                unlockAt: unlockAt ? unlockAt.toISOString() : null,
+                tags: tags,
+                recipient_type: recipientType,
+                forced: forced
+            })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            handleError(data.message || data.error || "The Void rejected your letter.");
+            return { error: true, message: data.message || data.error };
         }
 
-        try {
-            const res = await fetch('/api/letters', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    content: text,
-                    theme: currentTheme || 'default',
-                    font: typeof document !== 'undefined' ? document.documentElement.getAttribute('data-font') || 'sans' : 'sans',
-                    unlockAt: unlockAt ? unlockAt.toISOString() : null,
-                    tags: tags,
-                    recipient_type: recipientType,
-                    forced: forced
-                })
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                handleError(data.message || data.error || "The Void rejected your letter.");
-                return { error: true, message: data.message || data.error };
-            }
-
-            // [SOUL LAYER] If it's a story and not forced, return for guidance modal
-            if (data.guidance_needed && !forced) {
-                return data;
-            }
-
-            const id = data.letter.id;
-
-            // Mark as owned (Local Persistence)
-            setMyLetterIds(prev => new Set(prev).add(id));
-            localStorage.setItem('wbds_last_sent', Date.now());
-
-            // Update streak
-            const today = new Date().toDateString();
-            const lastWrite = localStorage.getItem('wbds_last_write_date');
-            const currentStreak = parseInt(localStorage.getItem('wbds_streak') || '0');
-
-            if (lastWrite !== today) {
-                const yesterday = new Date(Date.now() - 86400000).toDateString();
-                const newStreak = (lastWrite === yesterday || !lastWrite) ? currentStreak + 1 : 1;
-                localStorage.setItem('wbds_streak', newStreak.toString());
-                localStorage.setItem('wbds_last_write_date', today);
-            }
-
-            // Switch to Read View
-            setTimeout(() => {
-                setView('read');
-            }, 100);
-
+        // [SOUL LAYER] If it's a story and not forced, return for guidance modal
+        if (data.guidance_needed && !forced) {
             return data;
-        } catch (err) {
-            handleError("Connection lost. The Void is unreachable.");
-            return { error: true };
         }
-    };
 
-    const handleReport = (letterId) => {
-        setReportModalOpen(letterId);
-    };
+        const id = data.letter.id;
 
-    const submitReport = async (letterId, reason) => {
-        try {
-            // Send report to backend (implement API endpoint)
-            const res = await fetch('/api/letters/report', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ letterId, reason })
-            });
+        // Mark as owned (Local Persistence)
+        setMyLetterIds(prev => new Set(prev).add(id));
+        localStorage.setItem('wbds_last_sent', Date.now());
 
-            if (res.ok) {
-                setNotification({ message: 'Report submitted. Thank you for keeping WBDS safe.', type: 'success' });
-            } else {
-                throw new Error('Failed to report');
-            }
-        } catch (err) {
-            // Fallback: store locally if API fails or doesn't exist
-            const reports = JSON.parse(localStorage.getItem('wbds_reports') || '[]');
-            reports.push({ letterId, reason, timestamp: Date.now() });
-            localStorage.setItem('wbds_reports', JSON.stringify(reports));
-            setNotification({ message: 'Report recorded. Thank you.', type: 'success' });
+        // Update streak
+        const today = new Date().toDateString();
+        const lastWrite = localStorage.getItem('wbds_last_write_date');
+        const currentStreak = parseInt(localStorage.getItem('wbds_streak') || '0');
+
+        if (lastWrite !== today) {
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+            const newStreak = (lastWrite === yesterday || !lastWrite) ? currentStreak + 1 : 1;
+            localStorage.setItem('wbds_streak', newStreak.toString());
+            localStorage.setItem('wbds_last_write_date', today);
         }
-    };
 
-    const handleLike = async (letterId) => {
-        // Optimistic UI Update
-        const isLiked = likedLetters.has(letterId);
-        const delta = isLiked ? -1 : 1;
+        // Switch to Read View
+        setTimeout(() => {
+            setView('read');
+        }, 100);
 
-        // Update Local Set
+        return data;
+    } catch (err) {
+        handleError("Connection lost. The Void is unreachable.");
+        return { error: true };
+    }
+};
+
+const handleReport = (letterId) => {
+    setReportModalOpen(letterId);
+};
+
+const submitReport = async (letterId, reason) => {
+    try {
+        // Send report to backend (implement API endpoint)
+        const res = await fetch('/api/letters/report', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ letterId, reason })
+        });
+
+        if (res.ok) {
+            setNotification({ message: 'Report submitted. Thank you for keeping WBDS safe.', type: 'success' });
+        } else {
+            throw new Error('Failed to report');
+        }
+    } catch (err) {
+        // Fallback: store locally if API fails or doesn't exist
+        const reports = JSON.parse(localStorage.getItem('wbds_reports') || '[]');
+        reports.push({ letterId, reason, timestamp: Date.now() });
+        localStorage.setItem('wbds_reports', JSON.stringify(reports));
+        setNotification({ message: 'Report recorded. Thank you.', type: 'success' });
+    }
+};
+
+const handleLike = async (letterId) => {
+    // Optimistic UI Update
+    const isLiked = likedLetters.has(letterId);
+    const delta = isLiked ? -1 : 1;
+
+    // Update Local Set
+    setLikedLetters(prev => {
+        const next = new Set(prev);
+        if (isLiked) next.delete(letterId);
+        else next.add(letterId);
+        return next;
+    });
+
+    // Update Letter Count in State
+    setLetters(prev => prev.map(l =>
+        l.id === letterId ? { ...l, likes: (l.likes || 0) + delta } : l
+    ));
+
+    // API Call
+    try {
+        const res = await fetch('/api/letters/like', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ letter_id: letterId })
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error);
+
+        // Sync Local Set with Server Truth (Liked status only)
         setLikedLetters(prev => {
             const next = new Set(prev);
-            if (isLiked) next.delete(letterId);
-            else next.add(letterId);
+            if (data.liked) {
+                next.add(letterId);
+                setNotification({ message: 'Letter Liked.', type: 'success' });
+            } else {
+                next.delete(letterId);
+                setNotification({ message: 'Like removed.', type: 'info' });
+            }
             return next;
         });
 
-        // Update Letter Count in State
+    } catch (err) {
+        handleError("Like failed. The void is indifferent.");
+        setLikedLetters(prev => {
+            const next = new Set(prev);
+            if (isLiked) next.add(letterId);
+            else next.delete(letterId);
+            return next;
+        });
         setLetters(prev => prev.map(l =>
-            l.id === letterId ? { ...l, likes: (l.likes || 0) + delta } : l
+            l.id === letterId ? { ...l, likes: (l.likes || 0) - delta } : l
         ));
+    }
+};
+// --- BOTTLE FROM THE VOID LOGIC ---
+useEffect(() => {
+    const saved = localStorage.getItem('wbds_last_bottle');
+    if (saved) setLastBottleTime(parseInt(saved));
+}, []);
 
-        // API Call
-        try {
-            const res = await fetch('/api/letters/like', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ letter_id: letterId })
-            });
-            const data = await res.json();
+const handleOpenBottle = async () => {
+    const now = Date.now();
+    const cooldown = 24 * 60 * 60 * 1000; // 24 hours
 
-            if (!res.ok) throw new Error(data.error);
+    if (now - lastBottleTime < cooldown) {
+        const remaining = cooldown - (now - lastBottleTime);
+        const hours = Math.ceil(remaining / (1000 * 60 * 60));
+        setNotification({ message: `The sea is empty. Try again in ${hours}h.`, type: 'info' });
+        return;
+    }
 
-            // Sync Local Set with Server Truth (Liked status only)
-            setLikedLetters(prev => {
-                const next = new Set(prev);
-                if (data.liked) {
-                    next.add(letterId);
-                    setNotification({ message: 'Letter Liked.', type: 'success' });
-                } else {
-                    next.delete(letterId);
-                    setNotification({ message: 'Like removed.', type: 'info' });
-                }
-                return next;
-            });
+    try {
+        const res = await fetch('/api/letters/bottle');
+        const data = await res.json();
 
-        } catch (err) {
-            handleError("Like failed. The void is indifferent.");
-            setLikedLetters(prev => {
-                const next = new Set(prev);
-                if (isLiked) next.add(letterId);
-                else next.delete(letterId);
-                return next;
-            });
-            setLetters(prev => prev.map(l =>
-                l.id === letterId ? { ...l, likes: (l.likes || 0) - delta } : l
-            ));
+        if (data.letter) {
+            setSelectedLetter(data.letter);
+            localStorage.setItem('wbds_last_bottle', now.toString());
+            setLastBottleTime(now);
+            setNotification({ message: 'A bottle drifted from the void...', type: 'success' });
+        } else {
+            handleError("The bottle was empty.");
         }
-    };
-    // --- BOTTLE FROM THE VOID LOGIC ---
-    useEffect(() => {
-        const saved = localStorage.getItem('wbds_last_bottle');
-        if (saved) setLastBottleTime(parseInt(saved));
-    }, []);
+    } catch (err) {
+        handleError("The sea is too rough right now.");
+    }
+};
 
-    const handleOpenBottle = async () => {
-        const now = Date.now();
-        const cooldown = 24 * 60 * 60 * 1000; // 24 hours
+// Old handleDeleteLetter removed
 
-        if (now - lastBottleTime < cooldown) {
-            const remaining = cooldown - (now - lastBottleTime);
-            const hours = Math.ceil(remaining / (1000 * 60 * 60));
-            setNotification({ message: `The sea is empty. Try again in ${hours}h.`, type: 'info' });
-            return;
-        }
+return (
+    <div className="app-layout">
+        {/* SPLASH SCREEN */}
+        <div className={`splash-screen ${!showSplash ? 'fade-out' : ''}`} style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            background: '#000000',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            pointerEvents: showSplash ? 'auto' : 'none',
+            transition: 'opacity 0.8s ease-out',
+            opacity: showSplash ? 1 : 0
+        }}>
+            <img src="/splash-logo.png?v=3" alt="WB SD" style={{ width: '180px', height: 'auto' }} />
+        </div>
 
-        try {
-            const res = await fetch('/api/letters/bottle');
-            const data = await res.json();
+        {/* Only show Galaxy in Void theme or Chain view */}
+        {(view === 'chain' || currentTheme === 'void' || currentTheme === 'midnight' || currentTheme === 'synthwave') && <GalaxyBackground />}
 
-            if (data.letter) {
-                setSelectedLetter(data.letter);
-                localStorage.setItem('wbds_last_bottle', now.toString());
-                setLastBottleTime(now);
-                setNotification({ message: 'A bottle drifted from the void...', type: 'success' });
-            } else {
-                handleError("The bottle was empty.");
-            }
-        } catch (err) {
-            handleError("The sea is too rough right now.");
-        }
-    };
+        <CustomWallpaper theme={currentTheme} />
 
-    // Old handleDeleteLetter removed
+        <VoidClock />
 
-    return (
-        <div className="app-layout">
-            {/* SPLASH SCREEN */}
-            <div className={`splash-screen ${!showSplash ? 'fade-out' : ''}`} style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                background: '#000000',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 99999,
-                pointerEvents: showSplash ? 'auto' : 'none',
-                transition: 'opacity 0.8s ease-out',
-                opacity: showSplash ? 1 : 0
-            }}>
-                <img src="/splash-logo.png?v=3" alt="WB SD" style={{ width: '180px', height: 'auto' }} />
-            </div>
-
-            {/* Only show Galaxy in Void theme or Chain view */}
-            {(view === 'chain' || currentTheme === 'void' || currentTheme === 'midnight' || currentTheme === 'synthwave') && <GalaxyBackground />}
-
-            <CustomWallpaper theme={currentTheme} />
-
-            <VoidClock />
-
-            <style jsx>{`
+        <style jsx>{`
          .app-layout {
             display: flex;
             height: 100vh; /* Fixed height for viewport */
@@ -902,118 +887,118 @@ export default function Home() {
             }
             `}</style>
 
-            <div className="main-content">
-                {/* Header */}
-                <div className="nav-header">
-                    <span
-                        className={`nav-item ${view === 'write' ? 'active' : ''}`}
-                        onClick={() => setView('write')}
-                    >WBDS</span>
+        <div className="main-content">
+            {/* Header */}
+            <div className="nav-header">
+                <span
+                    className={`nav-item ${view === 'write' ? 'active' : ''}`}
+                    onClick={() => setView('write')}
+                >WBDS</span>
 
-                    <span
-                        className={`nav-item ${view === 'read' ? 'active' : ''}`}
-                        onClick={() => setView('read')}
-                    >READ</span>
+                <span
+                    className={`nav-item ${view === 'read' ? 'active' : ''}`}
+                    onClick={() => setView('read')}
+                >READ</span>
 
-                    <span
-                        className={`nav-item ${view === 'best' ? 'active' : ''}`}
-                        onClick={() => setView('best')}
-                    >BWBDS</span>
+                <span
+                    className={`nav-item ${view === 'best' ? 'active' : ''}`}
+                    onClick={() => setView('best')}
+                >BWBDS</span>
 
-                    <span
-                        className={`nav-item ${view === 'chain' ? 'active' : ''}`}
-                        onClick={() => setView('chain')}
-                    >FMWBDS</span>
+                <span
+                    className={`nav-item ${view === 'chain' ? 'active' : ''}`}
+                    onClick={() => setView('chain')}
+                >FMWBDS</span>
 
-                    <span
-                        className={`nav-item ${view === 'personal' ? 'active' : ''}`}
-                        onClick={() => setView('personal')}
-                    >YWBDS</span>
+                <span
+                    className={`nav-item ${view === 'personal' ? 'active' : ''}`}
+                    onClick={() => setView('personal')}
+                >YWBDS</span>
 
-                    {/* Integrated Void Bottle */}
-                    <button
-                        className={`nav-item void-nav-btn ${Date.now() - lastBottleTime >= 24 * 60 * 60 * 1000 ? 'ready' : ''}`}
-                        onClick={handleOpenBottle}
-                        title="Pick from the Void"
-                    >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-                        </svg>
-                    </button>
-                </div>
-
-                {/* VIEW: WRITE */}
-                {view === 'write' && (
-                    <div className="write-mode animate-enter">
-                        <div className="composer-wrapper">
-                            <LetterComposer
-                                onSend={handleLetterSent}
-                            />
-                        </div>
-                    </div>
-                )}
-
-                {/* VIEW: READ / BEST / SAVED */}
-                {(view === 'read' || view === 'best' || view === 'saved') && (
-                    <div className="animate-enter" style={{ zIndex: 10 }}>
-                        <LetterFeed
-                            letters={letters}
-                            onOpen={(l) => setSelectedLetter(l)}
-                            viewMode={view}
-                            myLetterIds={myLetterIds}
-                            onDelete={setDeleteTargetId}
-                            onLike={handleLike}
-                            likedLetters={likedLetters}
-                            onReport={handleReport}
-                            isAdmin={isAdmin} // [NEW]
-                            adminSecret={adminSecret} // [NEW]
-                            triggerModal={setModal} // [NEW]
-                        />
-                    </div>
-                )}
-
-                {/* VIEW: CHAIN (Global Graph) - Rendered at Root */}
-                {(view === 'chain' || view === 'personal') && (
-                    <GlobalGraph
-                        letters={view === 'personal' ? letters.filter(l => myLetterIds.has(l.id)) : letters}
-                        onNodeClick={setSelectedLetter}
-                    />
-                )}
-
-                {/* FOOTER */}
-                {(view !== 'chain') && (
-                    <StandardFooter
-                        onSettingsClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        isSettingsOpen={isSidebarOpen}
-                        letterCount={totalCount}
-                    />
-                )}
-                <div className="footer-spacer"></div>
+                {/* Integrated Void Bottle */}
+                <button
+                    className={`nav-item void-nav-btn ${Date.now() - lastBottleTime >= 24 * 60 * 60 * 1000 ? 'ready' : ''}`}
+                    onClick={handleOpenBottle}
+                    title="Pick from the Void"
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                    </svg>
+                </button>
             </div>
 
-            {/* SHARED MODAL */}
-            <LetterModal
-                letter={selectedLetter}
-                onClose={() => setSelectedLetter(null)}
-                isOwner={selectedLetter && myLetterIds.has(selectedLetter.id)}
-                onReply={handleReply}
-            />
-
-            {/* Delete Confirmation Modal */}
-            {deleteTargetId && (
-                <div className="delete-modal-overlay">
-                    <div className="delete-modal-card shake-anim">
-                        <h3>Burn this letter?</h3>
-                        <p>This action cannot be undone. The fragment will be lost to the void forever.</p>
-                        <div className="delete-actions">
-                            <button className="btn-keep" onClick={() => setDeleteTargetId(null)}>Keep</button>
-                            <button className="btn-burn" onClick={confirmDelete}>Burn Forever</button>
-                        </div>
+            {/* VIEW: WRITE */}
+            {view === 'write' && (
+                <div className="write-mode animate-enter">
+                    <div className="composer-wrapper">
+                        <LetterComposer
+                            onSend={handleLetterSent}
+                        />
                     </div>
                 </div>
             )}
 
-            <style jsx>{`
+            {/* VIEW: READ / BEST / SAVED */}
+            {(view === 'read' || view === 'best' || view === 'saved') && (
+                <div className="animate-enter" style={{ zIndex: 10 }}>
+                    <LetterFeed
+                        letters={letters}
+                        onOpen={(l) => setSelectedLetter(l)}
+                        viewMode={view}
+                        myLetterIds={myLetterIds}
+                        onDelete={setDeleteTargetId}
+                        onLike={handleLike}
+                        likedLetters={likedLetters}
+                        onReport={handleReport}
+                        isAdmin={isAdmin} // [NEW]
+                        adminSecret={adminSecret} // [NEW]
+                        triggerModal={setModal} // [NEW]
+                    />
+                </div>
+            )}
+
+            {/* VIEW: CHAIN (Global Graph) - Rendered at Root */}
+            {(view === 'chain' || view === 'personal') && (
+                <GlobalGraph
+                    letters={view === 'personal' ? letters.filter(l => myLetterIds.has(l.id)) : letters}
+                    onNodeClick={setSelectedLetter}
+                />
+            )}
+
+            {/* FOOTER */}
+            {(view !== 'chain') && (
+                <StandardFooter
+                    onSettingsClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    isSettingsOpen={isSidebarOpen}
+                    letterCount={totalCount}
+                />
+            )}
+            <div className="footer-spacer"></div>
+        </div>
+
+        {/* SHARED MODAL */}
+        <LetterModal
+            letter={selectedLetter}
+            onClose={() => setSelectedLetter(null)}
+            isOwner={selectedLetter && myLetterIds.has(selectedLetter.id)}
+            onReply={handleReply}
+        />
+
+        {/* Delete Confirmation Modal */}
+        {deleteTargetId && (
+            <div className="delete-modal-overlay">
+                <div className="delete-modal-card shake-anim">
+                    <h3>Burn this letter?</h3>
+                    <p>This action cannot be undone. The fragment will be lost to the void forever.</p>
+                    <div className="delete-actions">
+                        <button className="btn-keep" onClick={() => setDeleteTargetId(null)}>Keep</button>
+                        <button className="btn-burn" onClick={confirmDelete}>Burn Forever</button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        <style jsx>{`
                 .delete-modal-overlay {
                     position: fixed;
                     top: 0;
@@ -1123,114 +1108,114 @@ export default function Home() {
                 }
             `}</style>
 
-            {/* Global Notification */}
-            {notification && (
-                <VoidNotification
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => setNotification(null)}
-                />
-            )}
-
-            {/* Report Modal */}
-            <ReportModal
-                isOpen={!!reportModalOpen}
-                onClose={() => setReportModalOpen(null)}
-                onSubmit={(reason) => submitReport(reportModalOpen, reason)}
+        {/* Global Notification */}
+        {notification && (
+            <VoidNotification
+                message={notification.message}
+                type={notification.type}
+                onClose={() => setNotification(null)}
             />
+        )}
 
-            {/* Settings Sidebar */}
-            <AppearancePanel
-                isOpen={isSidebarOpen}
-                onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-                onClose={() => setIsSidebarOpen(false)}
-                letters={letters}
-                onOpenLetter={(letter) => setSelectedLetter(letter)}
-                onShowSaved={() => setView('saved')}
-                currentView={view}
-                triggerModal={setModal} // [NEW] Pass modal trigger
-            />
+        {/* Report Modal */}
+        <ReportModal
+            isOpen={!!reportModalOpen}
+            onClose={() => setReportModalOpen(null)}
+            onSubmit={(reason) => submitReport(reportModalOpen, reason)}
+        />
 
-            {/* Daily Whisper Prompt */}
-            <VoidWhisper />
+        {/* Settings Sidebar */}
+        <AppearancePanel
+            isOpen={isSidebarOpen}
+            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+            onClose={() => setIsSidebarOpen(false)}
+            letters={letters}
+            onOpenLetter={(letter) => setSelectedLetter(letter)}
+            onShowSaved={() => setView('saved')}
+            currentView={view}
+            triggerModal={setModal} // [NEW] Pass modal trigger
+        />
 
-            {/* Keyboard Shortcuts Modal */}
-            {showShortcuts && (
+        {/* Daily Whisper Prompt */}
+        <VoidWhisper />
+
+        {/* Keyboard Shortcuts Modal */}
+        {showShortcuts && (
+            <div
+                style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 99999
+                }}
+                onClick={() => setShowShortcuts(false)}
+            >
                 <div
                     style={{
-                        position: 'fixed',
-                        inset: 0,
-                        background: 'rgba(0, 0, 0, 0.3)',
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 99999
+                        background: 'rgba(30, 30, 30, 0.6)',
+                        backdropFilter: 'blur(30px)',
+                        WebkitBackdropFilter: 'blur(30px)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: 32,
+                        padding: '28px 32px',
+                        minWidth: 320,
+                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
                     }}
-                    onClick={() => setShowShortcuts(false)}
+                    onClick={(e) => e.stopPropagation()}
                 >
-                    <div
-                        style={{
-                            background: 'rgba(30, 30, 30, 0.6)',
-                            backdropFilter: 'blur(30px)',
-                            WebkitBackdropFilter: 'blur(30px)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            borderRadius: 32,
-                            padding: '28px 32px',
-                            minWidth: 320,
-                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 style={{ margin: '0 0 20px 0', fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', textAlign: 'center' }}>
-                            Keyboard Shortcuts
-                        </h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                            {[
-                                ['Alt + W', 'WBDS (Write)'],
-                                ['Alt + R', 'Read Letters'],
-                                ['Alt + A', 'BWBDS (Best)'],
-                                ['Alt + F', 'FMWBDS (Fragments)'],
-                                ['Alt + Y', 'YWBDS (Your Letters)'],
-                                ['Alt + E', 'Toggle Sidebar'],
-                                ['Alt + /', 'Show Shortcuts']
-                            ].map(([key, desc]) => (
-                                <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 24 }}>
-                                    <span style={{
-                                        background: 'rgba(255, 255, 255, 0.1)',
-                                        padding: '6px 12px',
-                                        borderRadius: 8,
-                                        fontFamily: "'JetBrains Mono', monospace",
-                                        fontSize: 13,
-                                        color: 'var(--text-primary)',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)'
-                                    }}>{key}</span>
-                                    <span style={{ color: 'var(--text-secondary)', fontSize: 14 }}>{desc}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <button
-                            onClick={() => setShowShortcuts(false)}
-                            style={{
-                                marginTop: 24,
-                                width: '100%',
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                color: 'var(--text-primary)',
-                                padding: 12,
-                                borderRadius: 12,
-                                cursor: 'pointer',
-                                fontSize: 14
-                            }}
-                        >Close</button>
+                    <h3 style={{ margin: '0 0 20px 0', fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', textAlign: 'center' }}>
+                        Keyboard Shortcuts
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {[
+                            ['Alt + W', 'WBDS (Write)'],
+                            ['Alt + R', 'Read Letters'],
+                            ['Alt + A', 'BWBDS (Best)'],
+                            ['Alt + F', 'FMWBDS (Fragments)'],
+                            ['Alt + Y', 'YWBDS (Your Letters)'],
+                            ['Alt + E', 'Toggle Sidebar'],
+                            ['Alt + /', 'Show Shortcuts']
+                        ].map(([key, desc]) => (
+                            <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 24 }}>
+                                <span style={{
+                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    padding: '6px 12px',
+                                    borderRadius: 8,
+                                    fontFamily: "'JetBrains Mono', monospace",
+                                    fontSize: 13,
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                                }}>{key}</span>
+                                <span style={{ color: 'var(--text-secondary)', fontSize: 14 }}>{desc}</span>
+                            </div>
+                        ))}
                     </div>
+                    <button
+                        onClick={() => setShowShortcuts(false)}
+                        style={{
+                            marginTop: 24,
+                            width: '100%',
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            color: 'var(--text-primary)',
+                            padding: 12,
+                            borderRadius: 12,
+                            cursor: 'pointer',
+                            fontSize: 14
+                        }}
+                    >Close</button>
                 </div>
-            )}
-            {/* CUSTOM VOID MODAL */}
-            <VoidModal
-                {...modal}
-            />
-        </div>
-    );
+            </div>
+        )}
+        {/* CUSTOM VOID MODAL */}
+        <VoidModal
+            {...modal}
+        />
+    </div>
+);
 }

@@ -1,16 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '../../../lib/supabase-admin';
 
 export const runtime = 'edge';
 
-const supabaseAdmin = (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
-    ? createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.SUPABASE_SERVICE_ROLE_KEY
-    )
-    : null;
-
 export default async function LetterPage({ params }) {
     const { id } = params;
+    const supabaseAdmin = getSupabaseAdmin();
 
     if (!supabaseAdmin) {
         return (

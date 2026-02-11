@@ -1,11 +1,23 @@
+import { getSupabase } from '../../../lib/supabase';
+import { getSupabaseAdmin } from '../../../lib/supabase-admin';
+
 export const runtime = 'edge';
 
 export async function GET() {
-    // Ultra-simple response to bypass any potential library crashes
+    // Ultra-resilient check for environment variables and the suspected typo
     const data = {
         status: "alive",
-        url_check: process.env.NEXT_PUBLIC_SUPABASE_URL ? "FOUND" : "NOT_FOUND",
-        anon_check: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "FOUND" : "NOT_FOUND",
+        envs: {
+            URL: process.env.NEXT_PUBLIC_SUPABASE_URL ? "FOUND" : "NOT_FOUND",
+            ANON: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "FOUND" : "NOT_FOUND",
+            SERVICE_ROLE: process.env.SUPABASE_SERVICE_ROLE_KEY ? "FOUND" : "NOT_FOUND",
+            TYPO_CHECK: process.env.SUPABASE_SERVICF_ROLE_KEY ? "FOUND_TYPO_SERVICF" : "OK",
+            NODE: process.env.NODE_VERSION || "NOT_SET"
+        },
+        initialization: {
+            client: !!getSupabase(),
+            admin: !!getSupabaseAdmin()
+        },
         time: new Date().toISOString()
     };
 

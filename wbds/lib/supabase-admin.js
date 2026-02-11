@@ -13,14 +13,16 @@ export const getSupabaseAdmin = () => {
         return null;
     }
 
-    adminInstance = createClient(url, key, {
-        auth: {
-            autoRefreshToken: false,
-            persistSession: false
-        }
-    });
-    return adminInstance;
+    try {
+        adminInstance = createClient(url, key, {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false
+            }
+        });
+        return adminInstance;
+    } catch (e) {
+        console.error("Supabase Admin: Failed to create client", e);
+        return null;
+    }
 };
-
-// Keep for backward compatibility
-export const supabaseAdmin = getSupabaseAdmin();

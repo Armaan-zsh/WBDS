@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '../../../../lib/supabase-admin';
+import { getSupabaseAdmin } from '../../../../lib/supabase-admin';
 
 export const runtime = 'edge';
 import { z } from 'zod';
@@ -17,6 +17,10 @@ const ActionSchema = z.object({
 });
 
 export async function POST(req) {
+    const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) {
+        return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+    }
     try {
         // Auth check
         const authHeader = req.headers.get('authorization');

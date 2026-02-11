@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '../../../lib/supabase-admin';
+import { getSupabaseAdmin } from '../../../lib/supabase-admin';
 
 export const runtime = 'edge';
 import { headers } from 'next/headers';
@@ -40,6 +40,7 @@ const hasCrisisKeywords = (text) => {
 };
 
 export async function POST(req) {
+    const supabaseAdmin = getSupabaseAdmin();
     if (!supabaseAdmin) {
         return NextResponse.json(
             { error: 'Server misconfigured: Missing Service Role Key' },

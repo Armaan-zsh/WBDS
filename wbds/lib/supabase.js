@@ -13,14 +13,11 @@ export const getSupabase = () => {
         return null;
     }
 
-    supabaseInstance = createClient(url, key);
-    return supabaseInstance;
+    try {
+        supabaseInstance = createClient(url, key);
+        return supabaseInstance;
+    } catch (e) {
+        console.error("Supabase: Failed to create client", e);
+        return null;
+    }
 };
-
-// Log a warning if variables are missing at the top level (for debugging)
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    console.warn("Supabase: URL missing at top-level scope.");
-}
-
-// Keep the old export for backward compatibility but use the getter internally where possible
-export const supabase = getSupabase();
