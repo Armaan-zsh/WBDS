@@ -19,6 +19,12 @@ export default function AdminReports() {
     const ADMIN_SECRET = (process.env.NEXT_PUBLIC_ADMIN_SECRET || 'wbds-admin').trim();
 
     const fetchReports = useCallback(async () => {
+        if (!supabase) {
+            console.error("Supabase client not initialized.");
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         const table = activeTab === 'letters' ? 'letter_reports' : 'feedback';
 

@@ -12,6 +12,25 @@ const supabaseAdmin = (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPAB
 export default async function LetterPage({ params }) {
     const { id } = params;
 
+    if (!supabaseAdmin) {
+        return (
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#0a0a0a',
+                color: '#fff'
+            }}>
+                <div style={{ textAlign: 'center', padding: 40 }}>
+                    <h1 style={{ fontSize: 24, marginBottom: 12 }}>Connection Offline</h1>
+                    <p style={{ color: '#888', marginBottom: 24 }}>The void is unreachable. Check your environment configuration.</p>
+                    <a href="/" style={{ color: '#d4af37', textDecoration: 'none' }}>← Return to the Void</a>
+                </div>
+            </div>
+        );
+    }
+
     // Fetch the letter
     const { data: letter, error } = await supabaseAdmin
         .from('letters')

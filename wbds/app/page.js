@@ -232,6 +232,11 @@ export default function Home() {
     const confirmDelete = async () => {
         if (!deleteTargetId) return;
 
+        if (!supabase) {
+            handleError("The void is disconnected. Please check environment variables.");
+            return;
+        }
+
         const { error } = await supabase
             .from('letters')
             .delete()
@@ -377,6 +382,11 @@ export default function Home() {
         const fetchLetters = async () => {
             let data, error;
 
+            if (!supabase) {
+                console.warn('Supabase client not initialized. Pulse skipped.');
+                return;
+            }
+
             // Fetch Total Count for Pulse (Run once on load)
             const { count } = await supabase.from('letters').select('*', { count: 'exact', head: true });
             if (count) setTotalCount(count);
@@ -394,6 +404,8 @@ export default function Home() {
                 // If in 'chain' (Graph) mode, we fetch MORE (500) to populate the sky.
                 // If in 'read' (Feed) mode, we fetch LESS (50) for speed.
                 const limit = (view === 'chain' || view === 'personal') ? 500 : 50;
+
+                if (!supabase) return;
 
                 const result = await supabase
                     .from('letters')
@@ -420,6 +432,8 @@ export default function Home() {
 
     // Realtime Subscription (Run Once)
     useEffect(() => {
+        if (!supabase) return;
+
         const channel = supabase
             .channel('public:letters')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'letters' }, (payload) => {
@@ -450,7 +464,7 @@ export default function Home() {
             .subscribe();
 
         return () => {
-            supabase.removeChannel(channel);
+            if (supabase) supabase.removeChannel(channel);
         };
     }, []);
 
