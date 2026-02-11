@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabase-admin';
+import { headers } from 'next/headers';
+import { hashIp } from '../../../../lib/edge-crypto';
 
 export const runtime = 'edge';
-import { headers } from 'next/headers';
-import crypto from 'crypto';
-
 export const dynamic = 'force-dynamic';
 
 export async function POST(req) {
@@ -25,12 +24,9 @@ export async function POST(req) {
         const forwardedFor = headersList.get('x-forwarded-for');
         const ip = forwardedFor ? forwardedFor.split(',')[0] : '127.0.0.1';
 
-        // 2. Hash IP with Salt for Anonymity + Uniqueness
+        // 2. Hash IP with Salt for Anonymity + Uniqueness (Edge-compatible)
         const salt = process.env.ENGAGEMENT_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY || 'wbds_void_salt';
-        const hashedIp = crypto
-            .createHmac('sha256', salt)
-            .update(ip)
-            .digest('hex');
+        const hashedIp = await hashIp(ip, salt);
 
         // 3. Log Engagement (Type: view)
         // PostgreSQL Trigger (which user will add) handles the increment on 'letters' table
