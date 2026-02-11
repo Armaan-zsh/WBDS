@@ -3,11 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl) throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL');
-// Note: We don't throw for Service Key immediately to allow build, 
-// but API routes will fail if it's missing.
-
-export const supabaseAdmin = supabaseServiceKey
+// Don't throw during build time if env vars are missing
+// Next.js will often try to pre-render or analyze these routes
+export const supabaseAdmin = (supabaseUrl && supabaseServiceKey)
     ? createClient(supabaseUrl, supabaseServiceKey, {
         auth: {
             autoRefreshToken: false,
