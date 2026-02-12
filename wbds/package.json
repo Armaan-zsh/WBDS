@@ -29,6 +29,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "esbuild": "^0.25.0",
     "typescript": "^5",
     "wrangler": "^4.64.0"
   }
