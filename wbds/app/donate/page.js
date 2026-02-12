@@ -25,6 +25,20 @@ export default function DonatePage() {
                             <p>
                                 WBDS runs on real servers that cost real money. If this space has meant something to you, even a small contribution helps cover hosting and keeps the project independent. No middlemen, no accounts, no strings attached.
                             </p>
+
+                            <div className="goals-section">
+                                <h3 className="goals-title">Why I am asking for donations?</h3>
+                                <ul className="goals-list">
+                                    <li>
+                                        <div className="goal-check"></div>
+                                        <span>personal domain</span>
+                                    </li>
+                                    <li>
+                                        <div className="goal-check"></div>
+                                        <span>self hosting</span>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                         <div className="wallet-cards">
                             <button
@@ -116,6 +130,47 @@ export default function DonatePage() {
                 }
 
                 .donate-content p strong { color: #ffffff; font-weight: 600; }
+
+                .goals-section {
+                    margin-top: 32px;
+                    padding: 24px;
+                    background: rgba(255, 255, 255, 0.02);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    border-radius: 20px;
+                }
+
+                .goals-title {
+                    font-size: 18px;
+                    color: #ffffff;
+                    margin: 0 0 16px 0;
+                    font-weight: 500;
+                    letter-spacing: -0.01em;
+                }
+
+                .goals-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+
+                .goals-list li {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    color: #a1a1a6;
+                    font-size: 16px;
+                }
+
+                .goal-check {
+                    width: 18px;
+                    height: 18px;
+                    border: 1.5px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 5px;
+                    flex-shrink: 0;
+                }
 
                 .anon-quote {
                     font-size: 15px;
