@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && mkdir -p .vercel/output/static && cp -r .open-next/* .vercel/output/static/ && mv .vercel/output/static/worker.js .vercel/output/static/_worker.js"
+    "deploy": "opennextjs-cloudflare build && mkdir -p .vercel/output/static && cp -a .open-next/. .vercel/output/static/ && mv .vercel/output/static/worker.js .vercel/output/static/_worker.js"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^0.6.6",
