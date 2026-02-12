@@ -6,6 +6,10 @@ export const metadata = {
     title: 'WBDS',
     description: 'Write it. Don\'t send it. Let it go.',
     viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, interactive-widget=resizes-content', // Prevent zooming and handle keyboard properly
+    icons: {
+        icon: '/splash-logo.png',
+        apple: '/splash-logo.png',
+    }
 };
 
 export default function RootLayout({ children }) {

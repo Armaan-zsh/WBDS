@@ -783,7 +783,9 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
                                     <line x1="12" y1="2" x2="12" y2="15" />
                                 </svg>
                             </button>
-                            <span className="timestamp">{new Date(letter.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span className="timestamp">
+                                {new Date(letter.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })} • {new Date(letter.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
                         </div>
                     </div>
                 </div>
