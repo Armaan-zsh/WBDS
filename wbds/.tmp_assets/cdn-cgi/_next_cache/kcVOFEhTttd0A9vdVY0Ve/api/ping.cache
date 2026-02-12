@@ -1,0 +1,1 @@
+{"type":"route","meta":{"status":200,"headers":{"content-type":"application/json","x-next-cache-tags":"_N_T_/layout,_N_T_/api/layout,_N_T_/api/ping/layout,_N_T_/api/ping/route,_N_T_/api/ping"}},"body":"{\"ping\":\"pong\",\"platform\":\"cloudflare-edge\",\"time\":\"2026-02-11T18:51:06.740Z\"}"}
