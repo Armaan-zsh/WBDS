@@ -707,12 +707,6 @@ export default function Home() {
                     }}>{currentTip.content}</p>
                 </div>
 
-                <style jsx>{`
-                    @keyframes fadeInUp {
-                        from { opacity: 0; transform: translateY(20px); }
-                        to { opacity: 1; transform: translateY(0); }
-                    }
-                `}</style>
             </div>
 
             {/* Only show Galaxy in Void theme or Chain view */}
@@ -723,6 +717,11 @@ export default function Home() {
             <VoidClock />
 
             <style jsx>{`
+                @keyframes fadeInUp {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
          .app-layout {
             display: flex;
             height: 100vh; /* Fixed height for viewport */
