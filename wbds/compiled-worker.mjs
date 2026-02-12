@@ -16,10 +16,24 @@ export default {
         return cloudflareContextALS.run({ env, ctx, cf: request.cf }, async () => {
             const url = new URL(request.url);
 
-            if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/static/")) {
-                return env.ASSETS?.fetch(request);
+            // Static assets optimization
+            if (
+                url.pathname.startsWith("/_next/static/") ||
+                url.pathname.startsWith("/static/") ||
+                url.pathname.endsWith(".png") ||
+                url.pathname.endsWith(".ico") ||
+                url.pathname.endsWith(".svg") ||
+                url.pathname.endsWith(".jpg") ||
+                url.pathname.endsWith(".mp3") ||
+                url.pathname.endsWith(".json")
+            ) {
+                const response = await env.ASSETS?.fetch(request);
+                if (response && response.status !== 404) {
+                    return response;
+                }
             }
 
+            // Image optimization proxy
             if (url.pathname === "/_next/image") {
                 const imageUrl = url.searchParams.get("url") ?? "";
                 return imageUrl.startsWith("/")
