@@ -38,6 +38,9 @@ yarn-error.log*
 
 # opennext
 .open-next
+.tmp_*
+test_bundle.js
+worker.*.js
 
 # typescript
 *.tsbuildinfo
