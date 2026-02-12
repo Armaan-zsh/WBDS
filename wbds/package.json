@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && mkdir -p .vercel/output/static && esbuild .open-next/worker.js --bundle --outfile=.vercel/output/static/_worker.js --platform=node --format=esm --target=esnext --minify --external:cloudflare:* --external:node:* --alias:async_hooks=node:async_hooks --alias:events=node:events --alias:buffer=node:buffer --alias:util=node:util --alias:stream=node:stream --alias:path=node:path --alias:fs=node:fs --alias:url=node:url --alias:crypto=node:crypto --alias:vm=node:vm --alias:tty=node:tty --alias:os=node:os --alias:http=node:http --alias:https=node:https --banner:js=\"var require = (id) => { if (id.startsWith('node:')) id = id.slice(5); if (id === 'async_hooks') return { AsyncLocalStorage: globalThis.AsyncLocalStorage }; if (id === 'events') return { EventEmitter: globalThis.EventEmitter }; if (id === 'buffer') return { Buffer: globalThis.Buffer }; if (id === 'process') return globalThis.process; return {}; };\" && cp -r .open-next/assets/* .vercel/output/static/"
+    "deploy": "opennextjs-cloudflare build && mkdir -p .vercel/output/static && esbuild compiled-worker.mjs --bundle --outfile=.vercel/output/static/_worker.js --platform=node --format=esm --target=esnext --minify --banner:js=\"$(cat banner.js)\" --external:cloudflare:* --external:node:* && cp -r .open-next/assets/* .vercel/output/static/"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^0.6.6",
