@@ -241,19 +241,16 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
         }
 
         .pin-btn {
-            position: absolute;
-            top: 24px;
-            right: 90px;
             background: transparent;
             border: none;
             color: var(--text-secondary);
-            padding: 0;
-            width: 24px;
-            height: 24px;
-            opacity: 0;
-            transition: all 0.3s ease;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
             cursor: pointer;
-            z-index: 10;
+            opacity: 0.6;
         }
 
         .pin-btn.pinned {
@@ -261,21 +258,8 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
             opacity: 1 !important;
         }
 
-        @media (hover: hover) {
-            .letter-card:hover .pin-btn {
-                opacity: 0.5;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .pin-btn {
-                opacity: 0.3;
-                top: 16px;
-                right: 85px;
-            }
-        }
-
         .pin-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
             opacity: 1 !important;
             transform: scale(1.1);
         }
@@ -350,110 +334,62 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
         }
         
         .delete-btn {
-            position: absolute;
-            top: 24px;
-            right: 24px;
             background: transparent;
             border: none;
-            color: #444; /* Very subtle default */
-            padding: 0;
-            width: 24px;
-            height: 24px;
-            opacity: 0;
-            transition: all 0.4s ease;
+            color: var(--text-secondary);
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
             cursor: pointer;
-            z-index: 10;
-        }
-
-        @media (max-width: 768px) {
-          .delete-btn {
-            opacity: 0.3; /* visible on mobile */
-            top: 16px;
-            right: 16px;
-          }
-        }
-        
-        @media (hover: hover) {
-          .letter-card:hover .delete-btn {
-            opacity: 0.2; /* faint hint */
-          }
+            opacity: 0.4;
         }
         
         .delete-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
             opacity: 1 !important;
-            color: #888; /* Just slightly brighter, not red */
-            transform: scale(1.1); /* light pop */
-        }
-
-        .report-btn {
-            position: absolute;
-            top: 15px;
-            right: 55px;
-            background: rgba(255, 152, 0, 0.1);
-            color: #ff9800;
-            border: 1px solid #ff9800;
-            width: 32px;
-            height: 32px;
-            min-width: 32px;
-            min-height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            font-size: 14px;
-            line-height: 1;
-            z-index: 10;
-        }
-
-        @media (max-width: 768px) {
-          .report-btn {
-            opacity: 0.6;
-            width: 36px;
-            height: 36px;
-            min-width: 36px;
-            min-height: 36px;
-            top: 12px;
-            right: 50px;
-          }
-        }
-        
-        @media (hover: hover) {
-          .letter-card:hover .report-btn {
-            opacity: 1;
-          }
-        }
-        
-        .report-btn:hover {
-            background: #ff9800;
-            color: white;
+            color: var(--text-primary);
             transform: scale(1.1);
         }
 
+        .report-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            padding: 4px 8px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0.5;
+        }
+
+        .report-btn:hover {
+            color: #ff9800;
+            opacity: 1;
+        }
+
         .admin-tools {
-            position: absolute;
-            top: 15px;
-            right: 15px;
             display: flex;
             gap: 8px;
-            z-index: 20;
+            align-items: center;
         }
 
         .admin-btn {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.3);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 12px;
             transition: all 0.2s ease;
-            backdrop-filter: blur(5px);
         }
 
         .admin-btn:hover {
@@ -674,52 +610,6 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
                         }
                     }}
                 >
-                    {/* Report button - visible for all letters except own */}
-                    {onReport && (!myLetterIds || !myLetterIds.has(letter.id)) && (
-                        <button
-                            className="report-btn"
-                            onClick={(e) => { e.stopPropagation(); onReport(letter.id); }}
-                            title="Report inappropriate content"
-                        >⚠</button>
-                    )}
-
-                    {/* ADMIN TOOLS - Double Locked */}
-                    {isAdmin && (
-                        <div className="admin-tools">
-                            <button
-                                className="admin-btn burn"
-                                onClick={(e) => handleAdminAction(e, 'burn', letter.id)}
-                                title="Burn Letter (Instant Delete)"
-                            >🔥</button>
-                            <button
-                                className="admin-btn ban"
-                                onClick={(e) => handleAdminAction(e, 'shadow_ban', letter.id, letter.ip_address, letter.browser_fingerprint)}
-                                title="Shadow Ban User"
-                            >🚫</button>
-                        </div>
-                    )}
-                    {myLetterIds && myLetterIds.has(letter.id) && (
-                        <button
-                            className="delete-btn"
-                            onClick={(e) => { e.stopPropagation(); onDelete(letter.id); }}
-                            title="Delete your letter"
-                        >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            </svg>
-                        </button>
-                    )}
-                    {/* Pin button */}
-                    <button
-                        className={`pin-btn ${pinnedLetters.has(letter.id) ? 'pinned' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); togglePin(letter.id); }}
-                        title={pinnedLetters.has(letter.id) ? 'Unpin letter' : 'Pin letter'}
-                    >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill={pinnedLetters.has(letter.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                    </button>
                     <div className={`letter-content ${letter.is_locked ? 'locked-content' : ''} ${pinnedLetters.has(letter.id) ? 'pinned' : ''}`}>
                         {letter.is_locked ? (
                             <div className="locked-overlay">
@@ -746,6 +636,39 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
                     <div className="letter-meta">
                         <span>Anonymous</span>
                         <div className="action-bar">
+                            {/* Report button - visible for all letters except own */}
+                            {onReport && (!myLetterIds || !myLetterIds.has(letter.id)) && (
+                                <button
+                                    className="report-btn"
+                                    onClick={(e) => { e.stopPropagation(); onReport(letter.id); }}
+                                >Report</button>
+                            )}
+
+                            {/* Pin button */}
+                            <button
+                                className={`pin-btn ${pinnedLetters.has(letter.id) ? 'pinned' : ''}`}
+                                onClick={(e) => { e.stopPropagation(); togglePin(letter.id); }}
+                                title={pinnedLetters.has(letter.id) ? 'Unpin letter' : 'Pin letter'}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill={pinnedLetters.has(letter.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </button>
+
+                            {/* Delete button (Owner only) */}
+                            {myLetterIds && myLetterIds.has(letter.id) && (
+                                <button
+                                    className="delete-btn"
+                                    onClick={(e) => { e.stopPropagation(); onDelete(letter.id); }}
+                                    title="Delete your letter"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                </button>
+                            )}
+
                             {/* WITNESS COUNT */}
                             <div className="witness-badge" title="Witnesses">
                                 <svg width="16" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -764,6 +687,7 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
                                 </svg>
                                 {letter.likes > 0 && <span className="like-count">{letter.likes}</span>}
                             </button>
+                            {/* Share button */}
                             <button
                                 className="share-btn"
                                 onClick={(e) => {
@@ -783,6 +707,23 @@ export default function LetterFeed({ letters, onOpen, onDelete, myLetterIds, onL
                                     <line x1="12" y1="2" x2="12" y2="15" />
                                 </svg>
                             </button>
+
+                            {/* ADMIN TOOLS (Moderator only) */}
+                            {isAdmin && (
+                                <div className="admin-tools">
+                                    <button
+                                        className="admin-btn burn"
+                                        onClick={(e) => handleAdminAction(e, 'burn', letter.id)}
+                                        title="Burn Letter (Instant Delete)"
+                                    >🔥</button>
+                                    <button
+                                        className="admin-btn ban"
+                                        onClick={(e) => handleAdminAction(e, 'shadow_ban', letter.id, letter.ip_address, letter.browser_fingerprint)}
+                                        title="Shadow Ban User"
+                                    >🚫</button>
+                                </div>
+                            )}
+
                             <span className="timestamp">
                                 {new Date(letter.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })} • {new Date(letter.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
