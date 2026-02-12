@@ -688,8 +688,7 @@ export default function Home() {
                     maxWidth: '400px',
                     textAlign: 'center',
                     animation: 'fadeInUp 0.8s ease forwards',
-                    animationDelay: '0.4s',
-                    opacity: 0
+                    animationDelay: '0.2s'
                 }}>
                     <span style={{
                         fontSize: '12px',
@@ -717,7 +716,7 @@ export default function Home() {
             <VoidClock />
 
             <style jsx>{`
-                @keyframes fadeInUp {
+                @keyframes :global(fadeInUp) {
                     from { opacity: 0; transform: translateY(20px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
