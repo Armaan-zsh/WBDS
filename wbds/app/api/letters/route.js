@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../lib/supabase-admin';
+import { hashIp } from '../../../lib/edge-crypto';
 
 import { headers } from 'next/headers';
 import { maskPrivateInfo } from '../../../utils/privacyShield';
@@ -175,12 +176,15 @@ export async function POST(req) {
         }
 
         // 4. Insert Letter
+        // [SECURITY] Hash the IP for permanent anonymity before storage
+        const hashedIp = await hashIp(ip, process.env.ADMIN_SECRET || 'void-salt');
+
         const { data: letter, error: insertError } = await supabaseAdmin
             .from('letters')
             .insert([
                 {
                     content: safeContent,
-                    ip_address: ip,
+                    ip_address: hashedIp,
                     theme,
                     location_lat: lat,
                     location_lng: lng,
