@@ -28,6 +28,17 @@ const RealtimeGlobe = dynamic(() => import('../components/Live/RealtimeGlobe'), 
     loading: () => <div style={{ color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>Scanning Deep Space...</div>
 });
 
+const LOADING_TIPS = [
+    { title: "WBDS", content: "Wrote But Didn't Send. The heart of this sanctuary." },
+    { title: "BWBDS", content: "Best Wrote But Didn't Send. The collective soul of the Void." },
+    { title: "FMWBDS", content: "Fragments Wrote But Didn't Send. Moments lost in time." },
+    { title: "YWBDS", content: "Your Wrote But Didn't Send. Your private corner of the Void." },
+    { title: "DID YOU KNOW?", content: "Alt + / reveals all hidden keyboard shortcuts." },
+    { title: "POWER USER", content: "Alt + W lets you start writing instantly from anywhere." },
+    { title: "THE VOID", content: "A sanctuary for pure anonymity. Unburden your heart." },
+    { title: "DID YOU KNOW?", content: "Alt + E toggles the sidebar for quick theme changes." }
+];
+
 export default function Home() {
     const [letters, setLetters] = useState([]);
     const [notification, setNotification] = useState(null);
@@ -53,6 +64,7 @@ export default function Home() {
     const [isAdmin, setIsAdmin] = useState(false); // [NEW] Admin Toggle
     const [adminSecret, setAdminSecret] = useState(null); // [NEW] Admin Token
     const [modal, setModal] = useState({ isOpen: false, type: 'alert', title: '', message: '', onConfirm: () => { }, onCancel: () => { } }); // [NEW] Custom Modal
+    const [currentTip, setCurrentTip] = useState(LOADING_TIPS[0]);
 
     // Keyboard Shortcuts
     useEffect(() => {
@@ -101,6 +113,10 @@ export default function Home() {
 
     // Splash Screen Timer
     useEffect(() => {
+        // Pick a random tip
+        const randomTip = LOADING_TIPS[Math.floor(Math.random() * LOADING_TIPS.length)];
+        setCurrentTip(randomTip);
+
         const timer = setTimeout(() => {
             setShowSplash(false);
         }, 2200); // 2.2 seconds (slightly over 2s for smoothness)
@@ -653,14 +669,50 @@ export default function Home() {
                 height: '100%',
                 background: '#000000',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 zIndex: 99999,
                 pointerEvents: showSplash ? 'auto' : 'none',
                 transition: 'opacity 0.8s ease-out',
-                opacity: showSplash ? 1 : 0
+                opacity: showSplash ? 1 : 0,
+                gap: '40px'
             }}>
                 <img src="/splash-logo.png?v=3" alt="WB SD" style={{ width: '180px', height: 'auto' }} />
+
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '12px',
+                    maxWidth: '400px',
+                    textAlign: 'center',
+                    animation: 'fadeInUp 0.8s ease forwards',
+                    animationDelay: '0.4s',
+                    opacity: 0
+                }}>
+                    <span style={{
+                        fontSize: '12px',
+                        fontWeight: '900',
+                        letterSpacing: '3px',
+                        color: 'rgba(255, 255, 255, 0.4)',
+                        textTransform: 'uppercase'
+                    }}>{currentTip.title}</span>
+                    <p style={{
+                        fontSize: '15px',
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        lineHeight: '1.6',
+                        margin: 0,
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif'
+                    }}>{currentTip.content}</p>
+                </div>
+
+                <style jsx>{`
+                    @keyframes fadeInUp {
+                        from { opacity: 0; transform: translateY(20px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                `}</style>
             </div>
 
             {/* Only show Galaxy in Void theme or Chain view */}
